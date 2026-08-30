@@ -859,10 +859,12 @@
   #view-dieta .empty { color: #ABA9A0; font-size: 12.5px; padding: 12px 0; text-align: center; }
   #view-dieta .date-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
   #view-dieta .food-search-results { max-height: 220px; overflow-y: auto; background: #FFFFFF; border: 1px solid #D9D7CD; border-radius: 6px; margin-top: 4px; box-shadow: 0 4px 12px rgba(30,33,29,0.08); position: absolute; width: 100%; z-index: 10; }
-  #view-dieta .food-result-item { padding: 8px 10px; font-size: 12.5px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; }
+  #view-dieta .food-result-item { padding: 8px 10px; font-size: 12.5px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  #view-dieta .food-result-item > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  #view-dieta .food-result-item > span:last-child { flex-shrink: 0; font-size: 10.5px; }
   #view-dieta .food-result-item:hover { background: #EAF3EC; }
   #view-dieta .result-section-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: #2F7D4F; padding: 7px 10px 3px; }
-  #view-dieta .result-section-label.warn { color: #B08A3E; border-top: 1px solid #F0EFE8; }
+  #view-dieta .result-section-label.warn { color: #C4573F; border-top: 1px solid #F0EFE8; }
   #view-dieta .result-section-label.mine { color: #3B7EC4; border-top: 1px solid #F0EFE8; }
   #view-dieta .weekday-block { margin-bottom: 10px; }
   #view-dieta .weekday-block label { font-size: 11px; color: #86897F; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 4px; font-weight: 600; }
@@ -965,10 +967,12 @@
   #view-treino .empty { color: #ABA9A0; font-size: 12.5px; padding: 12px 0; text-align: center; }
   #view-treino .date-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
   #view-treino .food-search-results { max-height: 220px; overflow-y: auto; background: #FFFFFF; border: 1px solid #D9D7CD; border-radius: 6px; margin-top: 4px; box-shadow: 0 4px 12px rgba(30,33,29,0.08); position: absolute; width: 100%; z-index: 10; }
-  #view-treino .food-result-item { padding: 8px 10px; font-size: 12.5px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; }
+  #view-treino .food-result-item { padding: 8px 10px; font-size: 12.5px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  #view-treino .food-result-item > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  #view-treino .food-result-item > span:last-child { flex-shrink: 0; font-size: 10.5px; }
   #view-treino .food-result-item:hover { background: #EAF3EC; }
   #view-treino .result-section-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: #2F7D4F; padding: 7px 10px 3px; }
-  #view-treino .result-section-label.warn { color: #B08A3E; border-top: 1px solid #F0EFE8; }
+  #view-treino .result-section-label.warn { color: #C4573F; border-top: 1px solid #F0EFE8; }
   #view-treino .result-section-label.mine { color: #3B7EC4; border-top: 1px solid #F0EFE8; }
   #view-treino .weekday-block { margin-bottom: 10px; }
   #view-treino .weekday-block label { font-size: 11px; color: #86897F; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 4px; font-weight: 600; }
@@ -3266,16 +3270,29 @@ const fmtDateLabel = d => {
   return dt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
 };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-function sourceLabel(src) {
-  if (src === 'openfoodfacts') return 'curado (TBCA/SARA2/OFF oficial)';
-  if (src === 'manual') return 'seu cadastro';
-  return 'base fixa';
+// Fontes de dado nutricional. official=true => tabela oficial / dado de fabricante.
+// official=false => estimativa, cadastro manual ou entrada de comunidade (não verificada).
+const FOOD_SRC = {
+  TACO:     { label: 'TACO',                 color: '#2F7D4F', official: true },
+  TBCA:     { label: 'TBCA',                 color: '#2F7D4F', official: true },
+  SARA2:    { label: 'SARA2',                color: '#2F7D4F', official: true },
+  ANMAT:    { label: 'ANMAT SIFeGA',         color: '#2F7D4F', official: true },
+  off_prod: { label: 'OFF · produtor',       color: '#2F7D4F', official: true },
+  off_com:  { label: 'OFF · comunidade',     color: '#C4573F', official: false, warn: true },
+  estimado: { label: '≈ Estimado (CLAUDE)',  color: '#C4573F', official: false, warn: true },
+  manual:   { label: 'seu cadastro',         color: '#3B7EC4', official: false },
+};
+function normSrc(s) {
+  s = String(s == null ? '' : s).trim();
+  if (FOOD_SRC[s]) return s;
+  const m = { taco: 'TACO', tbca: 'TBCA', sara2: 'SARA2', anmat: 'ANMAT',
+              openfoodfacts: 'off_com', online: 'off_com', off: 'off_com',
+              manual: 'manual', estimado: 'estimado', claude: 'estimado' };
+  return m[s.toLowerCase()] || 'TACO';
 }
-function sourceColor(src) {
-  if (src === 'openfoodfacts') return '#B08A3E';
-  if (src === 'manual') return '#3B7EC4';
-  return '#86897F';
-}
+function srcInfo(src) { return FOOD_SRC[normSrc(src)] || { label: src || 'base fixa', color: '#86897F', official: false }; }
+function sourceLabel(src) { return srcInfo(src).label; }
+function sourceColor(src) { return srcInfo(src).color; }
 const fmtShortDate = d => {
   const dt = new Date(d + 'T00:00:00');
   return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
@@ -3546,6 +3563,7 @@ function remainingKcalBannerHtml(consumed, goal) {
 
 function allLocalFoods() { return [...FOOD_DB, ...DB.customFoods]; }
 
+
 function dietEntries() { return DB.dietLog.filter(e => e.date === ui.dietDate); }
 function dietTotals() {
   return dietEntries().reduce((a, e) => ({
@@ -3659,7 +3677,8 @@ function dietHtml() {
         <button class="btn" id="addFoodBtn" ${ui.selectedFood && ui.selectedMealType ? '' : 'disabled'}>+ Add</button>
       </div>
       ${!ui.selectedMealType ? '<div style="margin-top:6px;font-size:11.5px;color:#B08A3E">👆 Escolha primeiro o momento do dia (café da manhã, almoço...) pra liberar o resto.</div>' : ''}
-      ${ui.selectedFood && ui.selectedFood.source === 'online' ? '<div style="margin-top:6px;font-size:11.5px;color:#B08A3E">⚠ Valor da comunidade (Open Food Facts), não verificado em laboratório — confira se bate com a embalagem.</div>' : ''}
+      ${ui.selectedFood && ui.selectedFood.src === 'off_com' ? '<div style="margin-top:6px;font-size:11.5px;color:#C4573F">⚠ Open Food Facts · comunidade — não verificado. Confere com a embalagem antes de logar.</div>' : ''}
+      ${ui.selectedFood && ui.selectedFood.src === 'off_prod' ? '<div style="margin-top:6px;font-size:11.5px;color:#2F7D4F">✓ Open Food Facts · dado do próprio produtor.</div>' : ''}
       <div id="customFoodForm" style="display:${ui.showCustomForm ? 'block' : 'none'};margin-top:10px;border-top:1px solid #DCEEE1;padding-top:10px">
         <div class="card-title">Novo alimento (valores por 100g)</div>
         <div class="row">
@@ -3802,26 +3821,36 @@ function deficitTableHtml() {
   `;
 }
 
+function foodRow(f, pickAttr, src) {
+  const info = srcInfo(src);
+  return `<div class="food-result-item" ${pickAttr}="${f.id}">
+    <span>${esc(f.name)}</span>
+    <span><span style="color:#86897F">${f.kcal} kcal</span> <span style="color:${info.color};font-weight:700">${info.warn ? '⚠ ' : ''}${esc(info.label)}</span></span>
+  </div>`;
+}
+
 function renderFoodResults() {
   const box = document.getElementById('foodResults');
   if (!box) return;
   const q = document.getElementById('foodSearchInput').value.trim().toLowerCase();
   if (!q) { box.innerHTML = ''; return; }
-  const tacoResults = FOOD_DB.filter(f => f.name.toLowerCase().includes(q)).slice(0, 5);
-  const customResults = DB.customFoods.filter(f => f.name.toLowerCase().includes(q)).slice(0, 5);
-  const hasAnyLocal = tacoResults.length || customResults.length;
+
+  const tacoResults = FOOD_DB.filter(f => f.name.toLowerCase().includes(q)).slice(0, 8);
+  const customResults = DB.customFoods.filter(f => f.name.toLowerCase().includes(q)).slice(0, 8);
+  const hasLocal = tacoResults.length || customResults.length;
+
   let html = '<div class="food-search-results">';
 
-  if (tacoResults.length) {
-    html += `<div class="result-section-label">Base fixa · TACO ✓ verificado</div>`;
-    html += tacoResults.map(f => `<div class="food-result-item" data-pick-local="${f.id}"><span>${esc(f.name)}</span><span style="color:#86897F">${f.kcal} kcal/100g</span></div>`).join('');
-  }
   if (customResults.length) {
-    html += `<div class="result-section-label mine">Adicionados por você</div>`;
-    html += customResults.map(f => `<div class="food-result-item" data-pick-local="${f.id}"><span>${esc(f.name)}</span><span style="color:#3B7EC4">${f.kcal} kcal/100g</span></div>`).join('');
+    html += `<div class="result-section-label mine">Sua base (salvos)</div>`;
+    html += customResults.map(f => foodRow(f, 'data-pick-local', f.origin || 'manual')).join('');
   }
-  if (!hasAnyLocal) {
-    html += `<div class="food-result-item">Não achei "${esc(q)}" na base. Me manda esse alimento no chat que eu busco e adiciono, ou cadastra manual agora:</div><div style="padding:8px 10px"><button class="btn secondary" id="addCustomFromSearchBtn">Cadastrar esse alimento</button></div>`;
+  if (tacoResults.length) {
+    html += `<div class="result-section-label">Tabela oficial</div>`;
+    html += tacoResults.map(f => foodRow(f, 'data-pick-local', f.src || 'TACO')).join('');
+  }
+  if (!hasLocal) {
+    html += `<div class="food-result-item" style="display:block">Não achei "${esc(q)}" na sua base. Me manda esse alimento no chat que eu busco na fonte certa (TBCA / SARA2 / Open Food Facts oficial) e salvo na sua base — ou cadastra manual:</div><div style="padding:8px 10px"><button class="btn secondary" id="addCustomFromSearchBtn">Cadastrar manual</button></div>`;
   }
   html += '</div>';
   if (html === '<div class="food-search-results"></div>') html = '';
@@ -3896,20 +3925,18 @@ function attachDietHandlers() {
     if (!ui.selectedFood || !g || g <= 0 || !ui.selectedMealType) return;
     const factor = g / 100, f = ui.selectedFood;
 
-    // Se veio da busca online, salva permanentemente na lista local (uma vez só) —
-    // assim da próxima vez que precisar desse alimento, o app acha offline, sem internet.
-    // Guarda a origem real (openfoodfacts/manual/taco) pra nunca perder essa informação.
-    if (f.source === 'online' && !DB.customFoods.some(cf => cf.id === f.id)) {
-      DB.customFoods.push({ id: f.id, name: f.name, kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fiber: f.fiber || 0, origin: 'openfoodfacts' });
+    // Se veio da busca ao vivo (OFF), salva PRA SEMPRE na sua base com a origem real —
+    // da próxima vez o app acha offline, sem buscar de novo.
+    const isOnline = f.src === 'off_prod' || f.src === 'off_com';
+    if (isOnline && !DB.customFoods.some(cf => cf.id === f.id)) {
+      DB.customFoods.push({ id: f.id, name: f.name, kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fiber: f.fiber || 0, origin: f.src });
     }
 
-    let entrySource = 'taco';
+    let entrySource;
     const savedCustom = DB.customFoods.find(cf => cf.id === f.id);
-    if (savedCustom) {
-      entrySource = savedCustom.origin || 'manual';
-    } else if (f.source === 'online') {
-      entrySource = 'openfoodfacts';
-    }
+    if (savedCustom) entrySource = normSrc(savedCustom.origin || 'manual');
+    else if (f.src) entrySource = normSrc(f.src);
+    else entrySource = 'TACO'; // veio do FOOD_DB
 
     DB.dietLog.push({
       id: uid(), date: ui.dietDate, name: f.name, grams: g,
@@ -5156,6 +5183,7 @@ function remainingKcalBannerHtml(consumed, goal) {
 
 function allLocalFoods() { return [...FOOD_DB, ...DB.customFoods]; }
 
+
 function dietEntries() { return DB.dietLog.filter(e => e.date === ui.dietDate); }
 function dietTotals() {
   return dietEntries().reduce((a, e) => ({
@@ -5269,7 +5297,8 @@ function dietHtml() {
         <button class="btn" id="addFoodBtn" ${ui.selectedFood && ui.selectedMealType ? '' : 'disabled'}>+ Add</button>
       </div>
       ${!ui.selectedMealType ? '<div style="margin-top:6px;font-size:11.5px;color:#B08A3E">👆 Escolha primeiro o momento do dia (café da manhã, almoço...) pra liberar o resto.</div>' : ''}
-      ${ui.selectedFood && ui.selectedFood.source === 'online' ? '<div style="margin-top:6px;font-size:11.5px;color:#B08A3E">⚠ Valor da comunidade (Open Food Facts), não verificado em laboratório — confira se bate com a embalagem.</div>' : ''}
+      ${ui.selectedFood && ui.selectedFood.src === 'off_com' ? '<div style="margin-top:6px;font-size:11.5px;color:#C4573F">⚠ Open Food Facts · comunidade — não verificado. Confere com a embalagem antes de logar.</div>' : ''}
+      ${ui.selectedFood && ui.selectedFood.src === 'off_prod' ? '<div style="margin-top:6px;font-size:11.5px;color:#2F7D4F">✓ Open Food Facts · dado do próprio produtor.</div>' : ''}
       <div id="customFoodForm" style="display:${ui.showCustomForm ? 'block' : 'none'};margin-top:10px;border-top:1px solid #DCEEE1;padding-top:10px">
         <div class="card-title">Novo alimento (valores por 100g)</div>
         <div class="row">
@@ -5522,20 +5551,18 @@ function attachDietHandlers() {
     if (!ui.selectedFood || !g || g <= 0 || !ui.selectedMealType) return;
     const factor = g / 100, f = ui.selectedFood;
 
-    // Se veio da busca online, salva permanentemente na lista local (uma vez só) —
-    // assim da próxima vez que precisar desse alimento, o app acha offline, sem internet.
-    // Guarda a origem real (openfoodfacts/manual/taco) pra nunca perder essa informação.
-    if (f.source === 'online' && !DB.customFoods.some(cf => cf.id === f.id)) {
-      DB.customFoods.push({ id: f.id, name: f.name, kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fiber: f.fiber || 0, origin: 'openfoodfacts' });
+    // Se veio da busca ao vivo (OFF), salva PRA SEMPRE na sua base com a origem real —
+    // da próxima vez o app acha offline, sem buscar de novo.
+    const isOnline = f.src === 'off_prod' || f.src === 'off_com';
+    if (isOnline && !DB.customFoods.some(cf => cf.id === f.id)) {
+      DB.customFoods.push({ id: f.id, name: f.name, kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fiber: f.fiber || 0, origin: f.src });
     }
 
-    let entrySource = 'taco';
+    let entrySource;
     const savedCustom = DB.customFoods.find(cf => cf.id === f.id);
-    if (savedCustom) {
-      entrySource = savedCustom.origin || 'manual';
-    } else if (f.source === 'online') {
-      entrySource = 'openfoodfacts';
-    }
+    if (savedCustom) entrySource = normSrc(savedCustom.origin || 'manual');
+    else if (f.src) entrySource = normSrc(f.src);
+    else entrySource = 'TACO'; // veio do FOOD_DB
 
     DB.dietLog.push({
       id: uid(), date: ui.dietDate, name: f.name, grams: g,

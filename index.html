@@ -963,23 +963,50 @@ function showToast(msg){
   clearTimeout(showToast._timer);
   showToast._timer = setTimeout(()=> t.classList.remove('show'), 5000);
 }
+const SUPABASE_URL = 'https://rtnvopgrkgwodslmsefd.supabase.co/rest/v1';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0bnZvcGdya2d3b2RzbG1zZWZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNTk2OTUsImV4cCI6MjEwMzYzNTY5NX0.cMF1gGf51qCk1GPJlabcEqA-3YdJorwHwOGWZYaJorw';
+
 async function storageSetWithRetry(key, value){
   try{
-    localStorage.setItem(key, value);
+    const res = await fetch(`${SUPABASE_URL}/app_data`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ key, value })
+    });
+    if(!res.ok){
+      const errText = await res.text();
+      throw new Error(errText);
+    }
     return true;
   }catch(e){
     showToast('⚠ Não consegui salvar (' + key + '). ' + e.message);
-    console.error('localStorage.setItem falhou', key, e);
+    console.error('Supabase set falhou', key, e);
     return false;
   }
 }
 async function storageGetWithRetry(key){
   try{
-    const v = localStorage.getItem(key);
-    return v !== null ? { value: v } : null;
+    const res = await fetch(`${SUPABASE_URL}/app_data?key=eq.${encodeURIComponent(key)}&select=value`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+    if(!res.ok){
+      const errText = await res.text();
+      throw new Error(errText);
+    }
+    const rows = await res.json();
+    if(rows.length === 0) return null;
+    return { value: rows[0].value };
   }catch(e){
     showToast('⚠ Não consegui carregar dados salvos (' + key + ').');
-    console.error('localStorage.getItem falhou', key, e);
+    console.error('Supabase get falhou', key, e);
     return null;
   }
 }

@@ -82,16 +82,22 @@
 
   /* ---------- Topbar comum (dentro de cada app) ---------- */
   #topbar{
-    display:none; position:fixed; top:12px; left:12px; z-index:100;
+    display:none; position:fixed; top:16px; left:16px; z-index:100;
   }
   #topbar.show{display:block;}
   #backBtn{
     background:#fff; border:1px solid var(--paper-line); color:var(--ink);
-    border-radius:50%; width:36px; height:36px; cursor:pointer;
-    box-shadow:0 2px 6px rgba(0,0,0,.08);
+    border-radius:50%; width:52px; height:52px; cursor:pointer;
+    box-shadow:0 4px 12px rgba(0,0,0,.14);
     display:flex; align-items:center; justify-content:center; padding:0;
   }
+  #backBtn svg{ width:26px; height:26px; }
   #backBtn:hover{background:var(--paper-line);}
+  @media(max-width:640px){
+    #topbar{ top:12px; left:12px; }
+    #backBtn{ width:46px; height:46px; }
+    #backBtn svg{ width:23px; height:23px; }
+  }
 
   .app-view{display:none;}
   .app-view.show{display:block;}
@@ -4353,7 +4359,7 @@ function periodSummaries(mode) {
         key, days, kcal: round1(g.kcal), burned: Math.round(burned),
         avgDaily: days ? round1(netKcal / days) : 0,
         goalTotal: round1(goalTotal),
-        deficit: round1(goalTotal - netKcal), // positivo = ficou abaixo da meta (já descontando cardio), negativo = passou
+        deficit: round1(netKcal - goalTotal), // negativo = déficit (comeu abaixo da meta); positivo = superávit
       };
     })
     .sort((a, b) => (a.key < b.key ? 1 : -1));
@@ -4472,7 +4478,9 @@ function dietHtml() {
         <span style="font-size:11px;color:#86897F">até</span>
         <input type="date" id="dietRangeTo" value="${ui.dietRange.to || ''}" style="width:135px">
         <button class="btn secondary" id="dietRangeApplyBtn">Aplicar</button>
-        ${ui.dietRange.from ? '<button class="btn secondary" id="dietRangeResetBtn">Voltar ao normal</button>' : ''}
+        <button class="btn secondary" id="dietRangeWeekBtn">Última semana</button>
+        <button class="btn secondary" id="dietRangeMonthBtn">Último mês</button>
+        <button class="btn secondary" id="dietRangeResetBtn"${!ui.dietRange.from ? ' style="background:#2F7D4F;color:#fff"' : ''}>Geral</button>
       </div>
       ${DIET_CHARTS[ui.dietChartIndex].bodyFn()}
       <div style="text-align:center;margin-top:8px">
@@ -4536,7 +4544,8 @@ function deficitChartHtml() {
   const days = resolveDietRangeDays(30);
   const data = days.map(d => ({
     label: fmtShortDate(d),
-    value: round1(DB.goals.kcal - (DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - exerciseKcalForDate(d))),
+    // negativo = déficit (comeu abaixo da meta, linha pra baixo/vermelha); positivo = superávit (verde, pra cima)
+    value: round1((DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - exerciseKcalForDate(d)) - DB.goals.kcal),
   }));
   const hasAny = DB.dietLog.some(e => days.includes(e.date));
   const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
@@ -4554,18 +4563,18 @@ function deficitTableHtml() {
       <tbody>
         ${rows.map(r => {
           const label = ui.deficitView === 'week' ? fmtDateLabel(r.key) : ui.deficitView === 'month' ? fmtMonthLabel(r.key) : fmtDateLabel(r.key);
-          const over = r.deficit < 0;
+          const isDeficit = r.deficit < 0; // comeu abaixo da meta
           return `<tr>
             <td>${label}</td><td class="scoreboard">${r.days}</td><td class="scoreboard">${r.kcal}</td>
             <td class="scoreboard" style="color:#C0392B">${r.burned ? '− ' + r.burned : '—'}</td>
             <td class="scoreboard">${r.avgDaily}</td><td class="scoreboard">${r.goalTotal}</td>
-            <td class="scoreboard" style="color:${over ? '#C4573F' : '#2F7D4F'};font-weight:700">${r.deficit > 0 ? '+' : ''}${r.deficit} kcal</td>
+            <td class="scoreboard" style="color:${isDeficit ? '#C4573F' : '#2F7D4F'};font-weight:700">${r.deficit > 0 ? '+' : ''}${r.deficit} kcal</td>
           </tr>`;
         }).join('')}
       </tbody>
     </table>
     ${ui.deficitView === 'day' ? '<div style="font-size:11px;color:#ABA9A0;margin-top:8px">Cada linha é um dia com pelo menos uma refeição registrada — use isso pra achar exatamente qual dia teve o superávit.</div>' : ''}
-    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Média/dia e déficit já descontam o que você queimou (cardio + musculação). Déficit positivo (verde) = ficou abaixo da meta. Negativo (vermelho) = passou da meta.</div>
+    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Já descontando o que você queimou (cardio + musculação). Número <b style="color:#C4573F">negativo / vermelho = déficit</b> (comeu abaixo da meta). <b style="color:#2F7D4F">Positivo / verde = superávit</b> (passou da meta).</div>
   `;
 }
 
@@ -4659,6 +4668,10 @@ function attachDietHandlers() {
     ui.dietRange = { from, to, all: false };
     renderAll();
   });
+  const dietWk = document.getElementById('dietRangeWeekBtn');
+  if (dietWk) dietWk.addEventListener('click', () => { ui.dietRange = { from: shiftDate(todayStr(), -6), to: todayStr(), all: false }; renderAll(); });
+  const dietMo = document.getElementById('dietRangeMonthBtn');
+  if (dietMo) dietMo.addEventListener('click', () => { ui.dietRange = { from: shiftDate(todayStr(), -29), to: todayStr(), all: false }; renderAll(); });
   const dietRangeResetBtn = document.getElementById('dietRangeResetBtn');
   if (dietRangeResetBtn) dietRangeResetBtn.addEventListener('click', () => {
     ui.dietRange = { from: null, to: null, all: false };
@@ -5008,7 +5021,9 @@ function measurementsHtml() {
         <span style="font-size:11px;color:#86897F">até</span>
         <input type="date" id="measureRangeTo" value="${ui.measureRange.to || ''}" style="width:135px">
         <button class="btn secondary" id="measureRangeApplyBtn">Aplicar</button>
-        ${!ui.measureRange.all ? '<button class="btn secondary" id="measureRangeResetBtn">Voltar ao normal</button>' : ''}
+        <button class="btn secondary" id="measureRangeWeekBtn">Última semana</button>
+        <button class="btn secondary" id="measureRangeMonthBtn">Último mês</button>
+        <button class="btn secondary" id="measureRangeResetBtn"${ui.measureRange.all ? ' style="background:#9B5FA0;color:#fff"' : ''}>Geral</button>
       </div>
       ${measurementChartBodyHtml()}
       <div style="text-align:center;margin-top:8px">
@@ -5051,6 +5066,10 @@ function attachMeasurementsHandlers() {
     ui.measureRange = { from, to, all: false };
     renderAll();
   });
+  const measWk = document.getElementById('measureRangeWeekBtn');
+  if (measWk) measWk.addEventListener('click', () => { ui.measureRange = { from: shiftDate(todayStr(), -6), to: todayStr(), all: false }; renderAll(); });
+  const measMo = document.getElementById('measureRangeMonthBtn');
+  if (measMo) measMo.addEventListener('click', () => { ui.measureRange = { from: shiftDate(todayStr(), -29), to: todayStr(), all: false }; renderAll(); });
   const measureRangeResetBtn = document.getElementById('measureRangeResetBtn');
   if (measureRangeResetBtn) measureRangeResetBtn.addEventListener('click', () => {
     ui.measureRange = { from: null, to: null, all: true };
@@ -6087,7 +6106,7 @@ function periodSummaries(mode) {
         key, days, kcal: round1(g.kcal), burned: Math.round(burned),
         avgDaily: days ? round1(netKcal / days) : 0,
         goalTotal: round1(goalTotal),
-        deficit: round1(goalTotal - netKcal), // positivo = ficou abaixo da meta (já descontando cardio), negativo = passou
+        deficit: round1(netKcal - goalTotal), // negativo = déficit (comeu abaixo da meta); positivo = superávit
       };
     })
     .sort((a, b) => (a.key < b.key ? 1 : -1));
@@ -6206,7 +6225,9 @@ function dietHtml() {
         <span style="font-size:11px;color:#86897F">até</span>
         <input type="date" id="dietRangeTo" value="${ui.dietRange.to || ''}" style="width:135px">
         <button class="btn secondary" id="dietRangeApplyBtn">Aplicar</button>
-        ${ui.dietRange.from ? '<button class="btn secondary" id="dietRangeResetBtn">Voltar ao normal</button>' : ''}
+        <button class="btn secondary" id="dietRangeWeekBtn">Última semana</button>
+        <button class="btn secondary" id="dietRangeMonthBtn">Último mês</button>
+        <button class="btn secondary" id="dietRangeResetBtn"${!ui.dietRange.from ? ' style="background:#2F7D4F;color:#fff"' : ''}>Geral</button>
       </div>
       ${DIET_CHARTS[ui.dietChartIndex].bodyFn()}
       <div style="text-align:center;margin-top:8px">
@@ -6270,7 +6291,8 @@ function deficitChartHtml() {
   const days = resolveDietRangeDays(30);
   const data = days.map(d => ({
     label: fmtShortDate(d),
-    value: round1(DB.goals.kcal - (DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - exerciseKcalForDate(d))),
+    // negativo = déficit (comeu abaixo da meta, linha pra baixo/vermelha); positivo = superávit (verde, pra cima)
+    value: round1((DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - exerciseKcalForDate(d)) - DB.goals.kcal),
   }));
   const hasAny = DB.dietLog.some(e => days.includes(e.date));
   const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
@@ -6288,18 +6310,18 @@ function deficitTableHtml() {
       <tbody>
         ${rows.map(r => {
           const label = ui.deficitView === 'week' ? fmtDateLabel(r.key) : ui.deficitView === 'month' ? fmtMonthLabel(r.key) : fmtDateLabel(r.key);
-          const over = r.deficit < 0;
+          const isDeficit = r.deficit < 0; // comeu abaixo da meta
           return `<tr>
             <td>${label}</td><td class="scoreboard">${r.days}</td><td class="scoreboard">${r.kcal}</td>
             <td class="scoreboard" style="color:#C0392B">${r.burned ? '− ' + r.burned : '—'}</td>
             <td class="scoreboard">${r.avgDaily}</td><td class="scoreboard">${r.goalTotal}</td>
-            <td class="scoreboard" style="color:${over ? '#C4573F' : '#2F7D4F'};font-weight:700">${r.deficit > 0 ? '+' : ''}${r.deficit} kcal</td>
+            <td class="scoreboard" style="color:${isDeficit ? '#C4573F' : '#2F7D4F'};font-weight:700">${r.deficit > 0 ? '+' : ''}${r.deficit} kcal</td>
           </tr>`;
         }).join('')}
       </tbody>
     </table>
     ${ui.deficitView === 'day' ? '<div style="font-size:11px;color:#ABA9A0;margin-top:8px">Cada linha é um dia com pelo menos uma refeição registrada — use isso pra achar exatamente qual dia teve o superávit.</div>' : ''}
-    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Média/dia e déficit já descontam o que você queimou (cardio + musculação). Déficit positivo (verde) = ficou abaixo da meta. Negativo (vermelho) = passou da meta.</div>
+    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Já descontando o que você queimou (cardio + musculação). Número <b style="color:#C4573F">negativo / vermelho = déficit</b> (comeu abaixo da meta). <b style="color:#2F7D4F">Positivo / verde = superávit</b> (passou da meta).</div>
   `;
 }
 
@@ -6369,6 +6391,10 @@ function attachDietHandlers() {
     ui.dietRange = { from, to, all: false };
     renderAll();
   });
+  const dietWk = document.getElementById('dietRangeWeekBtn');
+  if (dietWk) dietWk.addEventListener('click', () => { ui.dietRange = { from: shiftDate(todayStr(), -6), to: todayStr(), all: false }; renderAll(); });
+  const dietMo = document.getElementById('dietRangeMonthBtn');
+  if (dietMo) dietMo.addEventListener('click', () => { ui.dietRange = { from: shiftDate(todayStr(), -29), to: todayStr(), all: false }; renderAll(); });
   const dietRangeResetBtn = document.getElementById('dietRangeResetBtn');
   if (dietRangeResetBtn) dietRangeResetBtn.addEventListener('click', () => {
     ui.dietRange = { from: null, to: null, all: false };
@@ -6720,7 +6746,9 @@ function measurementsHtml() {
         <span style="font-size:11px;color:#86897F">até</span>
         <input type="date" id="measureRangeTo" value="${ui.measureRange.to || ''}" style="width:135px">
         <button class="btn secondary" id="measureRangeApplyBtn">Aplicar</button>
-        ${!ui.measureRange.all ? '<button class="btn secondary" id="measureRangeResetBtn">Voltar ao normal</button>' : ''}
+        <button class="btn secondary" id="measureRangeWeekBtn">Última semana</button>
+        <button class="btn secondary" id="measureRangeMonthBtn">Último mês</button>
+        <button class="btn secondary" id="measureRangeResetBtn"${ui.measureRange.all ? ' style="background:#9B5FA0;color:#fff"' : ''}>Geral</button>
       </div>
       ${measurementChartBodyHtml()}
       <div style="text-align:center;margin-top:8px">
@@ -6763,6 +6791,10 @@ function attachMeasurementsHandlers() {
     ui.measureRange = { from, to, all: false };
     renderAll();
   });
+  const measWk = document.getElementById('measureRangeWeekBtn');
+  if (measWk) measWk.addEventListener('click', () => { ui.measureRange = { from: shiftDate(todayStr(), -6), to: todayStr(), all: false }; renderAll(); });
+  const measMo = document.getElementById('measureRangeMonthBtn');
+  if (measMo) measMo.addEventListener('click', () => { ui.measureRange = { from: shiftDate(todayStr(), -29), to: todayStr(), all: false }; renderAll(); });
   const measureRangeResetBtn = document.getElementById('measureRangeResetBtn');
   if (measureRangeResetBtn) measureRangeResetBtn.addEventListener('click', () => {
     ui.measureRange = { from: null, to: null, all: true };

@@ -343,12 +343,12 @@
 #view-agenda .agenda-drawer .form-row input[type=text]{flex:1 1 150px;}
 #view-agenda .agenda-drawer .form-row input[type=time]{width:auto;flex:0 0 96px;}
 #view-agenda .form-day-toggle{display:flex;gap:6px;margin-bottom:12px;}
-#view-agenda .form-day-btn, #view-agenda .ovr-mode-btn{
+#view-agenda .form-day-btn, #view-agenda .ovr-mode-btn, #view-agenda .scope-btn{
   flex:1;background:none;border:1px solid var(--paper-line);border-radius:16px;
   padding:6px 4px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:700;
   cursor:pointer;color:var(--muted);
 }
-#view-agenda .form-day-btn.active, #view-agenda .ovr-mode-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+#view-agenda .form-day-btn.active, #view-agenda .ovr-mode-btn.active, #view-agenda .scope-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
 #view-agenda .cuadri-wrap .month-label {
   font-family:'Helvetica Neue',Arial,sans-serif;
   font-size:15px;font-weight:700;letter-spacing:.02em;
@@ -1273,7 +1273,7 @@ async function storageGetWithRetry(key){
         <div class="app-card-txt"><div class="name">Dieta</div><div class="desc">Alimentação e água</div></div>
       </div>
       <div class="app-card" data-app="treino">
-        <span class="emoji">🏋️</span>
+        <span class="emoji">🚀</span>
         <div class="app-card-txt"><div class="name">Treino</div><div class="desc">Exercícios e medidas</div></div>
       </div>
       <div class="app-card" data-app="ideias">
@@ -1427,6 +1427,10 @@ async function storageGetWithRetry(key){
         <button class="form-day-btn active" data-target="hoje">Hoje</button>
         <button class="form-day-btn" data-target="amanha">Amanhã</button>
       </div>
+      <div class="form-day-toggle">
+        <button class="scope-btn active" data-scope="both" data-scopegroup="form">Mensal + Cuadrimestre</button>
+        <button class="scope-btn" data-scope="mensal" data-scopegroup="form">Só Mensal</button>
+      </div>
       <div class="form-grid">
         <div>
           <label>Manhã</label>
@@ -1455,6 +1459,10 @@ async function storageGetWithRetry(key){
 
     <div class="pend-box">
       <div class="pend-title">Agendar uma pendência num dia</div>
+      <div class="form-day-toggle">
+        <button class="scope-btn active" data-scope="both" data-scopegroup="sched">Mensal + Cuadrimestre</button>
+        <button class="scope-btn" data-scope="mensal" data-scopegroup="sched">Só Mensal</button>
+      </div>
       <div class="form-grid">
         <div>
           <label>Pendência</label>
@@ -1708,7 +1716,7 @@ async function storageGetWithRetry(key){
 <div class="app-view" id="view-treino">
   <div class="app-header" style="position:relative">
     <button id="menuBtnTreino" class="icon-btn" style="position:absolute;right:20px;top:28px;font-size:22px;line-height:1">☰</button>
-    <p class="app-title display">🏋️ TREINO</p>
+    <p class="app-title display">🚀 TREINO</p>
     <div id="menuDropdownTreino" class="menu-dropdown">
       <button type="button" class="menu-item" id="exportBtnTreino">⬇️ Exportar backup</button>
       <button type="button" class="menu-item" id="importBtnTreino">⬆️ Importar backup</button>
@@ -2596,13 +2604,16 @@ function setupSchedPend(){
   const sel = document.getElementById('schedPendSel');
   const dateEl = document.getElementById('schedPendDate');
   const timeEl = document.getElementById('schedPendTime');
+  const getScope = setupScopeToggle('sched');
   if(dateEl && !dateEl.value) dateEl.value = fmt(today);
   btn.addEventListener('click', ()=>{
     const p = pendencias[Number(sel.value)];
     if(!p){ alert('Não há pendência selecionada.'); return; }
     const d = dateEl.value;
     if(!d){ alert('Escolha a data.'); return; }
-    userEvents.push({ id:uid(), d, t:timeEl.value||'', ti:p.ti, c:'pessoal', fromPend:true });
+    const ev = { id:uid(), d, t:timeEl.value||'', ti:p.ti, c:'pessoal', fromPend:true };
+    if(getScope() === 'mensal') ev.scope = 'mensal';
+    userEvents.push(ev);
     timeEl.value = '';
     saveUserEvents();
     refreshAgenda();
@@ -2655,7 +2666,20 @@ function parseTimeText(raw){
   return { t:"", ti:raw };
 }
 
-function saveFormFor(targetDate){
+// Liga um par de botões "Mensal + Cuadrimestre / Só Mensal". Devolve () => 'both' | 'mensal'.
+function setupScopeToggle(group){
+  let scope = 'both';
+  document.querySelectorAll('.scope-btn[data-scopegroup="'+group+'"]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('.scope-btn[data-scopegroup="'+group+'"]').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      scope = b.dataset.scope;
+    });
+  });
+  return ()=>scope;
+}
+
+function saveFormFor(targetDate, scope){
   const dateStr = fmt(targetDate);
   const fields = [
     { textId:'formManha', horaId:'formManhaHora', c:'pessoal' },
@@ -2668,7 +2692,9 @@ function saveFormFor(targetDate){
     const horaEl = document.getElementById(f.horaId);
     const raw = textEl.value.trim();
     if(!raw) return;
-    userEvents.push({ id:uid(), d:dateStr, t:horaEl.value||"", ti:raw, c:f.c });
+    const ev = { id:uid(), d:dateStr, t:horaEl.value||"", ti:raw, c:f.c };
+    if(scope === 'mensal') ev.scope = 'mensal';
+    userEvents.push(ev);
     textEl.value = '';
   });
 
@@ -2698,12 +2724,13 @@ function setupForm(){
       formTarget = btn.dataset.target;
     });
   });
+  const getScope = setupScopeToggle('form');
   document.getElementById('formSaveBtn').addEventListener('click', ()=>{
     if(formTarget === 'amanha'){
       const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
-      saveFormFor(tomorrow);
+      saveFormFor(tomorrow, getScope());
     } else {
-      saveFormFor(today);
+      saveFormFor(today, getScope());
     }
   });
 }
@@ -2831,7 +2858,7 @@ function renderCuadri(){
     for(let day=1; day<=daysInMonth; day++){
       const dateStr = `${year}-${cuadriPad(monthIdx+1)}-${cuadriPad(day)}`;
       const isToday = dateStr===cuadriTodayStr;
-      const dayEvents = cuadriEvents.concat(userEvents).filter(e=>e.d===dateStr);
+      const dayEvents = cuadriEvents.concat(userEvents.filter(e=>e.scope!=='mensal')).filter(e=>e.d===dateStr);
       html += `<div class="cell${isToday?' today':''}"><div class="daynum">${day}</div>`;
       dayEvents.forEach(e=>{
         const isUser = e.id !== undefined;
@@ -5693,7 +5720,7 @@ let onlineSearchToken = 0;
 // Render raiz
 // ---------------------------------------------------------------------------
 const TABS = [
-  { id: 'workout', label: '🏋 Treino' },
+  { id: 'workout', label: '🚀 Treino' },
   { id: 'cardio', label: '🏃 Cardio' },
   { id: 'progress', label: '📈 Progresso' },
   { id: 'measurements', label: '📏 Medidas' },

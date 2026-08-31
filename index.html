@@ -1205,7 +1205,11 @@
     #view-agenda .form-day-btn, #view-agenda .ovr-mode-btn, #view-agenda .scope-btn{
       font-size:11px; padding:7px 3px; line-height:1.15;
     }
-    #view-agenda .agenda-drawer .form-row > div{ flex:1 1 130px; }
+    /* No celular a gaveta é estreita demais pra 2 campos lado a lado (Data/Hora, De/Até
+       ficavam sobrepostos). Empilha tudo: 1 campo por linha. */
+    #view-agenda .agenda-drawer .form-row{ flex-direction:column; align-items:stretch; gap:8px; }
+    #view-agenda .agenda-drawer .form-row > div{ flex:0 0 auto !important; width:100%; min-width:0; }
+    #view-agenda .agenda-drawer .form-row > input{ flex:0 0 auto !important; width:100% !important; }
   }
   @media (max-width: 420px){
     #view-dieta .field-grid, #view-treino .field-grid{ grid-template-columns:1fr; }

@@ -82,21 +82,25 @@
 
   /* ---------- Topbar comum (dentro de cada app) ---------- */
   #topbar{
-    display:none; position:fixed; top:16px; left:16px; z-index:100;
+    display:none; position:fixed; top:16px; left:0; right:0; z-index:100;
+    padding:0 16px; pointer-events:none;
+    justify-content:space-between; align-items:flex-start;
   }
-  #topbar.show{display:block;}
-  #backBtn{
+  #topbar.show{display:flex;}
+  #backBtn, #refreshBtn{
+    pointer-events:auto;
     background:#fff; border:1px solid var(--paper-line); color:var(--ink);
     border-radius:50%; width:52px; height:52px; cursor:pointer;
     box-shadow:0 4px 12px rgba(0,0,0,.14);
     display:flex; align-items:center; justify-content:center; padding:0;
   }
-  #backBtn svg{ width:26px; height:26px; }
-  #backBtn:hover{background:var(--paper-line);}
+  #backBtn svg, #refreshBtn svg{ width:26px; height:26px; }
+  #backBtn:hover, #refreshBtn:hover{background:var(--paper-line);}
+  #refreshBtn:active svg{ transform:rotate(120deg); transition:transform .25s ease; }
   @media(max-width:640px){
-    #topbar{ top:12px; left:12px; }
-    #backBtn{ width:46px; height:46px; }
-    #backBtn svg{ width:23px; height:23px; }
+    #topbar{ top:12px; padding:0 12px; }
+    #backBtn, #refreshBtn{ width:46px; height:46px; }
+    #backBtn svg, #refreshBtn svg{ width:23px; height:23px; }
   }
 
   .app-view{display:none;}
@@ -1201,14 +1205,17 @@
     #view-dieta .food-search-results, #view-treino .food-search-results{ max-height:300px; }
 
     /* Gaveta da Agenda: mais larga e botões de alternância menores pra não estourar */
-    #view-agenda .agenda-drawer{ width:min(440px,96vw); padding:14px 12px 40px; }
+    #view-agenda .agenda-drawer{ width:min(440px,96vw); padding:14px 12px 40px; overflow-x:hidden; }
+    #view-agenda .agenda-drawer-body{ overflow-x:hidden; }
     #view-agenda .form-day-btn, #view-agenda .ovr-mode-btn, #view-agenda .scope-btn{
-      font-size:11px; padding:7px 3px; line-height:1.15;
+      font-size:11px; padding:7px 3px; line-height:1.15; min-width:0;
     }
     /* No celular a gaveta é estreita demais pra 2 campos lado a lado (Data/Hora, De/Até
        ficavam sobrepostos). Empilha tudo: 1 campo por linha, e NENHUM campo pode passar
-       da largura da caixa (iOS não encolhe input[type=date/time] sozinho). */
+       da largura da caixa. */
     #view-agenda .agenda-drawer .pend-box{ padding-left:12px; padding-right:12px; }
+    #view-agenda .agenda-drawer .form-grid,
+    #view-agenda .agenda-drawer .form-grid > div{ min-width:0; max-width:100%; }
     #view-agenda .agenda-drawer .form-row{ flex-direction:column; align-items:stretch; gap:8px; }
     #view-agenda .agenda-drawer .form-row > div{ flex:0 0 auto !important; }
     #view-agenda .agenda-drawer input,
@@ -1217,6 +1224,13 @@
     #view-agenda .agenda-drawer .form-row > div{
       width:100% !important; max-width:100% !important; min-width:0 !important;
       box-sizing:border-box !important; flex:0 0 auto !important;
+    }
+    /* iOS Safari trava a largura mínima de input[type=date/time] via -webkit-appearance;
+       zerar a aparência nativa deixa o width:100% valer de verdade (o seletor nativo continua
+       abrindo no toque). */
+    #view-agenda .agenda-drawer input[type="date"],
+    #view-agenda .agenda-drawer input[type="time"]{
+      -webkit-appearance:none; appearance:none; min-height:40px;
     }
   }
   @media (max-width: 420px){
@@ -1295,6 +1309,9 @@ async function storageGetWithRetry(key){
 <div id="topbar">
   <button id="backBtn" title="Início">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1V15a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4.5a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1V10"/></svg>
+  </button>
+  <button id="refreshBtn" title="Atualizar a página">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
   </button>
 </div>
 
@@ -1804,6 +1821,7 @@ document.querySelectorAll('.app-card').forEach(card=>{
   card.addEventListener('click', ()=> showApp(card.getAttribute('data-app')));
 });
 document.getElementById('backBtn').addEventListener('click', showHome);
+document.getElementById('refreshBtn').addEventListener('click', ()=>location.reload());
 
 const BACKUP_KEYS = [
   'agenda_pendencias', 'agenda_user_events', 'agenda_routine_overrides',

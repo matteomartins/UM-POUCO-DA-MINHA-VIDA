@@ -394,6 +394,7 @@
   word-break:break-word;overflow-wrap:anywhere;overflow:hidden;
 }
 #view-agenda .cuadri-wrap .pill b {font-weight:700;}
+#view-agenda .cuadri-wrap .pill .pill-who{display:block;font-size:8.5px;font-weight:400;opacity:.7;margin-top:1px;}
 #view-agenda .cuadri-wrap .pill.farmaco {background:var(--farmaco-bg);color:var(--farmaco);border-left:2px solid var(--farmaco);}
 #view-agenda .cuadri-wrap .pill.farmaco-strong {background:var(--farmaco-strong);color:#fff;border-left:2px solid var(--farmaco-strong);}
 #view-agenda .cuadri-wrap .pill.medb {background:var(--medb-bg);color:var(--medb);border-left:2px solid var(--medb);}
@@ -2688,48 +2689,48 @@ function setupAgendaToggle(){
 
 function renderCuadri(){
   const cuadriEvents = [
-    {d:"2026-08-10",t:"08:30",ti:"Insuficiencia respiratoria aguda y crónica",c:"medb"},
+    {d:"2026-08-10",t:"08:30",ti:"Insuficiencia respiratoria aguda y crónica",w:"Dra. Viviana Falasco",c:"medb"},
     {d:"2026-08-10",t:"17:30",ti:"Clase 1 — Hipolipemiantes, Antihipertensivos, Diuréticos",c:"farmaco"},
-    {d:"2026-08-11",t:"08:00",ti:"Neumonías extra/intrahospitalarias",c:"medb"},
-    {d:"2026-08-11",t:"10:30",ti:"Sarcoidosis pulmonar",c:"medb"},
-    {d:"2026-08-12",t:"08:00",ti:"Abscesos pulmonares. Micosis pulmonares",c:"medb"},
-    {d:"2026-08-13",t:"08:00",ti:"Patología pleural",c:"medb"},
-    {d:"2026-08-13",t:"10:30",ti:"Tuberculosis",c:"medb"},
-    {d:"2026-08-14",t:"08:00",ti:"Tumores de pulmón. Tabaquismo. Cáncer de pulmón",c:"medb"},
-    {d:"2026-08-18",t:"08:00",ti:"Hipertensión pulmonar",c:"medb"},
-    {d:"2026-08-19",t:"08:00",ti:"Vasculitis pulmonares",c:"medb"},
-    {d:"2026-08-19",t:"10:00",ti:"Enfermedad intersticial pulmonar",c:"medb"},
-    {d:"2026-08-20",t:"08:00",ti:"Pruebas funcionales respiratorias. Espirometría",c:"medb"},
-    {d:"2026-08-21",t:"08:00",ti:"EPOC. Bronquitis crónica. Enfisema",c:"medb"},
-    {d:"2026-08-24",t:"08:00",ti:"Asma",c:"medb"},
+    {d:"2026-08-11",t:"08:00",ti:"Neumonías extra/intrahospitalarias",w:"Dr. Luis Lopez",c:"medb"},
+    {d:"2026-08-11",t:"10:30",ti:"Sarcoidosis pulmonar",w:"Dr. Miguel Falasco",c:"medb"},
+    {d:"2026-08-12",t:"08:00",ti:"Abscesos pulmonares. Micosis pulmonares",w:"Dra. Marina Bernat",c:"medb"},
+    {d:"2026-08-13",t:"08:00",ti:"Patología pleural",w:"Dra. Silvia Falasco",c:"medb"},
+    {d:"2026-08-13",t:"10:30",ti:"Tuberculosis",w:"Dr. David Stokhamer",c:"medb"},
+    {d:"2026-08-14",t:"08:00",ti:"Tumores de pulmón. Tabaquismo. Cáncer de pulmón",w:"Dra. Eliana Quevedo",c:"medb"},
+    {d:"2026-08-18",t:"08:00",ti:"Hipertensión pulmonar",w:"Dra. Viviana Falasco",c:"medb"},
+    {d:"2026-08-19",t:"08:00",ti:"Vasculitis pulmonares",w:"Dr. Gonzalo Rodriguez",c:"medb"},
+    {d:"2026-08-19",t:"10:00",ti:"Enfermedad intersticial pulmonar",w:"Dra. Viviana Falasco",c:"medb"},
+    {d:"2026-08-20",t:"08:00",ti:"Pruebas funcionales respiratorias. Espirometría",w:"Dra. Martinez Cortizas",c:"medb"},
+    {d:"2026-08-21",t:"08:00",ti:"EPOC. Bronquitis crónica. Enfisema",w:"Dr. Lautaro Ancona",c:"medb"},
+    {d:"2026-08-24",t:"08:00",ti:"Asma",w:"Dr. Juan Daroqui",c:"medb"},
     {d:"2026-08-24",t:"17:30",ti:"Clase 2 — Antiarrítmicos, Sangre",c:"farmaco"},
-    {d:"2026-08-25",t:"08:00",ti:"Distress respiratorio",c:"medb"},
-    {d:"2026-08-25",t:"11:00",ti:"SAOS",c:"medb"},
-    {d:"2026-08-26",t:"08:00",ti:"TVP y TEP",c:"medb"},
-    {d:"2026-08-26",t:"10:00",ti:"Rx. Imágenes",c:"medb"},
+    {d:"2026-08-25",t:"08:00",ti:"Distress respiratorio",w:"Dra. Julieta Gonzalez",c:"medb"},
+    {d:"2026-08-25",t:"11:00",ti:"SAOS",w:"Dr. Fabio Leone",c:"medb"},
+    {d:"2026-08-26",t:"08:00",ti:"TVP y TEP",w:"Dra. Carolina de Llano",c:"medb"},
+    {d:"2026-08-26",t:"10:00",ti:"Rx. Imágenes",w:"Dr. Miguel Falasco",c:"medb"},
     {d:"2026-08-28",t:"",ti:"PARCIAL — Respiratorio",c:"medb-strong"},
-    {d:"2026-08-31",t:"08:30",ti:"Insuficiencia Cardíaca. Diagnóstico y Tratamiento — 1° parte",c:"medb"},
+    {d:"2026-08-31",t:"08:30",ti:"Insuficiencia Cardíaca. Diagnóstico y Tratamiento — 1° parte",w:"Dra. Viviana Falasco",c:"medb"},
     {d:"2026-08-31",t:"17:30",ti:"Clase 3 — Antianginosos y Vasodilatadores, Inotrópicos",c:"farmaco"},
-    {d:"2026-09-01",t:"08:00",ti:"Síndrome coronario — 1° parte. Definiciones. SC agudo/crónico. ECG. IAM c/supra y s/supra ST",c:"medb"},
-    {d:"2026-09-01",t:"10:00",ti:"Síndrome coronario — 2° parte. Tratamiento del SC agudo y crónico",c:"medb"},
-    {d:"2026-09-02",t:"08:00",ti:"Insuficiencia Cardíaca. Diagnóstico y Tratamiento — 2° parte",c:"medb"},
-    {d:"2026-09-03",t:"08:00",ti:"Hipertensión arterial. Diagnóstico y Tratamiento. Factores de riesgo",c:"medb"},
-    {d:"2026-09-03",t:"10:30",ti:"Enfermedades del pericardio",c:"medb"},
-    {d:"2026-09-04",t:"08:00",ti:"Valvulopatías izquierda y M. Valvulopatías derechas",c:"medb"},
-    {d:"2026-09-07",t:"08:00",ti:"Endocarditis",c:"medb"},
-    {d:"2026-09-07",t:"10:00",ti:"Taller de ECG — 1°",c:"medb"},
+    {d:"2026-09-01",t:"08:00",ti:"Síndrome coronario — 1° parte. Definiciones. SC agudo/crónico. ECG. IAM c/supra y s/supra ST",w:"Dr. Alejandro Ordóñez",c:"medb"},
+    {d:"2026-09-01",t:"10:00",ti:"Síndrome coronario — 2° parte. Tratamiento del SC agudo y crónico",w:"Dr. Alejandro Ordóñez",c:"medb"},
+    {d:"2026-09-02",t:"08:00",ti:"Insuficiencia Cardíaca. Diagnóstico y Tratamiento — 2° parte",w:"Dra. Viviana Falasco",c:"medb"},
+    {d:"2026-09-03",t:"08:00",ti:"Hipertensión arterial. Diagnóstico y Tratamiento. Factores de riesgo",w:"Dra. Eliana Quevedo",c:"medb"},
+    {d:"2026-09-03",t:"10:30",ti:"Enfermedades del pericardio",w:"Dr. Miguel Falasco",c:"medb"},
+    {d:"2026-09-04",t:"08:00",ti:"Valvulopatías izquierda y M. Valvulopatías derechas",w:"Dr. Tomás Busquets",c:"medb"},
+    {d:"2026-09-07",t:"08:00",ti:"Endocarditis",w:"Dra. Elizabeth Pais",c:"medb"},
+    {d:"2026-09-07",t:"10:00",ti:"Taller de ECG — 1°",w:"Dra. Viviana Falasco",c:"medb"},
     {d:"2026-09-07",t:"",ti:"1er PARCIAL Farmacología II",c:"farmaco-strong"},
-    {d:"2026-09-08",t:"08:00",ti:"Síndrome coronario — 3° parte. Sind. coronarios no oclusivos: Minoca / Inoca / Anoca",c:"medb"},
-    {d:"2026-09-09",t:"08:00",ti:"Síncope",c:"medb"},
-    {d:"2026-09-09",t:"10:30",ti:"Miocardiopatías",c:"medb"},
-    {d:"2026-09-10",t:"08:30",ti:"Shock y Shock cardiogénico. Paro cardiorrespiratorio",c:"medb"},
-    {d:"2026-09-11",t:"08:00",ti:"Enfermedad de la aorta. Disección, aneurisma y síndrome de Marfan",c:"medb"},
-    {d:"2026-09-11",t:"10:30",ti:"Taller de ECG — 2°",c:"medb"},
-    {d:"2026-09-14",t:"",ti:"Arritmias. Clasificación. Fibrilación auricular. Tratamiento",c:"medb"},
+    {d:"2026-09-08",t:"08:00",ti:"Síndrome coronario — 3° parte. Sind. coronarios no oclusivos: Minoca / Inoca / Anoca",w:"Dra. Viviana Falasco",c:"medb"},
+    {d:"2026-09-09",t:"08:00",ti:"Síncope",w:"Dra. Silvia Falasco",c:"medb"},
+    {d:"2026-09-09",t:"10:30",ti:"Miocardiopatías",w:"Dra. Graciela Fernandez",c:"medb"},
+    {d:"2026-09-10",t:"08:30",ti:"Shock y Shock cardiogénico. Paro cardiorrespiratorio",w:"Dr. Aníbal Aristizabal",c:"medb"},
+    {d:"2026-09-11",t:"08:00",ti:"Enfermedad de la aorta. Disección, aneurisma y síndrome de Marfan",w:"Dra. Julieta Gonzalez",c:"medb"},
+    {d:"2026-09-11",t:"10:30",ti:"Taller de ECG — 2°",w:"Dra. Viviana Falasco",c:"medb"},
+    {d:"2026-09-14",t:"",ti:"Arritmias. Clasificación. Fibrilación auricular. Tratamiento",w:"Dr. Lautaro Ancona",c:"medb"},
     {d:"2026-09-14",t:"17:30",ti:"Clase 5 — Generalidades ATB, Betalactámicos, Glicopéptidos",c:"farmaco"},
     {d:"2026-09-14",t:"",ti:"RECUPERATORIO 1er parcial Farmaco",c:"farmaco-strong"},
-    {d:"2026-09-15",t:"08:00",ti:"Fiebre reumática",c:"medb"},
-    {d:"2026-09-15",t:"10:00",ti:"Síndrome cardio-reno-metabólico",c:"medb"},
+    {d:"2026-09-15",t:"08:00",ti:"Fiebre reumática",w:"Dr. Gonzalo Rodriguez",c:"medb"},
+    {d:"2026-09-15",t:"10:00",ti:"Síndrome cardio-reno-metabólico",w:"Dra. Viviana Falasco",c:"medb"},
     {d:"2026-09-16",t:"",ti:"PARCIAL — Cardiovascular",c:"medb-strong"},
     {d:"2026-09-21",t:"17:30",ti:"Clase 6 — Antimicobacterianos, Aminoglucósidos, Quinolonas",c:"farmaco"},
     {d:"2026-09-24",t:"",ti:"RECUPERATORIO — Cardiovascular",c:"medb-strong"},
@@ -2786,7 +2787,7 @@ function renderCuadri(){
       html += `<div class="cell${isToday?' today':''}"><div class="daynum">${day}</div>`;
       dayEvents.forEach(e=>{
         const isUser = e.id !== undefined;
-        html += `<div class="pill ${e.c||'pessoal'}">${e.t?"<b>"+e.t+"</b> ":""}${e.ti}${isUser?`<button class="pill-del" data-id="${e.id}" title="remover">✕</button>`:""}</div>`;
+        html += `<div class="pill ${e.c||'pessoal'}">${e.t?"<b>"+e.t+"</b> ":""}${e.ti}${e.w?`<span class="pill-who">${e.w}</span>`:""}${isUser?`<button class="pill-del" data-id="${e.id}" title="remover">✕</button>`:""}</div>`;
       });
       html += `</div>`;
     }

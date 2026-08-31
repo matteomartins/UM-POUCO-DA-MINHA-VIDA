@@ -1783,7 +1783,7 @@ const BACKUP_KEYS = [
   'agenda_pendencias', 'agenda_user_events', 'agenda_routine_overrides',
   'livro_cambio_v2',
   'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog',
-  'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog',
+  'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog', 'treino_gymLog', 'treino_gymMinutes',
   'ideias_itens',
 ];
 
@@ -4112,6 +4112,7 @@ const DB = {
   dietLog: [],
   waterLog: {},
   cardioLog: [],      // só leitura — vem do app Treino (chave treino_cardioLog)
+  gymLog: [],         // só leitura — idas à academia (chave treino_gymLog)
   measurements: [],   // só leitura — vem do app Treino (chave treino_measurements)
 };
 function persist() {
@@ -4133,6 +4134,7 @@ async function loadDBFromStorage() {
   DB.dietLog = await loadWS('dietLog', DB.dietLog);
   DB.waterLog = await loadWS('waterLog', DB.waterLog);
   DB.cardioLog = await loadRaw('treino_cardioLog', []) || [];
+  DB.gymLog = await loadRaw('treino_gymLog', []) || [];
   DB.measurements = await loadRaw('treino_measurements', []) || [];
 }
 
@@ -4219,7 +4221,7 @@ function remainingKcalBannerHtml(consumed, goal, burned) {
   const over = remaining < 0;
   const bigText = over ? `${Math.abs(remaining)} kcal acima da meta` : `Faltam ${remaining} kcal`;
   const sub = burned > 0
-    ? `<div style="color:#9a988c;font-size:12px;margin-top:2px">${round1(consumed)} ingeridas − ${Math.round(burned)} do cardio = <b>${round1(net)} kcal líquidas</b></div>`
+    ? `<div style="color:#9a988c;font-size:12px;margin-top:2px">${round1(consumed)} ingeridas − ${Math.round(burned)} de exercício = <b>${round1(net)} kcal líquidas</b></div>`
     : '';
   return `<div class="nutri-row" style="background:#EFF8F1">
     <div style="text-align:center;padding:2px 0">
@@ -4344,7 +4346,8 @@ function periodSummaries(mode) {
     .map(([key, g]) => {
       const days = g.dates.size;
       const goalTotal = DB.goals.kcal * days;
-      const burned = (DB.cardioLog || []).filter(s => g.dates.has(s.date)).reduce((t, s) => t + cardioKcal(s), 0);
+      const burned = (DB.cardioLog || []).filter(s => g.dates.has(s.date)).reduce((t, s) => t + cardioKcal(s), 0)
+        + (DB.gymLog || []).filter(s => g.dates.has(s.date)).reduce((t, s) => t + gymKcal(s), 0);
       const netKcal = g.kcal - burned;
       return {
         key, days, kcal: round1(g.kcal), burned: Math.round(burned),
@@ -4360,8 +4363,10 @@ function dietHtml() {
   const totals = dietTotals();
   const waterToday = DB.waterLog[ui.dietDate] || 0;
   const entries = dietEntries();
-  const cardioBurn = Math.round((DB.cardioLog || []).filter(s => s.date === ui.dietDate).reduce((t, s) => t + cardioKcal(s), 0));
-  const netKcal = round1(totals.kcal - cardioBurn);
+  const cardioBurn = Math.round(cardioKcalForDate(ui.dietDate));
+  const gymBurn = Math.round(gymKcalForDate(ui.dietDate));
+  const exBurn = cardioBurn + gymBurn;
+  const netKcal = round1(totals.kcal - exBurn);
   return `
     <div class="section-diet">
     <div class="date-nav">
@@ -4373,13 +4378,14 @@ function dietHtml() {
 
     <div class="nutri-box" style="margin-bottom:16px">
       <div class="nutri-head"><div class="h1">Informação nutricional do dia</div><div class="h2">${fmtDateLabel(ui.dietDate)} · consumido / meta</div></div>
-      ${remainingKcalBannerHtml(totals.kcal, DB.goals.kcal, cardioBurn)}
+      ${remainingKcalBannerHtml(totals.kcal, DB.goals.kcal, exBurn)}
       ${goalBarHtml('Calorias ingeridas', totals.kcal, DB.goals.kcal, ' kcal', '#2F7D4F')}
-      ${cardioBurn > 0 ? `<div class="nutri-row">
+      ${exBurn > 0 ? `<div class="nutri-row">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <span class="label"><span class="dot" style="background:#C0392B"></span>Gasto no cardio</span>
-          <span class="val"><span style="color:#C0392B">− ${cardioBurn} kcal</span></span>
+          <span class="label"><span class="dot" style="background:#C0392B"></span>Gasto em exercício</span>
+          <span class="val"><span style="color:#C0392B">− ${exBurn} kcal</span></span>
         </div>
+        ${cardioBurn > 0 && gymBurn > 0 ? `<div style="text-align:right;font-size:10.5px;color:#9a988c;margin-top:1px">cardio ${cardioBurn} · musculação ${gymBurn}</div>` : ''}
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px">
           <span class="label" style="font-weight:700">Calorias líquidas</span>
           <span class="val"><span class="${netKcal > DB.goals.kcal ? 'over' : 'ok'}">${netKcal}</span><span style="color:#B3B1A6"> / ${DB.goals.kcal} kcal</span></span>
@@ -4530,7 +4536,7 @@ function deficitChartHtml() {
   const days = resolveDietRangeDays(30);
   const data = days.map(d => ({
     label: fmtShortDate(d),
-    value: round1(DB.goals.kcal - (DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - cardioKcalForDate(d))),
+    value: round1(DB.goals.kcal - (DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - exerciseKcalForDate(d))),
   }));
   const hasAny = DB.dietLog.some(e => days.includes(e.date));
   const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
@@ -4544,7 +4550,7 @@ function deficitTableHtml() {
   const periodLabel = ui.deficitView === 'week' ? 'Semana (início)' : ui.deficitView === 'month' ? 'Mês' : 'Dia';
   return `
     <table>
-      <thead><tr><th>${periodLabel}</th><th>Dias reg.</th><th>Kcal total</th><th>Cardio</th><th>Média/dia</th><th>Meta período</th><th>Déficit/Superávit</th></tr></thead>
+      <thead><tr><th>${periodLabel}</th><th>Dias reg.</th><th>Kcal total</th><th>Exercício</th><th>Média/dia</th><th>Meta período</th><th>Déficit/Superávit</th></tr></thead>
       <tbody>
         ${rows.map(r => {
           const label = ui.deficitView === 'week' ? fmtDateLabel(r.key) : ui.deficitView === 'month' ? fmtMonthLabel(r.key) : fmtDateLabel(r.key);
@@ -4559,7 +4565,7 @@ function deficitTableHtml() {
       </tbody>
     </table>
     ${ui.deficitView === 'day' ? '<div style="font-size:11px;color:#ABA9A0;margin-top:8px">Cada linha é um dia com pelo menos uma refeição registrada — use isso pra achar exatamente qual dia teve o superávit.</div>' : ''}
-    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Média/dia e déficit já descontam as calorias queimadas no cardio. Déficit positivo (verde) = ficou abaixo da meta. Negativo (vermelho) = passou da meta.</div>
+    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Média/dia e déficit já descontam o que você queimou (cardio + musculação). Déficit positivo (verde) = ficou abaixo da meta. Negativo (vermelho) = passou da meta.</div>
   `;
 }
 
@@ -4814,6 +4820,28 @@ function exerciseRowHtml(ex) {
     </div>`;
 }
 
+function gymPresenceCardHtml() {
+  const t = todayStr();
+  const went = gymWentOn(t);
+  const e = gymEntryFor(t);
+  return `<div class="card" id="gymPresenceCard" style="background:#FFF5F4;border-color:#FAC5C1">
+    <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <button class="btn${went ? '' : ' secondary'}" id="gymTodayBtn">${went ? '✓ Treinei hoje' : '💪 Marcar que treinei hoje'}</button>
+      ${went ? `<span style="font-size:12px;color:#86897F">${e.minutes} min · ≈ <b>${gymKcal(e)} kcal</b>${e.kcal != null && e.kcal !== '' ? '' : ' (estimado)'}</span>` : ''}
+    </div>
+    ${went ? `<div class="row" style="gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+      <label style="font-size:11px;color:#86897F">Duração</label>
+      <input type="number" min="0" step="5" id="gymMinInput" value="${e.minutes}" style="width:78px"><span style="font-size:11px;color:#86897F">min</span>
+      <label style="font-size:11px;color:#86897F;margin-left:6px">kcal na mão</label>
+      <input type="number" min="0" step="10" id="gymKcalInput" value="${e.kcal ?? ''}" placeholder="auto" style="width:82px">
+    </div>` : ''}
+    <div style="margin-top:10px;font-size:11px;color:#86897F;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      Marcar outro dia: <input type="date" id="gymOtherDate" style="font-size:12px;padding:4px 6px">
+      <button class="btn secondary" id="gymOtherToggleBtn" style="padding:5px 10px">marcar / desmarcar</button>
+    </div>
+  </div>`;
+}
+
 function workoutHtml() {
   const days = (DB.plan && DB.plan.days) || [];
   const day = currentPlanDay();
@@ -4823,6 +4851,7 @@ function workoutHtml() {
       <div class="workout-day-tabs">
         ${days.map(d => `<button class="wday-btn${d.id === day.id ? ' active' : ''}" data-day="${d.id}"><b>${d.label}</b><span>${esc(d.focus)}</span></button>`).join('')}
       </div>
+      ${gymPresenceCardHtml()}
       <div class="card card-plan">
         <div class="card-title" style="margin:0 0 4px">${day.label.toUpperCase()} · ${esc(day.focus)}</div>
         <div style="font-size:11px;color:#9A9C90;margin-bottom:10px">Toque na carga pra editar. Descanso: segunda, quinta e domingo.</div>
@@ -4841,6 +4870,35 @@ function attachWorkoutHandlers() {
   document.querySelectorAll('.wday-btn').forEach(b => b.addEventListener('click', () => {
     ui.workoutDay = b.dataset.day; renderAll();
   }));
+
+  const gymTodayBtn = document.getElementById('gymTodayBtn');
+  if (gymTodayBtn) gymTodayBtn.addEventListener('click', () => {
+    const d = todayStr();
+    if (gymWentOn(d)) DB.gymLog = (DB.gymLog || []).filter(s => s.date !== d);
+    else (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: gymMinutesDefault(), kcal: null });
+    persist(); renderAll();
+  });
+  const gymMinInput = document.getElementById('gymMinInput');
+  if (gymMinInput) gymMinInput.addEventListener('change', () => {
+    const e = gymEntryFor(todayStr()); if (!e) return;
+    const v = Math.max(0, Number(gymMinInput.value) || 0);
+    e.minutes = v; DB.gymMinutes = v || 60;
+    persist(); renderAll();
+  });
+  const gymKcalInput = document.getElementById('gymKcalInput');
+  if (gymKcalInput) gymKcalInput.addEventListener('change', () => {
+    const e = gymEntryFor(todayStr()); if (!e) return;
+    e.kcal = gymKcalInput.value === '' ? null : Math.max(0, Number(gymKcalInput.value) || 0);
+    persist(); renderAll();
+  });
+  const gymOtherBtn = document.getElementById('gymOtherToggleBtn');
+  if (gymOtherBtn) gymOtherBtn.addEventListener('click', () => {
+    const d = (document.getElementById('gymOtherDate') || {}).value;
+    if (!d) { showToast('Escolhe a data.'); return; }
+    if (gymWentOn(d)) { DB.gymLog = (DB.gymLog || []).filter(s => s.date !== d); showToast('Dia desmarcado: ' + d); }
+    else { (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: gymMinutesDefault(), kcal: null }); showToast('Dia marcado: ' + d); }
+    persist(); renderAll();
+  });
 
   document.querySelectorAll('[data-ex-carga]').forEach(btn => btn.addEventListener('click', () => {
     const ex = findExercise(btn.dataset.exCarga);
@@ -5075,6 +5133,67 @@ function attachConfigHandlers() {
   bindEnterKey('goalsFormCard', 'saveGoalsBtn');
 }
 
+// Frequência semanal: quantos DIAS por semana você treinou (musculação + cardio), últimas N semanas.
+function weeklyFrequency(nWeeks) {
+  nWeeks = nWeeks || 10;
+  const thisWeek = weekStartOf(todayStr());
+  const weeks = [];
+  for (let i = nWeeks - 1; i >= 0; i--) {
+    const ws = shiftDate(thisWeek, -7 * i);
+    const we = shiftDate(ws, 6);
+    const inRange = d => d >= ws && d <= we;
+    const gymDays = new Set((DB.gymLog || []).filter(s => inRange(s.date)).map(s => s.date));
+    const cardioDays = new Set((DB.cardioLog || []).filter(s => inRange(s.date)).map(s => s.date));
+    weeks.push({ label: fmtShortDate(ws), gym: gymDays.size, cardio: cardioDays.size });
+  }
+  return weeks;
+}
+
+function buildFreqChartSVG(weeks) {
+  if (!weeks.length || weeks.every(w => w.gym + w.cardio === 0)) {
+    return '<div class="empty">Marque "treinei hoje" na aba Treino e registre cardios pra ver sua frequência aqui.</div>';
+  }
+  const width = 640, padding = 30, paddingLeft = 30, height = 200;
+  const max = Math.max(...weeks.map(w => w.gym + w.cardio), 3);
+  const plotW = width - paddingLeft - padding;
+  const plotH = height - padding * 2;
+  const gap = plotW / weeks.length;
+  const barW = Math.min(36, gap * 0.62);
+  const bars = weeks.map((w, i) => {
+    const x = paddingLeft + i * gap + (gap - barW) / 2;
+    const gh = (w.gym / max) * plotH;
+    const ch = (w.cardio / max) * plotH;
+    const gy = height - padding - gh;
+    const cy = gy - ch;
+    const total = w.gym + w.cardio;
+    let s = '';
+    if (gh > 0) s += `<rect x="${x.toFixed(1)}" y="${gy.toFixed(1)}" width="${barW.toFixed(1)}" height="${gh.toFixed(1)}" fill="#E01B14" rx="2"><title>${esc(w.label)}: ${w.gym}x musculação</title></rect>`;
+    if (ch > 0) s += `<rect x="${x.toFixed(1)}" y="${cy.toFixed(1)}" width="${barW.toFixed(1)}" height="${ch.toFixed(1)}" fill="#2F7D4F" rx="2"><title>${esc(w.label)}: ${w.cardio}x cardio</title></rect>`;
+    if (total > 0) s += `<text x="${(x + barW / 2).toFixed(1)}" y="${(cy - 5).toFixed(1)}" font-size="10.5" font-weight="700" fill="#4A4D45" text-anchor="middle" font-family="Inter">${total}</text>`;
+    s += `<text x="${(x + barW / 2).toFixed(1)}" y="${height - 8}" font-size="9" fill="#86897F" text-anchor="middle" font-family="Inter">${esc(w.label)}</text>`;
+    return s;
+  }).join('');
+  const yTicks = [...new Set([0, Math.ceil(max / 2), max])];
+  const yAxis = yTicks.map(v => {
+    const y = height - padding - (v / max) * plotH;
+    return `<line x1="${paddingLeft}" y1="${y.toFixed(1)}" x2="${width - padding}" y2="${y.toFixed(1)}" stroke="#EEEDE6" stroke-width="1"/>
+    <text x="${(paddingLeft - 6).toFixed(1)}" y="${(y + 3).toFixed(1)}" font-size="9" fill="#86897F" text-anchor="end" font-family="Inter">${v}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;display:block">${yAxis}${bars}</svg>`;
+}
+
+function freqCardHtml() {
+  return `<div class="card" id="freqCard">
+    <div class="card-title" style="margin:0 0 6px">📅 Frequência de treino — últimas 10 semanas</div>
+    <div style="display:flex;gap:16px;font-size:11px;color:#86897F;margin-bottom:4px">
+      <span><span style="display:inline-block;width:9px;height:9px;background:#E01B14;border-radius:2px;vertical-align:middle"></span> Musculação</span>
+      <span><span style="display:inline-block;width:9px;height:9px;background:#2F7D4F;border-radius:2px;vertical-align:middle"></span> Cardio</span>
+    </div>
+    ${buildFreqChartSVG(weeklyFrequency(10))}
+    <div style="font-size:10.5px;color:#ABA9A0;margin-top:8px">Conta os DIAS treinados por semana (musculação marcada na aba Treino + dias com cardio). Semana começa na segunda.</div>
+  </div>`;
+}
+
 function progressHtml() {
   const days = (DB.plan && DB.plan.days) || [];
   if (!days.length) return `<div class="section-workout"><div class="empty">Sem plano de treino.</div></div>`;
@@ -5093,6 +5212,7 @@ function progressHtml() {
     : `<div class="empty">Edite a carga desse exercício (aba Treino) em 2+ datas diferentes pra ver a evolução.${data.length === 1 ? ` Já tem 1 registro: ${data[0].value} kg em ${data[0].label}.` : ''}</div>`;
   return `
     <div class="section-workout">
+      ${freqCardHtml()}
       <div class="workout-day-tabs">
         ${days.map(d => `<button class="wday-btn${d.id === day.id ? ' active' : ''}" data-progday="${d.id}"><b>${d.label}</b><span>${esc(d.focus)}</span></button>`).join('')}
       </div>
@@ -5160,6 +5280,24 @@ function cardioKcal(s) {
 function cardioKcalForDate(date) {
   return (DB.cardioLog || []).filter(s => s.date === date).reduce((t, s) => t + cardioKcal(s), 0);
 }
+
+// ---- Musculação: marcar "treinei nesse dia" + estimar o gasto ----
+const GYM_MET = 5;            // musculação vigorosa (ACSM ~5–6)
+const GYM_DEFAULT_MIN = 60;   // duração padrão de uma sessão, editável
+function gymMinutesDefault() { return Number(DB.gymMinutes) || GYM_DEFAULT_MIN; }
+function gymKcal(s) {
+  if (s && s.kcal != null && s.kcal !== '' && !isNaN(Number(s.kcal))) return Math.round(Number(s.kcal));
+  const min = Number(s && s.minutes) || 0;
+  if (!min) return 0;
+  return Math.round(GYM_MET * currentWeightKg() * (min / 60));
+}
+function gymEntryFor(date) { return (DB.gymLog || []).find(s => s.date === date) || null; }
+function gymWentOn(date) { return !!gymEntryFor(date); }
+function gymKcalForDate(date) {
+  return (DB.gymLog || []).filter(s => s.date === date).reduce((t, s) => t + gymKcal(s), 0);
+}
+// Gasto TOTAL de exercício num dia (cardio + musculação) — é o que a Dieta desconta.
+function exerciseKcalForDate(date) { return cardioKcalForDate(date) + gymKcalForDate(date); }
 
 function cardioMetricVal(s, metric) {
   const min = Number(s.minutes) || 0;
@@ -5311,7 +5449,7 @@ function setupMenu() {
       exportedAt: new Date().toISOString(),
       goals: DB.goals, customFoods: DB.customFoods, dietLog: DB.dietLog,
       plan: DB.plan, workoutLog: DB.workoutLog, measurements: DB.measurements, waterLog: DB.waterLog,
-      cargaLog: DB.cargaLog, cardioLog: DB.cardioLog,
+      cargaLog: DB.cargaLog, cardioLog: DB.cardioLog, gymLog: DB.gymLog, gymMinutes: DB.gymMinutes,
     };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -5352,6 +5490,8 @@ function setupMenu() {
       DB.waterLog = data.waterLog || {};
       DB.cargaLog = data.cargaLog || [];
       DB.cardioLog = data.cardioLog || [];
+      DB.gymLog = data.gymLog || [];
+      if (data.gymMinutes) DB.gymMinutes = data.gymMinutes;
       persist();
       renderAll();
       alert('Backup importado com sucesso!');
@@ -5704,6 +5844,8 @@ const DB = {
   measurements: [],
   cargaLog: [],
   cardioLog: [],
+  gymLog: [],        // idas à academia: {id, date, minutes, kcal|null}
+  gymMinutes: 60,    // duração padrão de uma sessão de musculação
 };
 function persist() {
   saveWS('plan', DB.plan);
@@ -5711,6 +5853,8 @@ function persist() {
   saveWS('measurements', DB.measurements);
   saveWS('cargaLog', DB.cargaLog);
   saveWS('cardioLog', DB.cardioLog);
+  saveWS('gymLog', DB.gymLog);
+  saveWS('gymMinutes', DB.gymMinutes);
 }
 async function loadDBFromStorage() {
   DB.plan = await loadWS('plan', DB.plan);
@@ -5722,6 +5866,8 @@ async function loadDBFromStorage() {
   DB.measurements = await loadWS('measurements', DB.measurements);
   DB.cargaLog = await loadWS('cargaLog', DB.cargaLog) || [];
   DB.cardioLog = await loadWS('cardioLog', DB.cardioLog) || [];
+  DB.gymLog = await loadWS('gymLog', DB.gymLog) || [];
+  DB.gymMinutes = await loadWS('gymMinutes', DB.gymMinutes) || 60;
 }
 
 const ui = {
@@ -5809,7 +5955,7 @@ function remainingKcalBannerHtml(consumed, goal, burned) {
   const over = remaining < 0;
   const bigText = over ? `${Math.abs(remaining)} kcal acima da meta` : `Faltam ${remaining} kcal`;
   const sub = burned > 0
-    ? `<div style="color:#9a988c;font-size:12px;margin-top:2px">${round1(consumed)} ingeridas − ${Math.round(burned)} do cardio = <b>${round1(net)} kcal líquidas</b></div>`
+    ? `<div style="color:#9a988c;font-size:12px;margin-top:2px">${round1(consumed)} ingeridas − ${Math.round(burned)} de exercício = <b>${round1(net)} kcal líquidas</b></div>`
     : '';
   return `<div class="nutri-row" style="background:#EFF8F1">
     <div style="text-align:center;padding:2px 0">
@@ -5934,7 +6080,8 @@ function periodSummaries(mode) {
     .map(([key, g]) => {
       const days = g.dates.size;
       const goalTotal = DB.goals.kcal * days;
-      const burned = (DB.cardioLog || []).filter(s => g.dates.has(s.date)).reduce((t, s) => t + cardioKcal(s), 0);
+      const burned = (DB.cardioLog || []).filter(s => g.dates.has(s.date)).reduce((t, s) => t + cardioKcal(s), 0)
+        + (DB.gymLog || []).filter(s => g.dates.has(s.date)).reduce((t, s) => t + gymKcal(s), 0);
       const netKcal = g.kcal - burned;
       return {
         key, days, kcal: round1(g.kcal), burned: Math.round(burned),
@@ -5950,8 +6097,10 @@ function dietHtml() {
   const totals = dietTotals();
   const waterToday = DB.waterLog[ui.dietDate] || 0;
   const entries = dietEntries();
-  const cardioBurn = Math.round((DB.cardioLog || []).filter(s => s.date === ui.dietDate).reduce((t, s) => t + cardioKcal(s), 0));
-  const netKcal = round1(totals.kcal - cardioBurn);
+  const cardioBurn = Math.round(cardioKcalForDate(ui.dietDate));
+  const gymBurn = Math.round(gymKcalForDate(ui.dietDate));
+  const exBurn = cardioBurn + gymBurn;
+  const netKcal = round1(totals.kcal - exBurn);
   return `
     <div class="section-diet">
     <div class="date-nav">
@@ -5963,13 +6112,14 @@ function dietHtml() {
 
     <div class="nutri-box" style="margin-bottom:16px">
       <div class="nutri-head"><div class="h1">Informação nutricional do dia</div><div class="h2">${fmtDateLabel(ui.dietDate)} · consumido / meta</div></div>
-      ${remainingKcalBannerHtml(totals.kcal, DB.goals.kcal, cardioBurn)}
+      ${remainingKcalBannerHtml(totals.kcal, DB.goals.kcal, exBurn)}
       ${goalBarHtml('Calorias ingeridas', totals.kcal, DB.goals.kcal, ' kcal', '#2F7D4F')}
-      ${cardioBurn > 0 ? `<div class="nutri-row">
+      ${exBurn > 0 ? `<div class="nutri-row">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <span class="label"><span class="dot" style="background:#C0392B"></span>Gasto no cardio</span>
-          <span class="val"><span style="color:#C0392B">− ${cardioBurn} kcal</span></span>
+          <span class="label"><span class="dot" style="background:#C0392B"></span>Gasto em exercício</span>
+          <span class="val"><span style="color:#C0392B">− ${exBurn} kcal</span></span>
         </div>
+        ${cardioBurn > 0 && gymBurn > 0 ? `<div style="text-align:right;font-size:10.5px;color:#9a988c;margin-top:1px">cardio ${cardioBurn} · musculação ${gymBurn}</div>` : ''}
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px">
           <span class="label" style="font-weight:700">Calorias líquidas</span>
           <span class="val"><span class="${netKcal > DB.goals.kcal ? 'over' : 'ok'}">${netKcal}</span><span style="color:#B3B1A6"> / ${DB.goals.kcal} kcal</span></span>
@@ -6120,7 +6270,7 @@ function deficitChartHtml() {
   const days = resolveDietRangeDays(30);
   const data = days.map(d => ({
     label: fmtShortDate(d),
-    value: round1(DB.goals.kcal - (DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - cardioKcalForDate(d))),
+    value: round1(DB.goals.kcal - (DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - exerciseKcalForDate(d))),
   }));
   const hasAny = DB.dietLog.some(e => days.includes(e.date));
   const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
@@ -6134,7 +6284,7 @@ function deficitTableHtml() {
   const periodLabel = ui.deficitView === 'week' ? 'Semana (início)' : ui.deficitView === 'month' ? 'Mês' : 'Dia';
   return `
     <table>
-      <thead><tr><th>${periodLabel}</th><th>Dias reg.</th><th>Kcal total</th><th>Cardio</th><th>Média/dia</th><th>Meta período</th><th>Déficit/Superávit</th></tr></thead>
+      <thead><tr><th>${periodLabel}</th><th>Dias reg.</th><th>Kcal total</th><th>Exercício</th><th>Média/dia</th><th>Meta período</th><th>Déficit/Superávit</th></tr></thead>
       <tbody>
         ${rows.map(r => {
           const label = ui.deficitView === 'week' ? fmtDateLabel(r.key) : ui.deficitView === 'month' ? fmtMonthLabel(r.key) : fmtDateLabel(r.key);
@@ -6149,7 +6299,7 @@ function deficitTableHtml() {
       </tbody>
     </table>
     ${ui.deficitView === 'day' ? '<div style="font-size:11px;color:#ABA9A0;margin-top:8px">Cada linha é um dia com pelo menos uma refeição registrada — use isso pra achar exatamente qual dia teve o superávit.</div>' : ''}
-    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Média/dia e déficit já descontam as calorias queimadas no cardio. Déficit positivo (verde) = ficou abaixo da meta. Negativo (vermelho) = passou da meta.</div>
+    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Média/dia e déficit já descontam o que você queimou (cardio + musculação). Déficit positivo (verde) = ficou abaixo da meta. Negativo (vermelho) = passou da meta.</div>
   `;
 }
 
@@ -6382,6 +6532,28 @@ function exerciseRowHtml(ex) {
     </div>`;
 }
 
+function gymPresenceCardHtml() {
+  const t = todayStr();
+  const went = gymWentOn(t);
+  const e = gymEntryFor(t);
+  return `<div class="card" id="gymPresenceCard" style="background:#FFF5F4;border-color:#FAC5C1">
+    <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <button class="btn${went ? '' : ' secondary'}" id="gymTodayBtn">${went ? '✓ Treinei hoje' : '💪 Marcar que treinei hoje'}</button>
+      ${went ? `<span style="font-size:12px;color:#86897F">${e.minutes} min · ≈ <b>${gymKcal(e)} kcal</b>${e.kcal != null && e.kcal !== '' ? '' : ' (estimado)'}</span>` : ''}
+    </div>
+    ${went ? `<div class="row" style="gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+      <label style="font-size:11px;color:#86897F">Duração</label>
+      <input type="number" min="0" step="5" id="gymMinInput" value="${e.minutes}" style="width:78px"><span style="font-size:11px;color:#86897F">min</span>
+      <label style="font-size:11px;color:#86897F;margin-left:6px">kcal na mão</label>
+      <input type="number" min="0" step="10" id="gymKcalInput" value="${e.kcal ?? ''}" placeholder="auto" style="width:82px">
+    </div>` : ''}
+    <div style="margin-top:10px;font-size:11px;color:#86897F;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      Marcar outro dia: <input type="date" id="gymOtherDate" style="font-size:12px;padding:4px 6px">
+      <button class="btn secondary" id="gymOtherToggleBtn" style="padding:5px 10px">marcar / desmarcar</button>
+    </div>
+  </div>`;
+}
+
 function workoutHtml() {
   const days = (DB.plan && DB.plan.days) || [];
   const day = currentPlanDay();
@@ -6391,6 +6563,7 @@ function workoutHtml() {
       <div class="workout-day-tabs">
         ${days.map(d => `<button class="wday-btn${d.id === day.id ? ' active' : ''}" data-day="${d.id}"><b>${d.label}</b><span>${esc(d.focus)}</span></button>`).join('')}
       </div>
+      ${gymPresenceCardHtml()}
       <div class="card card-plan">
         <div class="card-title" style="margin:0 0 4px">${day.label.toUpperCase()} · ${esc(day.focus)}</div>
         <div style="font-size:11px;color:#9A9C90;margin-bottom:10px">Toque na carga pra editar. Descanso: segunda, quinta e domingo.</div>
@@ -6409,6 +6582,35 @@ function attachWorkoutHandlers() {
   document.querySelectorAll('.wday-btn').forEach(b => b.addEventListener('click', () => {
     ui.workoutDay = b.dataset.day; renderAll();
   }));
+
+  const gymTodayBtn = document.getElementById('gymTodayBtn');
+  if (gymTodayBtn) gymTodayBtn.addEventListener('click', () => {
+    const d = todayStr();
+    if (gymWentOn(d)) DB.gymLog = (DB.gymLog || []).filter(s => s.date !== d);
+    else (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: gymMinutesDefault(), kcal: null });
+    persist(); renderAll();
+  });
+  const gymMinInput = document.getElementById('gymMinInput');
+  if (gymMinInput) gymMinInput.addEventListener('change', () => {
+    const e = gymEntryFor(todayStr()); if (!e) return;
+    const v = Math.max(0, Number(gymMinInput.value) || 0);
+    e.minutes = v; DB.gymMinutes = v || 60;
+    persist(); renderAll();
+  });
+  const gymKcalInput = document.getElementById('gymKcalInput');
+  if (gymKcalInput) gymKcalInput.addEventListener('change', () => {
+    const e = gymEntryFor(todayStr()); if (!e) return;
+    e.kcal = gymKcalInput.value === '' ? null : Math.max(0, Number(gymKcalInput.value) || 0);
+    persist(); renderAll();
+  });
+  const gymOtherBtn = document.getElementById('gymOtherToggleBtn');
+  if (gymOtherBtn) gymOtherBtn.addEventListener('click', () => {
+    const d = (document.getElementById('gymOtherDate') || {}).value;
+    if (!d) { showToast('Escolhe a data.'); return; }
+    if (gymWentOn(d)) { DB.gymLog = (DB.gymLog || []).filter(s => s.date !== d); showToast('Dia desmarcado: ' + d); }
+    else { (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: gymMinutesDefault(), kcal: null }); showToast('Dia marcado: ' + d); }
+    persist(); renderAll();
+  });
 
   document.querySelectorAll('[data-ex-carga]').forEach(btn => btn.addEventListener('click', () => {
     const ex = findExercise(btn.dataset.exCarga);
@@ -6643,6 +6845,67 @@ function attachConfigHandlers() {
   bindEnterKey('goalsFormCard', 'saveGoalsBtn');
 }
 
+// Frequência semanal: quantos DIAS por semana você treinou (musculação + cardio), últimas N semanas.
+function weeklyFrequency(nWeeks) {
+  nWeeks = nWeeks || 10;
+  const thisWeek = weekStartOf(todayStr());
+  const weeks = [];
+  for (let i = nWeeks - 1; i >= 0; i--) {
+    const ws = shiftDate(thisWeek, -7 * i);
+    const we = shiftDate(ws, 6);
+    const inRange = d => d >= ws && d <= we;
+    const gymDays = new Set((DB.gymLog || []).filter(s => inRange(s.date)).map(s => s.date));
+    const cardioDays = new Set((DB.cardioLog || []).filter(s => inRange(s.date)).map(s => s.date));
+    weeks.push({ label: fmtShortDate(ws), gym: gymDays.size, cardio: cardioDays.size });
+  }
+  return weeks;
+}
+
+function buildFreqChartSVG(weeks) {
+  if (!weeks.length || weeks.every(w => w.gym + w.cardio === 0)) {
+    return '<div class="empty">Marque "treinei hoje" na aba Treino e registre cardios pra ver sua frequência aqui.</div>';
+  }
+  const width = 640, padding = 30, paddingLeft = 30, height = 200;
+  const max = Math.max(...weeks.map(w => w.gym + w.cardio), 3);
+  const plotW = width - paddingLeft - padding;
+  const plotH = height - padding * 2;
+  const gap = plotW / weeks.length;
+  const barW = Math.min(36, gap * 0.62);
+  const bars = weeks.map((w, i) => {
+    const x = paddingLeft + i * gap + (gap - barW) / 2;
+    const gh = (w.gym / max) * plotH;
+    const ch = (w.cardio / max) * plotH;
+    const gy = height - padding - gh;
+    const cy = gy - ch;
+    const total = w.gym + w.cardio;
+    let s = '';
+    if (gh > 0) s += `<rect x="${x.toFixed(1)}" y="${gy.toFixed(1)}" width="${barW.toFixed(1)}" height="${gh.toFixed(1)}" fill="#E01B14" rx="2"><title>${esc(w.label)}: ${w.gym}x musculação</title></rect>`;
+    if (ch > 0) s += `<rect x="${x.toFixed(1)}" y="${cy.toFixed(1)}" width="${barW.toFixed(1)}" height="${ch.toFixed(1)}" fill="#2F7D4F" rx="2"><title>${esc(w.label)}: ${w.cardio}x cardio</title></rect>`;
+    if (total > 0) s += `<text x="${(x + barW / 2).toFixed(1)}" y="${(cy - 5).toFixed(1)}" font-size="10.5" font-weight="700" fill="#4A4D45" text-anchor="middle" font-family="Inter">${total}</text>`;
+    s += `<text x="${(x + barW / 2).toFixed(1)}" y="${height - 8}" font-size="9" fill="#86897F" text-anchor="middle" font-family="Inter">${esc(w.label)}</text>`;
+    return s;
+  }).join('');
+  const yTicks = [...new Set([0, Math.ceil(max / 2), max])];
+  const yAxis = yTicks.map(v => {
+    const y = height - padding - (v / max) * plotH;
+    return `<line x1="${paddingLeft}" y1="${y.toFixed(1)}" x2="${width - padding}" y2="${y.toFixed(1)}" stroke="#EEEDE6" stroke-width="1"/>
+    <text x="${(paddingLeft - 6).toFixed(1)}" y="${(y + 3).toFixed(1)}" font-size="9" fill="#86897F" text-anchor="end" font-family="Inter">${v}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;display:block">${yAxis}${bars}</svg>`;
+}
+
+function freqCardHtml() {
+  return `<div class="card" id="freqCard">
+    <div class="card-title" style="margin:0 0 6px">📅 Frequência de treino — últimas 10 semanas</div>
+    <div style="display:flex;gap:16px;font-size:11px;color:#86897F;margin-bottom:4px">
+      <span><span style="display:inline-block;width:9px;height:9px;background:#E01B14;border-radius:2px;vertical-align:middle"></span> Musculação</span>
+      <span><span style="display:inline-block;width:9px;height:9px;background:#2F7D4F;border-radius:2px;vertical-align:middle"></span> Cardio</span>
+    </div>
+    ${buildFreqChartSVG(weeklyFrequency(10))}
+    <div style="font-size:10.5px;color:#ABA9A0;margin-top:8px">Conta os DIAS treinados por semana (musculação marcada na aba Treino + dias com cardio). Semana começa na segunda.</div>
+  </div>`;
+}
+
 function progressHtml() {
   const days = (DB.plan && DB.plan.days) || [];
   if (!days.length) return `<div class="section-workout"><div class="empty">Sem plano de treino.</div></div>`;
@@ -6661,6 +6924,7 @@ function progressHtml() {
     : `<div class="empty">Edite a carga desse exercício (aba Treino) em 2+ datas diferentes pra ver a evolução.${data.length === 1 ? ` Já tem 1 registro: ${data[0].value} kg em ${data[0].label}.` : ''}</div>`;
   return `
     <div class="section-workout">
+      ${freqCardHtml()}
       <div class="workout-day-tabs">
         ${days.map(d => `<button class="wday-btn${d.id === day.id ? ' active' : ''}" data-progday="${d.id}"><b>${d.label}</b><span>${esc(d.focus)}</span></button>`).join('')}
       </div>
@@ -6728,6 +6992,24 @@ function cardioKcal(s) {
 function cardioKcalForDate(date) {
   return (DB.cardioLog || []).filter(s => s.date === date).reduce((t, s) => t + cardioKcal(s), 0);
 }
+
+// ---- Musculação: marcar "treinei nesse dia" + estimar o gasto ----
+const GYM_MET = 5;            // musculação vigorosa (ACSM ~5–6)
+const GYM_DEFAULT_MIN = 60;   // duração padrão de uma sessão, editável
+function gymMinutesDefault() { return Number(DB.gymMinutes) || GYM_DEFAULT_MIN; }
+function gymKcal(s) {
+  if (s && s.kcal != null && s.kcal !== '' && !isNaN(Number(s.kcal))) return Math.round(Number(s.kcal));
+  const min = Number(s && s.minutes) || 0;
+  if (!min) return 0;
+  return Math.round(GYM_MET * currentWeightKg() * (min / 60));
+}
+function gymEntryFor(date) { return (DB.gymLog || []).find(s => s.date === date) || null; }
+function gymWentOn(date) { return !!gymEntryFor(date); }
+function gymKcalForDate(date) {
+  return (DB.gymLog || []).filter(s => s.date === date).reduce((t, s) => t + gymKcal(s), 0);
+}
+// Gasto TOTAL de exercício num dia (cardio + musculação) — é o que a Dieta desconta.
+function exerciseKcalForDate(date) { return cardioKcalForDate(date) + gymKcalForDate(date); }
 
 function cardioMetricVal(s, metric) {
   const min = Number(s.minutes) || 0;
@@ -6879,7 +7161,7 @@ function setupMenu() {
       exportedAt: new Date().toISOString(),
       goals: DB.goals, customFoods: DB.customFoods, dietLog: DB.dietLog,
       plan: DB.plan, workoutLog: DB.workoutLog, measurements: DB.measurements, waterLog: DB.waterLog,
-      cargaLog: DB.cargaLog, cardioLog: DB.cardioLog,
+      cargaLog: DB.cargaLog, cardioLog: DB.cardioLog, gymLog: DB.gymLog, gymMinutes: DB.gymMinutes,
     };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -6920,6 +7202,8 @@ function setupMenu() {
       DB.waterLog = data.waterLog || {};
       DB.cargaLog = data.cargaLog || [];
       DB.cardioLog = data.cardioLog || [];
+      DB.gymLog = data.gymLog || [];
+      if (data.gymMinutes) DB.gymMinutes = data.gymMinutes;
       persist();
       renderAll();
       alert('Backup importado com sucesso!');

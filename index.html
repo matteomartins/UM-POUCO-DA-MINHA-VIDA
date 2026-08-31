@@ -807,6 +807,54 @@
     #view-cambio .flap {width:22px; height:32px; font-size:18px;}
   }
 
+  /* ---- Financeiro no celular: Trocas e Gastos viram cartões empilhados (sem arrastar pro lado) ---- */
+  @media (max-width: 680px){
+    #view-cambio #blockTrocas .table-wrap, #view-cambio #blockGastos .table-wrap { overflow-x: visible; padding-bottom: 0; }
+    #view-cambio #trocasTable, #view-cambio #gastosTable,
+    #view-cambio #trocasTable tbody, #view-cambio #gastosTable tbody,
+    #view-cambio #trocasTable tfoot, #view-cambio #gastosTable tfoot,
+    #view-cambio #trocasTable tr, #view-cambio #gastosTable tr,
+    #view-cambio #trocasTable td, #view-cambio #gastosTable td { display: block; width: 100%; }
+    #view-cambio #trocasTable thead, #view-cambio #gastosTable thead { display: none; }
+    #view-cambio #trocasTable tbody tr, #view-cambio #gastosTable tbody tr {
+      border: 1px solid var(--line-strong); border-radius: 9px; margin-bottom: 10px;
+      padding: 6px 12px; background: #fff;
+    }
+    #view-cambio #trocasTable tbody tr:nth-child(even),
+    #view-cambio #gastosTable tbody tr:nth-child(even) { background: #fff; }
+    #view-cambio #trocasTable tbody td, #view-cambio #gastosTable tbody td {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      border: none; border-bottom: 1px dashed var(--line); padding: 7px 0;
+    }
+    #view-cambio #trocasTable tbody td:last-child, #view-cambio #gastosTable tbody td:last-child { border-bottom: none; }
+    #view-cambio #trocasTable tbody td::before, #view-cambio #gastosTable tbody td::before {
+      content: attr(data-label); flex: 0 0 auto;
+      font-weight: 700; font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-dim);
+    }
+    #view-cambio #trocasTable tbody td input, #view-cambio #gastosTable tbody td input {
+      flex: 1 1 auto; min-width: 0; width: auto;
+    }
+    #view-cambio #trocasTable tbody td.actions-cell, #view-cambio #gastosTable tbody td.actions-cell { justify-content: flex-end; }
+    #view-cambio #trocasTable tbody td.actions-cell::before, #view-cambio #gastosTable tbody td.actions-cell::before { display: none; }
+    #view-cambio .ledger-block.edit-mode #trocasTable .del-btn,
+    #view-cambio .ledger-block.edit-mode #gastosTable .del-btn { display: inline-block; }
+    #view-cambio #trocasTable tfoot tr, #view-cambio #gastosTable tfoot tr {
+      display: flex; flex-wrap: wrap; gap: 4px 16px;
+      border-top: 2px solid var(--green); background: var(--panel-tint);
+      padding: 9px 12px; border-radius: 0 0 9px 9px; margin-bottom: 4px;
+    }
+    #view-cambio #trocasTable tfoot td, #view-cambio #gastosTable tfoot td {
+      display: inline; width: auto; border: none; padding: 0; background: none;
+    }
+    #view-cambio #trocasTable tfoot td:empty, #view-cambio #gastosTable tfoot td:empty { display: none; }
+    #view-cambio #trocasTable tfoot td[data-label]::before, #view-cambio #gastosTable tfoot td[data-label]::before {
+      content: attr(data-label) " "; font-weight: 700; font-size: 10px; text-transform: uppercase; color: var(--ink-dim);
+    }
+    #view-cambio #trocasTable .empty-row td, #view-cambio #gastosTable .empty-row td { text-align: center; }
+    #view-cambio #trocasTable .empty-row td::before, #view-cambio #gastosTable .empty-row td::before { display: none; }
+    #view-cambio .quick-date-bar { flex-wrap: wrap; }
+  }
+
 
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;#view-dieta 500;600;700&family=Sora:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap');
   * { box-sizing: border-box; }
@@ -1574,7 +1622,7 @@ async function storageGetWithRetry(key){
               </tr></thead>
               <tbody id="trocasBody"></tbody>
               <tfoot><tr>
-                <td>Total</td><td id="totalTrocaR">—</td><td></td><td id="totalTrocaP">—</td><td></td>
+                <td>Total</td><td id="totalTrocaR" data-label="R$">—</td><td></td><td id="totalTrocaP" data-label="$">—</td><td></td>
               </tr></tfoot>
             </table>
           </div>
@@ -1604,7 +1652,7 @@ async function storageGetWithRetry(key){
               </tr></thead>
               <tbody id="gastosBody"></tbody>
               <tfoot><tr>
-                <td colspan="3">Total</td><td id="totalGastoP">—</td><td></td><td id="totalGastoR">—</td><td></td>
+                <td colspan="3">Total</td><td id="totalGastoP" data-label="$">—</td><td></td><td id="totalGastoR" data-label="R$">—</td><td></td>
               </tr></tfoot>
             </table>
           </div>
@@ -3369,6 +3417,7 @@ window.init_cambio = function(){
       tr.setAttribute('data-id', t.id);
 
       var tdData = document.createElement('td');
+      tdData.setAttribute('data-label', 'Data');
       var inpData = document.createElement('input');
       inpData.type = 'date'; inpData.value = t.data || '';
       inpData.addEventListener('change', function(){ t.data = inpData.value; saveState(); lightUpdate(); });
@@ -3376,6 +3425,7 @@ window.init_cambio = function(){
       tr.appendChild(tdData);
 
       var tdVal = document.createElement('td');
+      tdVal.setAttribute('data-label', 'Recebido (R$)');
       var inpVal = document.createElement('input');
       inpVal.type = 'number'; inpVal.step = '0.01'; inpVal.min = '0'; inpVal.value = t.valorR;
       inpVal.addEventListener('input', function(){
@@ -3387,6 +3437,7 @@ window.init_cambio = function(){
       tr.appendChild(tdVal);
 
       var tdCot = document.createElement('td');
+      tdCot.setAttribute('data-label', 'Cotação');
       var inpCot = document.createElement('input');
       inpCot.type = 'number'; inpCot.step = '0.01'; inpCot.min = '0'; inpCot.value = t.cotacao;
       inpCot.addEventListener('input', function(){
@@ -3399,6 +3450,7 @@ window.init_cambio = function(){
 
       var tdConv = document.createElement('td');
       tdConv.className = 'computed';
+      tdConv.setAttribute('data-label', 'Convertido ($)');
       tdConv.textContent = fmtPlain(num(t.valorR) * num(t.cotacao));
       tr.appendChild(tdConv);
 
@@ -3434,6 +3486,7 @@ window.init_cambio = function(){
       tr.setAttribute('data-id', g.id);
 
       var tdData = document.createElement('td');
+      tdData.setAttribute('data-label', 'Data');
       var inpData = document.createElement('input');
       inpData.type = 'date'; inpData.value = g.data || '';
       inpData.addEventListener('change', function(){ g.data = inpData.value; lightUpdate(); });
@@ -3441,6 +3494,7 @@ window.init_cambio = function(){
       tr.appendChild(tdData);
 
       var tdDesc = document.createElement('td');
+      tdDesc.setAttribute('data-label', 'Descrição');
       var inpDesc = document.createElement('input');
       inpDesc.type = 'text'; inpDesc.placeholder = 'ex: aluguel'; inpDesc.value = g.desc || '';
       inpDesc.addEventListener('input', function(){ g.desc = inpDesc.value; saveState(); });
@@ -3448,6 +3502,7 @@ window.init_cambio = function(){
       tr.appendChild(tdDesc);
 
       var tdObs = document.createElement('td');
+      tdObs.setAttribute('data-label', 'Obs');
       var inpObs = document.createElement('input');
       inpObs.type = 'text'; inpObs.placeholder = 'obs'; inpObs.value = g.obs || '';
       inpObs.addEventListener('input', function(){ g.obs = inpObs.value; saveState(); });
@@ -3455,6 +3510,7 @@ window.init_cambio = function(){
       tr.appendChild(tdObs);
 
       var tdCusto = document.createElement('td');
+      tdCusto.setAttribute('data-label', 'Custo ($)');
       var inpCusto = document.createElement('input');
       inpCusto.type = 'number'; inpCusto.step='0.01'; inpCusto.min='0'; inpCusto.value = g.custoP;
       inpCusto.addEventListener('input', function(){
@@ -3467,6 +3523,7 @@ window.init_cambio = function(){
 
       var rate = gastoRate(data, g, y, m);
       var tdChip = document.createElement('td');
+      tdChip.setAttribute('data-label', 'Câmbio aplicado');
       var chip = document.createElement('span');
       chip.className = 'period-chip' + (rate.before ? ' warn' : '');
       chip.textContent = rate.troca ? (fmtDateShort(rate.troca.data) + ' · ' + fmtPlain(rate.cot)) : ('mês anterior · ' + fmtPlain(rate.cot));
@@ -3474,6 +3531,7 @@ window.init_cambio = function(){
 
       var tdR = document.createElement('td');
       tdR.className = 'computed';
+      tdR.setAttribute('data-label', 'Custo (R$)');
       tdR.textContent = fmtPlain(num(g.custoP) / (rate.cot || 1));
       tr.appendChild(tdR);
 

@@ -1379,6 +1379,14 @@ async function storageGetWithRetry(key){
       </div>
       <ul class="ideias-list" id="ideiasListPessoal"></ul>
     </div>
+    <div class="ideias-col" data-cat="dupla">
+      <div class="ideias-col-title">🩷 Missões a dois</div>
+      <div class="ideias-add-row">
+        <input type="text" id="ideiasAddDupla" placeholder="o que fazer a dois...">
+        <button data-cat="dupla">+</button>
+      </div>
+      <ul class="ideias-list" id="ideiasListDupla"></ul>
+    </div>
   </div>
 </div>
 
@@ -7269,9 +7277,9 @@ document.addEventListener('input', e => {
 };
 
 window.init_ideias = function(){
-  const CATS = ['livro','filme','fazer','jogo','pessoal'];
-  const LIST_ID = { livro:'ideiasListLivro', filme:'ideiasListFilme', fazer:'ideiasListFazer', jogo:'ideiasListJogo', pessoal:'ideiasListPessoal' };
-  const ADD_ID = { livro:'ideiasAddLivro', filme:'ideiasAddFilme', fazer:'ideiasAddFazer', jogo:'ideiasAddJogo', pessoal:'ideiasAddPessoal' };
+  const CATS = ['livro','filme','fazer','jogo','pessoal','dupla'];
+  const LIST_ID = { livro:'ideiasListLivro', filme:'ideiasListFilme', fazer:'ideiasListFazer', jogo:'ideiasListJogo', pessoal:'ideiasListPessoal', dupla:'ideiasListDupla' };
+  const ADD_ID = { livro:'ideiasAddLivro', filme:'ideiasAddFilme', fazer:'ideiasAddFazer', jogo:'ideiasAddJogo', pessoal:'ideiasAddPessoal', dupla:'ideiasAddDupla' };
 
   const seedItens = [
     { nome:'Admirável Mundo Novo', cat:'livro', done:false },

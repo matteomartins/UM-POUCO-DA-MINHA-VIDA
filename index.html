@@ -252,6 +252,12 @@
   #view-agenda .entry.saopaulo .title {color:#fff;font-weight:700;background:rgba(0,0,0,.55);display:inline-block;padding:0 4px;border-radius:2px;}
   #view-agenda .entry.saopaulo .who {color:#fff;background:rgba(0,0,0,.55);display:inline-block;padding:0 4px;border-radius:2px;}
 
+  #view-agenda .entry.inscricao {border-color:#E91E63;background:#FCE4EC;}
+  #view-agenda .entry.inscricao .time {color:#C2185B;}
+  #view-agenda .entry.inscricao .title {color:#880E4F;font-weight:700;}
+  #view-agenda .entry.inscricao .who {color:#AD1457;font-style:normal;}
+  #view-agenda .cuadri-wrap .pill.inscricao {background:#FCE4EC;color:#880E4F;border-left:2px solid #E91E63;}
+
   #view-agenda footer {
     margin-top:30px;padding-top:14px;border-top:1px solid var(--paper-line);
     font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;color:var(--muted);line-height:1.6;
@@ -1426,6 +1432,7 @@ async function storageGetWithRetry(key){
     <span><i class="dot" style="background:var(--rotina)"></i>Rotina</span>
     <span><i class="dot" style="background:#c9a227"></i>Exercício</span>
     <span><i class="dot" style="background:var(--pessoal)"></i>Pessoal</span>
+    <span><i class="dot" style="background:#E91E63"></i>Inscrições</span>
     <span><i class="dot" style="background:var(--saopaulo-red)"></i>⭐ São Paulo</span>
   </div>
 </div>

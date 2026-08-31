@@ -369,16 +369,18 @@
 @media(max-width:820px){
   #view-agenda .cuadri-wrap {overflow-x:hidden;}
   #view-agenda .cuadri-wrap .grid {
-    grid-template-columns:repeat(7,minmax(80px,1fr)); gap:3px;
+    grid-template-columns:repeat(7,minmax(140px,1fr)); gap:4px;
     overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:6px;
   }
   #view-agenda .cuadri-wrap .weekdays {display:none;}
-  #view-agenda .cuadri-wrap .cell {min-height:54px; padding:4px 3px; border-radius:3px; overflow:hidden;}
+  #view-agenda .cuadri-wrap .cell {min-height:54px; padding:5px 4px; border-radius:3px;}
   #view-agenda .cuadri-wrap .daynum {font-size:10px;}
+  /* célula rola de lado (colunas mais largas), então o texto aparece INTEIRO — sem "..." */
   #view-agenda .cuadri-wrap .pill {
-    font-size:8px; padding:2px 3px; line-height:1.18; border-left-width:2px;
-    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+    font-size:9px; padding:3px 4px; line-height:1.25; border-left-width:2px;
+    white-space:normal; overflow:visible;
   }
+  #view-agenda .cuadri-wrap .pill .pill-who {font-size:8.5px;}
 }
 #view-agenda .cuadri-wrap .cell {
   background:#fff;border:1px solid var(--paper-line);border-radius:3px;
@@ -1156,25 +1158,48 @@
   #view-ideias .edit-toggle-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
   #view-ideias .ideias-empty{color:var(--muted);font-size:12px;font-style:italic;}
 
-  /* ---------- correções de responsividade mobile (Dieta / Treino) ---------- */
+  /* ---------- correções de responsividade mobile ---------- */
   @media (max-width: 640px){
-    /* tabelas largas (Refeições do dia, Déficit histórico, Medidas, Cardio, Carga)
-       passam a rolar DENTRO da própria caixa em vez de empurrar a página pro lado */
-    #view-dieta table, #view-treino table{
+    /* Tabelas largas (Refeições do dia, Déficit histórico, Medidas, Cardio, Carga):
+       a <table> inteira vira um bloco que rola de lado COMO UMA COISA SÓ — cabeçalho e
+       valores continuam na mesma tabela interna, então nada fica desalinhado. */
+    #view-dieta #contentDieta table, #view-treino #contentTreino table{
       display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;
     }
-    #view-dieta table thead, #view-treino table thead,
-    #view-dieta table tbody, #view-treino table tbody{
-      display:table; width:100%; min-width:max-content;
-    }
-    /* inputs de data/hora não podem ter largura intrínseca maior que a coluna */
+    #view-dieta #contentDieta table th, #view-dieta #contentDieta table td,
+    #view-treino #contentTreino table th, #view-treino #contentTreino table td{ white-space:nowrap; }
+
+    /* iOS dá zoom sozinho quando o campo tem fonte < 16px — trava em 16 no celular */
+    #view-dieta input, #view-dieta select, #view-dieta textarea,
+    #view-treino input, #view-treino select, #view-treino textarea,
+    #view-agenda input, #view-agenda select, #view-agenda textarea,
+    #view-cambio input, #view-cambio select, #view-cambio textarea,
+    #view-ideias input, #view-ideias select, #view-ideias textarea{ font-size:16px; }
+
     #view-dieta input, #view-treino input,
     #view-dieta select, #view-treino select{ min-width:0; max-width:100%; }
     #view-dieta .field, #view-treino .field{ min-width:0; }
     #view-dieta .field-grid, #view-treino .field-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
-    /* barra de navegação de data (‹ data ▼ ▲ Hoje) quebra linha em vez de estourar */
     #view-dieta .date-nav, #view-treino .date-nav{ flex-wrap:wrap; }
     #view-dieta .date-nav input[type="date"], #view-treino .date-nav input[type="date"]{ flex:1 1 140px; }
+
+    /* Resultado da busca de alimento: nome ocupa a linha toda e quebra; fonte/kcal vão embaixo.
+       (antes o nome espremia até virar 1 letra) */
+    #view-dieta .food-result-item, #view-treino .food-result-item{
+      flex-direction:column; align-items:stretch; gap:2px;
+    }
+    #view-dieta .food-result-item > span:first-child, #view-treino .food-result-item > span:first-child{
+      white-space:normal; overflow:visible; text-overflow:clip;
+    }
+    #view-dieta .food-result-item > span:last-child, #view-treino .food-result-item > span:last-child{ font-size:11px; }
+    #view-dieta .food-search-results, #view-treino .food-search-results{ max-height:300px; }
+
+    /* Gaveta da Agenda: mais larga e botões de alternância menores pra não estourar */
+    #view-agenda .agenda-drawer{ width:min(440px,96vw); padding:14px 12px 40px; }
+    #view-agenda .form-day-btn, #view-agenda .ovr-mode-btn, #view-agenda .scope-btn{
+      font-size:11px; padding:7px 3px; line-height:1.15;
+    }
+    #view-agenda .agenda-drawer .form-row > div{ flex:1 1 130px; }
   }
   @media (max-width: 420px){
     #view-dieta .field-grid, #view-treino .field-grid{ grid-template-columns:1fr; }
@@ -1428,7 +1453,7 @@ async function storageGetWithRetry(key){
         <button class="form-day-btn" data-target="amanha">Amanhã</button>
       </div>
       <div class="form-day-toggle">
-        <button class="scope-btn active" data-scope="both" data-scopegroup="form">Mensal + Cuadrimestre</button>
+        <button class="scope-btn active" data-scope="both" data-scopegroup="form">Mensal + Cuadri</button>
         <button class="scope-btn" data-scope="mensal" data-scopegroup="form">Só Mensal</button>
       </div>
       <div class="form-grid">
@@ -1460,7 +1485,7 @@ async function storageGetWithRetry(key){
     <div class="pend-box">
       <div class="pend-title">Agendar uma pendência num dia</div>
       <div class="form-day-toggle">
-        <button class="scope-btn active" data-scope="both" data-scopegroup="sched">Mensal + Cuadrimestre</button>
+        <button class="scope-btn active" data-scope="both" data-scopegroup="sched">Mensal + Cuadri</button>
         <button class="scope-btn" data-scope="mensal" data-scopegroup="sched">Só Mensal</button>
       </div>
       <div class="form-grid">
@@ -3953,6 +3978,15 @@ function buildLineChartSVG(data, opts) {
   }));
   const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
   const areaD = pathD + ` L${points[points.length - 1].x.toFixed(1)},${height - padding} L${points[0].x.toFixed(1)},${height - padding} Z`;
+  // Com negColor: cada trecho da linha fica verde (valor >= 0 = déficit / abaixo da meta)
+  // ou vermelho (algum ponto < 0 = superávit / passou da meta).
+  const lineSvg = negColor
+    ? points.slice(0, -1).map((p, i) => {
+        const q = points[i + 1];
+        const segColor = (p.value < 0 || q.value < 0) ? negColor : color;
+        return `<path d="M${p.x.toFixed(1)},${p.y.toFixed(1)} L${q.x.toFixed(1)},${q.y.toFixed(1)}" fill="none" stroke="${segColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+      }).join('')
+    : `<path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
   const circles = points.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.6" fill="${(negColor && p.value < 0) ? negColor : color}" stroke="#fff" stroke-width="1.8"><title>${esc(p.label)}: ${p.value > 0 && zeroLine ? '+' : ''}${p.value}${unit}</title></circle>`).join('');
   const xLabels = buildXAxisLabels(points.map(p => p.label), i => points[i].x, height, padding);
   // eixo Y: mínimo, meio, máximo (garante o zero se zeroLine estiver ligado)
@@ -3965,7 +3999,7 @@ function buildLineChartSVG(data, opts) {
   return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;display:block">
     ${yAxis}
     <path d="${areaD}" fill="${color}22" stroke="none"/>
-    <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${lineSvg}
     ${circles}${xLabels}
   </svg>`;
 }
@@ -4432,8 +4466,7 @@ function dietHtml() {
         <span style="font-size:11px;color:#86897F">até</span>
         <input type="date" id="dietRangeTo" value="${ui.dietRange.to || ''}" style="width:135px">
         <button class="btn secondary" id="dietRangeApplyBtn">Aplicar</button>
-        <button class="btn secondary" id="dietRangeAllBtn" style="${ui.dietRange.all ? 'background:#2F7D4F;color:#fff' : ''}">Total (desde o início)</button>
-        ${(ui.dietRange.from || ui.dietRange.all) ? '<button class="btn secondary" id="dietRangeResetBtn">Padrão</button>' : ''}
+        ${ui.dietRange.from ? '<button class="btn secondary" id="dietRangeResetBtn">Voltar ao normal</button>' : ''}
       </div>
       ${DIET_CHARTS[ui.dietChartIndex].bodyFn()}
       <div style="text-align:center;margin-top:8px">
@@ -4618,10 +4651,6 @@ function attachDietHandlers() {
     const to = document.getElementById('dietRangeTo').value;
     if (!from || !to) return;
     ui.dietRange = { from, to, all: false };
-    renderAll();
-  });
-  document.getElementById('dietRangeAllBtn').addEventListener('click', () => {
-    ui.dietRange = { from: null, to: null, all: true };
     renderAll();
   });
   const dietRangeResetBtn = document.getElementById('dietRangeResetBtn');
@@ -4921,7 +4950,7 @@ function measurementsHtml() {
         <span style="font-size:11px;color:#86897F">até</span>
         <input type="date" id="measureRangeTo" value="${ui.measureRange.to || ''}" style="width:135px">
         <button class="btn secondary" id="measureRangeApplyBtn">Aplicar</button>
-        <button class="btn secondary" id="measureRangeAllBtn" style="${ui.measureRange.all ? 'background:#9B5FA0;color:#fff' : ''}">Total (desde o início)</button>
+        ${!ui.measureRange.all ? '<button class="btn secondary" id="measureRangeResetBtn">Voltar ao normal</button>' : ''}
       </div>
       ${measurementChartBodyHtml()}
       <div style="text-align:center;margin-top:8px">
@@ -4964,7 +4993,8 @@ function attachMeasurementsHandlers() {
     ui.measureRange = { from, to, all: false };
     renderAll();
   });
-  document.getElementById('measureRangeAllBtn').addEventListener('click', () => {
+  const measureRangeResetBtn = document.getElementById('measureRangeResetBtn');
+  if (measureRangeResetBtn) measureRangeResetBtn.addEventListener('click', () => {
     ui.measureRange = { from: null, to: null, all: true };
     renderAll();
   });
@@ -5423,6 +5453,15 @@ function buildLineChartSVG(data, opts) {
   }));
   const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
   const areaD = pathD + ` L${points[points.length - 1].x.toFixed(1)},${height - padding} L${points[0].x.toFixed(1)},${height - padding} Z`;
+  // Com negColor: cada trecho da linha fica verde (valor >= 0 = déficit / abaixo da meta)
+  // ou vermelho (algum ponto < 0 = superávit / passou da meta).
+  const lineSvg = negColor
+    ? points.slice(0, -1).map((p, i) => {
+        const q = points[i + 1];
+        const segColor = (p.value < 0 || q.value < 0) ? negColor : color;
+        return `<path d="M${p.x.toFixed(1)},${p.y.toFixed(1)} L${q.x.toFixed(1)},${q.y.toFixed(1)}" fill="none" stroke="${segColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+      }).join('')
+    : `<path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
   const circles = points.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.6" fill="${(negColor && p.value < 0) ? negColor : color}" stroke="#fff" stroke-width="1.8"><title>${esc(p.label)}: ${p.value > 0 && zeroLine ? '+' : ''}${p.value}${unit}</title></circle>`).join('');
   const xLabels = buildXAxisLabels(points.map(p => p.label), i => points[i].x, height, padding);
   // eixo Y: mínimo, meio, máximo (garante o zero se zeroLine estiver ligado)
@@ -5435,7 +5474,7 @@ function buildLineChartSVG(data, opts) {
   return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;display:block">
     ${yAxis}
     <path d="${areaD}" fill="${color}22" stroke="none"/>
-    <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${lineSvg}
     ${circles}${xLabels}
   </svg>`;
 }
@@ -6017,8 +6056,7 @@ function dietHtml() {
         <span style="font-size:11px;color:#86897F">até</span>
         <input type="date" id="dietRangeTo" value="${ui.dietRange.to || ''}" style="width:135px">
         <button class="btn secondary" id="dietRangeApplyBtn">Aplicar</button>
-        <button class="btn secondary" id="dietRangeAllBtn" style="${ui.dietRange.all ? 'background:#2F7D4F;color:#fff' : ''}">Total (desde o início)</button>
-        ${(ui.dietRange.from || ui.dietRange.all) ? '<button class="btn secondary" id="dietRangeResetBtn">Padrão</button>' : ''}
+        ${ui.dietRange.from ? '<button class="btn secondary" id="dietRangeResetBtn">Voltar ao normal</button>' : ''}
       </div>
       ${DIET_CHARTS[ui.dietChartIndex].bodyFn()}
       <div style="text-align:center;margin-top:8px">
@@ -6179,10 +6217,6 @@ function attachDietHandlers() {
     const to = document.getElementById('dietRangeTo').value;
     if (!from || !to) return;
     ui.dietRange = { from, to, all: false };
-    renderAll();
-  });
-  document.getElementById('dietRangeAllBtn').addEventListener('click', () => {
-    ui.dietRange = { from: null, to: null, all: true };
     renderAll();
   });
   const dietRangeResetBtn = document.getElementById('dietRangeResetBtn');
@@ -6484,7 +6518,7 @@ function measurementsHtml() {
         <span style="font-size:11px;color:#86897F">até</span>
         <input type="date" id="measureRangeTo" value="${ui.measureRange.to || ''}" style="width:135px">
         <button class="btn secondary" id="measureRangeApplyBtn">Aplicar</button>
-        <button class="btn secondary" id="measureRangeAllBtn" style="${ui.measureRange.all ? 'background:#9B5FA0;color:#fff' : ''}">Total (desde o início)</button>
+        ${!ui.measureRange.all ? '<button class="btn secondary" id="measureRangeResetBtn">Voltar ao normal</button>' : ''}
       </div>
       ${measurementChartBodyHtml()}
       <div style="text-align:center;margin-top:8px">
@@ -6527,7 +6561,8 @@ function attachMeasurementsHandlers() {
     ui.measureRange = { from, to, all: false };
     renderAll();
   });
-  document.getElementById('measureRangeAllBtn').addEventListener('click', () => {
+  const measureRangeResetBtn = document.getElementById('measureRangeResetBtn');
+  if (measureRangeResetBtn) measureRangeResetBtn.addEventListener('click', () => {
     ui.measureRange = { from: null, to: null, all: true };
     renderAll();
   });

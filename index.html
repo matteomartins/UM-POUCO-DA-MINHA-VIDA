@@ -3874,6 +3874,8 @@ const DB = {
   customFoods: [],
   dietLog: [],
   waterLog: {},
+  cardioLog: [],      // só leitura — vem do app Treino (chave treino_cardioLog)
+  measurements: [],   // só leitura — vem do app Treino (chave treino_measurements)
 };
 function persist() {
   saveWS('goals', DB.goals);
@@ -3881,11 +3883,20 @@ function persist() {
   saveWS('dietLog', DB.dietLog);
   saveWS('waterLog', DB.waterLog);
 }
+// Lê uma chave crua (com prefixo completo), sem forçar o prefixo dieta_.
+async function loadRaw(fullKey, fallback) {
+  try {
+    const r = await storageGetWithRetry(fullKey);
+    return r && r.value !== undefined ? JSON.parse(r.value) : fallback;
+  } catch (e) { return fallback; }
+}
 async function loadDBFromStorage() {
   DB.goals = await loadWS('goals', DB.goals);
   DB.customFoods = await loadWS('customFoods', DB.customFoods);
   DB.dietLog = await loadWS('dietLog', DB.dietLog);
   DB.waterLog = await loadWS('waterLog', DB.waterLog);
+  DB.cardioLog = await loadRaw('treino_cardioLog', []) || [];
+  DB.measurements = await loadRaw('treino_measurements', []) || [];
 }
 
 const ui = {
@@ -3964,13 +3975,19 @@ function goalBarHtml(label, value, goal, unit, color) {
   </div>`;
 }
 
-function remainingKcalBannerHtml(consumed, goal) {
-  const remaining = round1(goal - consumed);
+function remainingKcalBannerHtml(consumed, goal, burned) {
+  burned = Number(burned) || 0;
+  const net = consumed - burned;
+  const remaining = round1(goal - net);
   const over = remaining < 0;
   const bigText = over ? `${Math.abs(remaining)} kcal acima da meta` : `Faltam ${remaining} kcal`;
+  const sub = burned > 0
+    ? `<div style="color:#9a988c;font-size:12px;margin-top:2px">${round1(consumed)} ingeridas − ${Math.round(burned)} do cardio = <b>${round1(net)} kcal líquidas</b></div>`
+    : '';
   return `<div class="nutri-row" style="background:#EFF8F1">
     <div style="text-align:center;padding:2px 0">
       <span class="scoreboard" style="font-size:20px;font-weight:700;color:${over ? '#C4573F' : '#1E5631'}">${bigText}</span>
+      ${sub}
     </div>
   </div>`;
 }
@@ -4090,11 +4107,13 @@ function periodSummaries(mode) {
     .map(([key, g]) => {
       const days = g.dates.size;
       const goalTotal = DB.goals.kcal * days;
+      const burned = (DB.cardioLog || []).filter(s => g.dates.has(s.date)).reduce((t, s) => t + cardioKcal(s), 0);
+      const netKcal = g.kcal - burned;
       return {
-        key, days, kcal: round1(g.kcal),
-        avgDaily: days ? round1(g.kcal / days) : 0,
+        key, days, kcal: round1(g.kcal), burned: Math.round(burned),
+        avgDaily: days ? round1(netKcal / days) : 0,
         goalTotal: round1(goalTotal),
-        deficit: round1(goalTotal - g.kcal), // positivo = ficou abaixo da meta, negativo = passou da meta
+        deficit: round1(goalTotal - netKcal), // positivo = ficou abaixo da meta (já descontando cardio), negativo = passou
       };
     })
     .sort((a, b) => (a.key < b.key ? 1 : -1));
@@ -4104,6 +4123,8 @@ function dietHtml() {
   const totals = dietTotals();
   const waterToday = DB.waterLog[ui.dietDate] || 0;
   const entries = dietEntries();
+  const cardioBurn = Math.round((DB.cardioLog || []).filter(s => s.date === ui.dietDate).reduce((t, s) => t + cardioKcal(s), 0));
+  const netKcal = round1(totals.kcal - cardioBurn);
   return `
     <div class="section-diet">
     <div class="date-nav">
@@ -4115,8 +4136,18 @@ function dietHtml() {
 
     <div class="nutri-box" style="margin-bottom:16px">
       <div class="nutri-head"><div class="h1">Informação nutricional do dia</div><div class="h2">${fmtDateLabel(ui.dietDate)} · consumido / meta</div></div>
-      ${remainingKcalBannerHtml(totals.kcal, DB.goals.kcal)}
-      ${goalBarHtml('Calorias', totals.kcal, DB.goals.kcal, ' kcal', '#2F7D4F')}
+      ${remainingKcalBannerHtml(totals.kcal, DB.goals.kcal, cardioBurn)}
+      ${goalBarHtml('Calorias ingeridas', totals.kcal, DB.goals.kcal, ' kcal', '#2F7D4F')}
+      ${cardioBurn > 0 ? `<div class="nutri-row">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span class="label"><span class="dot" style="background:#C0392B"></span>Gasto no cardio</span>
+          <span class="val"><span style="color:#C0392B">− ${cardioBurn} kcal</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px">
+          <span class="label" style="font-weight:700">Calorias líquidas</span>
+          <span class="val"><span class="${netKcal > DB.goals.kcal ? 'over' : 'ok'}">${netKcal}</span><span style="color:#B3B1A6"> / ${DB.goals.kcal} kcal</span></span>
+        </div>
+      </div>` : ''}
       ${goalBarHtml('Proteínas', totals.protein, DB.goals.protein, 'g', '#3B7EC4')}
       ${goalBarHtml('Carboidratos', totals.carbs, DB.goals.carbs, 'g', '#D98A2B')}
       ${goalBarHtml('Gorduras totais', totals.fat, DB.goals.fat, 'g', '#C4573F')}
@@ -4263,7 +4294,7 @@ function deficitChartHtml() {
   const days = resolveDietRangeDays(30);
   const data = days.map(d => ({
     label: fmtShortDate(d),
-    value: round1(DB.goals.kcal - DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0)),
+    value: round1(DB.goals.kcal - (DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - cardioKcalForDate(d))),
   }));
   const hasAny = DB.dietLog.some(e => days.includes(e.date));
   const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
@@ -4277,13 +4308,14 @@ function deficitTableHtml() {
   const periodLabel = ui.deficitView === 'week' ? 'Semana (início)' : ui.deficitView === 'month' ? 'Mês' : 'Dia';
   return `
     <table>
-      <thead><tr><th>${periodLabel}</th><th>Dias reg.</th><th>Kcal total</th><th>Média/dia</th><th>Meta período</th><th>Déficit/Superávit</th></tr></thead>
+      <thead><tr><th>${periodLabel}</th><th>Dias reg.</th><th>Kcal total</th><th>Cardio</th><th>Média/dia</th><th>Meta período</th><th>Déficit/Superávit</th></tr></thead>
       <tbody>
         ${rows.map(r => {
           const label = ui.deficitView === 'week' ? fmtDateLabel(r.key) : ui.deficitView === 'month' ? fmtMonthLabel(r.key) : fmtDateLabel(r.key);
           const over = r.deficit < 0;
           return `<tr>
             <td>${label}</td><td class="scoreboard">${r.days}</td><td class="scoreboard">${r.kcal}</td>
+            <td class="scoreboard" style="color:#C0392B">${r.burned ? '− ' + r.burned : '—'}</td>
             <td class="scoreboard">${r.avgDaily}</td><td class="scoreboard">${r.goalTotal}</td>
             <td class="scoreboard" style="color:${over ? '#C4573F' : '#2F7D4F'};font-weight:700">${r.deficit > 0 ? '+' : ''}${r.deficit} kcal</td>
           </tr>`;
@@ -4291,7 +4323,7 @@ function deficitTableHtml() {
       </tbody>
     </table>
     ${ui.deficitView === 'day' ? '<div style="font-size:11px;color:#ABA9A0;margin-top:8px">Cada linha é um dia com pelo menos uma refeição registrada — use isso pra achar exatamente qual dia teve o superávit.</div>' : ''}
-    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Déficit positivo (verde) = ficou abaixo da meta no período. Negativo (vermelho) = passou da meta.</div>
+    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Média/dia e déficit já descontam as calorias queimadas no cardio. Déficit positivo (verde) = ficou abaixo da meta. Negativo (vermelho) = passou da meta.</div>
   `;
 }
 
@@ -4866,12 +4898,40 @@ function attachProgressHandlers() {
 // ---------------------------------------------------------------------------
 // CARDIO
 // ---------------------------------------------------------------------------
-const CARDIO_TYPES = ['Esteira', 'Bicicleta', 'Elíptico', 'Escada', 'Remo', 'Corrida ao ar livre'];
-const CARDIO_METRICS = [['pace', 'Pace (min/km)'], ['speed', 'Velocidade (km/h)'], ['dist', 'Distância (km)'], ['time', 'Tempo (min)']];
+const CARDIO_TYPES = ['Esteira', 'Bicicleta', 'Elíptico', 'Escada', 'Remo', 'Corrida ao ar livre', 'Futebol', 'Futevôlei', 'Padel'];
+const CARDIO_METRICS = [['kcal', 'Calorias'], ['pace', 'Pace (min/km)'], ['speed', 'Velocidade (km/h)'], ['dist', 'Distância (km)'], ['time', 'Tempo (min)']];
+// MET aproximado por tipo (usado quando você não digita as calorias na mão)
+const CARDIO_MET = { 'Esteira': 8.5, 'Bicicleta': 7, 'Elíptico': 5, 'Escada': 8, 'Remo': 7, 'Corrida ao ar livre': 9.8, 'Futebol': 8, 'Futevôlei': 8, 'Padel': 7 };
+const CARDIO_SPORTS = ['Futebol', 'Futevôlei', 'Padel'];
+
+// Peso atual = último registrado nas medidas; senão 70kg.
+function currentWeightKg() {
+  const ms = (DB.measurements || []).filter(m => m && m.weight !== '' && m.weight != null && !isNaN(Number(m.weight)));
+  if (!ms.length) return 70;
+  ms.sort((a, b) => (a.date < b.date ? 1 : -1));
+  return Number(ms[0].weight) || 70;
+}
+// Calorias gastas numa sessão: manual (s.kcal) se tiver; senão estima por MET × peso × horas.
+function cardioKcal(s) {
+  if (s.kcal != null && s.kcal !== '' && !isNaN(Number(s.kcal))) return Math.round(Number(s.kcal));
+  const min = Number(s.minutes) || 0;
+  if (!min) return 0;
+  const km = Number(s.distanceKm) || 0;
+  let met = CARDIO_MET[s.type] || 6;
+  const speed = km > 0 ? km / (min / 60) : 0;
+  if (speed > 0 && (s.type === 'Esteira' || s.type === 'Corrida ao ar livre')) met = Math.min(16, Math.max(4, 0.95 * speed));
+  else if (speed > 0 && s.type === 'Bicicleta') met = Math.min(14, Math.max(4, 0.5 * speed + 2));
+  return Math.round(met * currentWeightKg() * (min / 60));
+}
+// Total gasto no cardio numa data (YYYY-MM-DD).
+function cardioKcalForDate(date) {
+  return (DB.cardioLog || []).filter(s => s.date === date).reduce((t, s) => t + cardioKcal(s), 0);
+}
 
 function cardioMetricVal(s, metric) {
   const min = Number(s.minutes) || 0;
   const km = Number(s.distanceKm) || 0;
+  if (metric === 'kcal') return cardioKcal(s);
   if (metric === 'time') return min;
   if (metric === 'dist') return km;
   if (metric === 'speed') return min > 0 ? round1(km / (min / 60)) : 0;
@@ -4884,10 +4944,15 @@ function cardioHtml() {
   const metric = ui.cardioMetric || 'pace';
   const data = sessions.filter(s => cardioMetricVal(s, metric) > 0).map(s => ({ label: fmtShortDate(s.date), value: cardioMetricVal(s, metric) }));
   const metricLabel = (CARDIO_METRICS.find(m => m[0] === metric) || [])[1] || '';
-  const unit = metric === 'pace' ? ' min/km' : metric === 'speed' ? ' km/h' : metric === 'dist' ? ' km' : ' min';
+  const unit = metric === 'pace' ? ' min/km' : metric === 'speed' ? ' km/h' : metric === 'dist' ? ' km' : metric === 'kcal' ? ' kcal' : ' min';
   const chart = data.length >= 2
     ? buildLineChartSVG(data, { color: '#E01B14', unit })
     : `<div class="empty">Registre 2+ sessões de ${esc(type)} pra ver o gráfico de ${metricLabel.toLowerCase()}.</div>`;
+  const isSport = CARDIO_SPORTS.indexOf(type) !== -1;
+  const today = todayStr();
+  const monthPref = today.slice(0, 7);
+  const kcalToday = (DB.cardioLog || []).filter(s => s.date === today).reduce((t, s) => t + cardioKcal(s), 0);
+  const kcalMonth = (DB.cardioLog || []).filter(s => (s.date || '').slice(0, 7) === monthPref).reduce((t, s) => t + cardioKcal(s), 0);
   return `
     <div class="section-workout">
       <div class="card card-log" id="cardioFormCard">
@@ -4896,13 +4961,21 @@ function cardioHtml() {
           <div class="field"><label>Aparelho</label><select id="cardioTypeSel">${CARDIO_TYPES.map(t => `<option${t === type ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
           <div class="field"><label>Data</label><input type="date" id="cardioDateInp" value="${ui.cardioDate || todayStr()}"></div>
           <div class="field"><label>Tempo (min)</label><input type="number" min="0" step="0.1" id="cardioMin" placeholder="ex: 30"></div>
-          <div class="field"><label>Distância (km)</label><input type="number" min="0" step="0.01" id="cardioKm" placeholder="ex: 4.5"></div>
+          <div class="field"><label>Distância (km)${isSport ? ' — opcional' : ''}</label><input type="number" min="0" step="0.01" id="cardioKm" placeholder="ex: 4.5"></div>
+          <div class="field"><label>Calorias (opcional)</label><input type="number" min="0" step="1" id="cardioKcalInp" placeholder="vazio = estima sozinho"></div>
           <div class="field" style="grid-column:1/-1"><label>Obs (opcional)</label><input type="text" id="cardioObs" placeholder="inclinação, nível, sensação..."></div>
         </div>
+        <div style="color:#9a988c;font-size:12px;margin-top:6px">Sem preencher calorias, o app estima por MET × peso atual (${currentWeightKg()} kg) × tempo.</div>
         <button class="btn" id="cardioSaveBtn" style="margin-top:12px">Salvar sessão</button>
       </div>
 
       <div class="card" id="cardioHistCard">
+        <div class="nutri-box" style="margin-bottom:12px;background:#FBECEC;border-color:#C0392B">
+          <div style="display:flex;justify-content:space-around;text-align:center;padding:10px 6px">
+            <div><div style="font-size:22px;font-weight:800;color:#C0392B">${kcalToday}</div><div style="color:#9a988c;font-size:12px">kcal queimadas hoje</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:#C0392B">${kcalMonth}</div><div style="color:#9a988c;font-size:12px">kcal no mês</div></div>
+          </div>
+        </div>
         <div class="workout-day-tabs" style="grid-template-columns:repeat(3,1fr)">
           ${CARDIO_TYPES.map(t => `<button class="wday-btn${t === type ? ' active' : ''}" data-cardiotype="${esc(t)}"><b>${esc(t)}</b></button>`).join('')}
         </div>
@@ -4911,10 +4984,11 @@ function cardioHtml() {
           ${CARDIO_METRICS.map(m => `<button class="prog-ex-btn${m[0] === metric ? ' active' : ''}" data-cardiometric="${m[0]}">${m[1]}</button>`).join('')}
         </div>
         ${chart}
-        ${sessions.length ? `<table style="margin-top:10px"><thead><tr><th>Data</th><th>Tempo</th><th>Dist</th><th>Pace</th><th>Vel</th><th></th></tr></thead><tbody>
+        ${sessions.length ? `<table style="margin-top:10px"><thead><tr><th>Data</th><th>Tempo</th><th>Dist</th><th>Pace</th><th>Vel</th><th>Kcal</th><th></th></tr></thead><tbody>
           ${sessions.slice().reverse().map(s => `<tr>
             <td>${s.date}</td><td class="scoreboard">${s.minutes || '—'}</td><td class="scoreboard">${s.distanceKm || '—'}</td>
             <td class="scoreboard">${cardioMetricVal(s, 'pace') || '—'}</td><td class="scoreboard">${cardioMetricVal(s, 'speed') || '—'}</td>
+            <td class="scoreboard">${cardioKcal(s) || '—'}${cardioKcal(s) && (s.kcal == null || s.kcal === '') ? '<span style="color:#9a988c;font-size:10px"> ≈</span>' : ''}</td>
             <td><button class="icon-btn" data-del-cardio="${s.id}" title="apagar sessão">🗑</button></td>
           </tr>`).join('')}
         </tbody></table>` : '<div class="empty">Nenhuma sessão registrada ainda.</div>'}
@@ -4933,9 +5007,11 @@ function attachCardioHandlers() {
     const date = (document.getElementById('cardioDateInp') || {}).value || todayStr();
     const minutes = Number(document.getElementById('cardioMin').value) || 0;
     const distanceKm = Number(document.getElementById('cardioKm').value) || 0;
+    const kcalInp = document.getElementById('cardioKcalInp');
+    const kcal = kcalInp && kcalInp.value !== '' ? Number(kcalInp.value) || 0 : null;
     const obs = document.getElementById('cardioObs').value.trim();
     if (!minutes && !distanceKm) { showToast('Preencha tempo ou distância.'); return; }
-    DB.cardioLog.push({ id: uid(), type: t, date, minutes, distanceKm, obs });
+    DB.cardioLog.push({ id: uid(), type: t, date, minutes, distanceKm, kcal, obs });
     ui.cardioType = t; ui.cardioDate = date;
     persist(); renderAll();
   });
@@ -5484,13 +5560,19 @@ function goalBarHtml(label, value, goal, unit, color) {
   </div>`;
 }
 
-function remainingKcalBannerHtml(consumed, goal) {
-  const remaining = round1(goal - consumed);
+function remainingKcalBannerHtml(consumed, goal, burned) {
+  burned = Number(burned) || 0;
+  const net = consumed - burned;
+  const remaining = round1(goal - net);
   const over = remaining < 0;
   const bigText = over ? `${Math.abs(remaining)} kcal acima da meta` : `Faltam ${remaining} kcal`;
+  const sub = burned > 0
+    ? `<div style="color:#9a988c;font-size:12px;margin-top:2px">${round1(consumed)} ingeridas − ${Math.round(burned)} do cardio = <b>${round1(net)} kcal líquidas</b></div>`
+    : '';
   return `<div class="nutri-row" style="background:#EFF8F1">
     <div style="text-align:center;padding:2px 0">
       <span class="scoreboard" style="font-size:20px;font-weight:700;color:${over ? '#C4573F' : '#1E5631'}">${bigText}</span>
+      ${sub}
     </div>
   </div>`;
 }
@@ -5610,11 +5692,13 @@ function periodSummaries(mode) {
     .map(([key, g]) => {
       const days = g.dates.size;
       const goalTotal = DB.goals.kcal * days;
+      const burned = (DB.cardioLog || []).filter(s => g.dates.has(s.date)).reduce((t, s) => t + cardioKcal(s), 0);
+      const netKcal = g.kcal - burned;
       return {
-        key, days, kcal: round1(g.kcal),
-        avgDaily: days ? round1(g.kcal / days) : 0,
+        key, days, kcal: round1(g.kcal), burned: Math.round(burned),
+        avgDaily: days ? round1(netKcal / days) : 0,
         goalTotal: round1(goalTotal),
-        deficit: round1(goalTotal - g.kcal), // positivo = ficou abaixo da meta, negativo = passou da meta
+        deficit: round1(goalTotal - netKcal), // positivo = ficou abaixo da meta (já descontando cardio), negativo = passou
       };
     })
     .sort((a, b) => (a.key < b.key ? 1 : -1));
@@ -5624,6 +5708,8 @@ function dietHtml() {
   const totals = dietTotals();
   const waterToday = DB.waterLog[ui.dietDate] || 0;
   const entries = dietEntries();
+  const cardioBurn = Math.round((DB.cardioLog || []).filter(s => s.date === ui.dietDate).reduce((t, s) => t + cardioKcal(s), 0));
+  const netKcal = round1(totals.kcal - cardioBurn);
   return `
     <div class="section-diet">
     <div class="date-nav">
@@ -5635,8 +5721,18 @@ function dietHtml() {
 
     <div class="nutri-box" style="margin-bottom:16px">
       <div class="nutri-head"><div class="h1">Informação nutricional do dia</div><div class="h2">${fmtDateLabel(ui.dietDate)} · consumido / meta</div></div>
-      ${remainingKcalBannerHtml(totals.kcal, DB.goals.kcal)}
-      ${goalBarHtml('Calorias', totals.kcal, DB.goals.kcal, ' kcal', '#2F7D4F')}
+      ${remainingKcalBannerHtml(totals.kcal, DB.goals.kcal, cardioBurn)}
+      ${goalBarHtml('Calorias ingeridas', totals.kcal, DB.goals.kcal, ' kcal', '#2F7D4F')}
+      ${cardioBurn > 0 ? `<div class="nutri-row">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span class="label"><span class="dot" style="background:#C0392B"></span>Gasto no cardio</span>
+          <span class="val"><span style="color:#C0392B">− ${cardioBurn} kcal</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px">
+          <span class="label" style="font-weight:700">Calorias líquidas</span>
+          <span class="val"><span class="${netKcal > DB.goals.kcal ? 'over' : 'ok'}">${netKcal}</span><span style="color:#B3B1A6"> / ${DB.goals.kcal} kcal</span></span>
+        </div>
+      </div>` : ''}
       ${goalBarHtml('Proteínas', totals.protein, DB.goals.protein, 'g', '#3B7EC4')}
       ${goalBarHtml('Carboidratos', totals.carbs, DB.goals.carbs, 'g', '#D98A2B')}
       ${goalBarHtml('Gorduras totais', totals.fat, DB.goals.fat, 'g', '#C4573F')}
@@ -5783,7 +5879,7 @@ function deficitChartHtml() {
   const days = resolveDietRangeDays(30);
   const data = days.map(d => ({
     label: fmtShortDate(d),
-    value: round1(DB.goals.kcal - DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0)),
+    value: round1(DB.goals.kcal - (DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - cardioKcalForDate(d))),
   }));
   const hasAny = DB.dietLog.some(e => days.includes(e.date));
   const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
@@ -5797,13 +5893,14 @@ function deficitTableHtml() {
   const periodLabel = ui.deficitView === 'week' ? 'Semana (início)' : ui.deficitView === 'month' ? 'Mês' : 'Dia';
   return `
     <table>
-      <thead><tr><th>${periodLabel}</th><th>Dias reg.</th><th>Kcal total</th><th>Média/dia</th><th>Meta período</th><th>Déficit/Superávit</th></tr></thead>
+      <thead><tr><th>${periodLabel}</th><th>Dias reg.</th><th>Kcal total</th><th>Cardio</th><th>Média/dia</th><th>Meta período</th><th>Déficit/Superávit</th></tr></thead>
       <tbody>
         ${rows.map(r => {
           const label = ui.deficitView === 'week' ? fmtDateLabel(r.key) : ui.deficitView === 'month' ? fmtMonthLabel(r.key) : fmtDateLabel(r.key);
           const over = r.deficit < 0;
           return `<tr>
             <td>${label}</td><td class="scoreboard">${r.days}</td><td class="scoreboard">${r.kcal}</td>
+            <td class="scoreboard" style="color:#C0392B">${r.burned ? '− ' + r.burned : '—'}</td>
             <td class="scoreboard">${r.avgDaily}</td><td class="scoreboard">${r.goalTotal}</td>
             <td class="scoreboard" style="color:${over ? '#C4573F' : '#2F7D4F'};font-weight:700">${r.deficit > 0 ? '+' : ''}${r.deficit} kcal</td>
           </tr>`;
@@ -5811,7 +5908,7 @@ function deficitTableHtml() {
       </tbody>
     </table>
     ${ui.deficitView === 'day' ? '<div style="font-size:11px;color:#ABA9A0;margin-top:8px">Cada linha é um dia com pelo menos uma refeição registrada — use isso pra achar exatamente qual dia teve o superávit.</div>' : ''}
-    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Déficit positivo (verde) = ficou abaixo da meta no período. Negativo (vermelho) = passou da meta.</div>
+    <div style="font-size:11px;color:#ABA9A0;margin-top:8px">Média/dia e déficit já descontam as calorias queimadas no cardio. Déficit positivo (verde) = ficou abaixo da meta. Negativo (vermelho) = passou da meta.</div>
   `;
 }
 
@@ -6364,12 +6461,40 @@ function attachProgressHandlers() {
 // ---------------------------------------------------------------------------
 // CARDIO
 // ---------------------------------------------------------------------------
-const CARDIO_TYPES = ['Esteira', 'Bicicleta', 'Elíptico', 'Escada', 'Remo', 'Corrida ao ar livre'];
-const CARDIO_METRICS = [['pace', 'Pace (min/km)'], ['speed', 'Velocidade (km/h)'], ['dist', 'Distância (km)'], ['time', 'Tempo (min)']];
+const CARDIO_TYPES = ['Esteira', 'Bicicleta', 'Elíptico', 'Escada', 'Remo', 'Corrida ao ar livre', 'Futebol', 'Futevôlei', 'Padel'];
+const CARDIO_METRICS = [['kcal', 'Calorias'], ['pace', 'Pace (min/km)'], ['speed', 'Velocidade (km/h)'], ['dist', 'Distância (km)'], ['time', 'Tempo (min)']];
+// MET aproximado por tipo (usado quando você não digita as calorias na mão)
+const CARDIO_MET = { 'Esteira': 8.5, 'Bicicleta': 7, 'Elíptico': 5, 'Escada': 8, 'Remo': 7, 'Corrida ao ar livre': 9.8, 'Futebol': 8, 'Futevôlei': 8, 'Padel': 7 };
+const CARDIO_SPORTS = ['Futebol', 'Futevôlei', 'Padel'];
+
+// Peso atual = último registrado nas medidas; senão 70kg.
+function currentWeightKg() {
+  const ms = (DB.measurements || []).filter(m => m && m.weight !== '' && m.weight != null && !isNaN(Number(m.weight)));
+  if (!ms.length) return 70;
+  ms.sort((a, b) => (a.date < b.date ? 1 : -1));
+  return Number(ms[0].weight) || 70;
+}
+// Calorias gastas numa sessão: manual (s.kcal) se tiver; senão estima por MET × peso × horas.
+function cardioKcal(s) {
+  if (s.kcal != null && s.kcal !== '' && !isNaN(Number(s.kcal))) return Math.round(Number(s.kcal));
+  const min = Number(s.minutes) || 0;
+  if (!min) return 0;
+  const km = Number(s.distanceKm) || 0;
+  let met = CARDIO_MET[s.type] || 6;
+  const speed = km > 0 ? km / (min / 60) : 0;
+  if (speed > 0 && (s.type === 'Esteira' || s.type === 'Corrida ao ar livre')) met = Math.min(16, Math.max(4, 0.95 * speed));
+  else if (speed > 0 && s.type === 'Bicicleta') met = Math.min(14, Math.max(4, 0.5 * speed + 2));
+  return Math.round(met * currentWeightKg() * (min / 60));
+}
+// Total gasto no cardio numa data (YYYY-MM-DD).
+function cardioKcalForDate(date) {
+  return (DB.cardioLog || []).filter(s => s.date === date).reduce((t, s) => t + cardioKcal(s), 0);
+}
 
 function cardioMetricVal(s, metric) {
   const min = Number(s.minutes) || 0;
   const km = Number(s.distanceKm) || 0;
+  if (metric === 'kcal') return cardioKcal(s);
   if (metric === 'time') return min;
   if (metric === 'dist') return km;
   if (metric === 'speed') return min > 0 ? round1(km / (min / 60)) : 0;
@@ -6382,10 +6507,15 @@ function cardioHtml() {
   const metric = ui.cardioMetric || 'pace';
   const data = sessions.filter(s => cardioMetricVal(s, metric) > 0).map(s => ({ label: fmtShortDate(s.date), value: cardioMetricVal(s, metric) }));
   const metricLabel = (CARDIO_METRICS.find(m => m[0] === metric) || [])[1] || '';
-  const unit = metric === 'pace' ? ' min/km' : metric === 'speed' ? ' km/h' : metric === 'dist' ? ' km' : ' min';
+  const unit = metric === 'pace' ? ' min/km' : metric === 'speed' ? ' km/h' : metric === 'dist' ? ' km' : metric === 'kcal' ? ' kcal' : ' min';
   const chart = data.length >= 2
     ? buildLineChartSVG(data, { color: '#E01B14', unit })
     : `<div class="empty">Registre 2+ sessões de ${esc(type)} pra ver o gráfico de ${metricLabel.toLowerCase()}.</div>`;
+  const isSport = CARDIO_SPORTS.indexOf(type) !== -1;
+  const today = todayStr();
+  const monthPref = today.slice(0, 7);
+  const kcalToday = (DB.cardioLog || []).filter(s => s.date === today).reduce((t, s) => t + cardioKcal(s), 0);
+  const kcalMonth = (DB.cardioLog || []).filter(s => (s.date || '').slice(0, 7) === monthPref).reduce((t, s) => t + cardioKcal(s), 0);
   return `
     <div class="section-workout">
       <div class="card card-log" id="cardioFormCard">
@@ -6394,13 +6524,21 @@ function cardioHtml() {
           <div class="field"><label>Aparelho</label><select id="cardioTypeSel">${CARDIO_TYPES.map(t => `<option${t === type ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
           <div class="field"><label>Data</label><input type="date" id="cardioDateInp" value="${ui.cardioDate || todayStr()}"></div>
           <div class="field"><label>Tempo (min)</label><input type="number" min="0" step="0.1" id="cardioMin" placeholder="ex: 30"></div>
-          <div class="field"><label>Distância (km)</label><input type="number" min="0" step="0.01" id="cardioKm" placeholder="ex: 4.5"></div>
+          <div class="field"><label>Distância (km)${isSport ? ' — opcional' : ''}</label><input type="number" min="0" step="0.01" id="cardioKm" placeholder="ex: 4.5"></div>
+          <div class="field"><label>Calorias (opcional)</label><input type="number" min="0" step="1" id="cardioKcalInp" placeholder="vazio = estima sozinho"></div>
           <div class="field" style="grid-column:1/-1"><label>Obs (opcional)</label><input type="text" id="cardioObs" placeholder="inclinação, nível, sensação..."></div>
         </div>
+        <div style="color:#9a988c;font-size:12px;margin-top:6px">Sem preencher calorias, o app estima por MET × peso atual (${currentWeightKg()} kg) × tempo.</div>
         <button class="btn" id="cardioSaveBtn" style="margin-top:12px">Salvar sessão</button>
       </div>
 
       <div class="card" id="cardioHistCard">
+        <div class="nutri-box" style="margin-bottom:12px;background:#FBECEC;border-color:#C0392B">
+          <div style="display:flex;justify-content:space-around;text-align:center;padding:10px 6px">
+            <div><div style="font-size:22px;font-weight:800;color:#C0392B">${kcalToday}</div><div style="color:#9a988c;font-size:12px">kcal queimadas hoje</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:#C0392B">${kcalMonth}</div><div style="color:#9a988c;font-size:12px">kcal no mês</div></div>
+          </div>
+        </div>
         <div class="workout-day-tabs" style="grid-template-columns:repeat(3,1fr)">
           ${CARDIO_TYPES.map(t => `<button class="wday-btn${t === type ? ' active' : ''}" data-cardiotype="${esc(t)}"><b>${esc(t)}</b></button>`).join('')}
         </div>
@@ -6409,10 +6547,11 @@ function cardioHtml() {
           ${CARDIO_METRICS.map(m => `<button class="prog-ex-btn${m[0] === metric ? ' active' : ''}" data-cardiometric="${m[0]}">${m[1]}</button>`).join('')}
         </div>
         ${chart}
-        ${sessions.length ? `<table style="margin-top:10px"><thead><tr><th>Data</th><th>Tempo</th><th>Dist</th><th>Pace</th><th>Vel</th><th></th></tr></thead><tbody>
+        ${sessions.length ? `<table style="margin-top:10px"><thead><tr><th>Data</th><th>Tempo</th><th>Dist</th><th>Pace</th><th>Vel</th><th>Kcal</th><th></th></tr></thead><tbody>
           ${sessions.slice().reverse().map(s => `<tr>
             <td>${s.date}</td><td class="scoreboard">${s.minutes || '—'}</td><td class="scoreboard">${s.distanceKm || '—'}</td>
             <td class="scoreboard">${cardioMetricVal(s, 'pace') || '—'}</td><td class="scoreboard">${cardioMetricVal(s, 'speed') || '—'}</td>
+            <td class="scoreboard">${cardioKcal(s) || '—'}${cardioKcal(s) && (s.kcal == null || s.kcal === '') ? '<span style="color:#9a988c;font-size:10px"> ≈</span>' : ''}</td>
             <td><button class="icon-btn" data-del-cardio="${s.id}" title="apagar sessão">🗑</button></td>
           </tr>`).join('')}
         </tbody></table>` : '<div class="empty">Nenhuma sessão registrada ainda.</div>'}
@@ -6431,9 +6570,11 @@ function attachCardioHandlers() {
     const date = (document.getElementById('cardioDateInp') || {}).value || todayStr();
     const minutes = Number(document.getElementById('cardioMin').value) || 0;
     const distanceKm = Number(document.getElementById('cardioKm').value) || 0;
+    const kcalInp = document.getElementById('cardioKcalInp');
+    const kcal = kcalInp && kcalInp.value !== '' ? Number(kcalInp.value) || 0 : null;
     const obs = document.getElementById('cardioObs').value.trim();
     if (!minutes && !distanceKm) { showToast('Preencha tempo ou distância.'); return; }
-    DB.cardioLog.push({ id: uid(), type: t, date, minutes, distanceKm, obs });
+    DB.cardioLog.push({ id: uid(), type: t, date, minutes, distanceKm, kcal, obs });
     ui.cardioType = t; ui.cardioDate = date;
     persist(); renderAll();
   });

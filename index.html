@@ -1206,10 +1206,18 @@
       font-size:11px; padding:7px 3px; line-height:1.15;
     }
     /* No celular a gaveta é estreita demais pra 2 campos lado a lado (Data/Hora, De/Até
-       ficavam sobrepostos). Empilha tudo: 1 campo por linha. */
+       ficavam sobrepostos). Empilha tudo: 1 campo por linha, e NENHUM campo pode passar
+       da largura da caixa (iOS não encolhe input[type=date/time] sozinho). */
+    #view-agenda .agenda-drawer .pend-box{ padding-left:12px; padding-right:12px; }
     #view-agenda .agenda-drawer .form-row{ flex-direction:column; align-items:stretch; gap:8px; }
-    #view-agenda .agenda-drawer .form-row > div{ flex:0 0 auto !important; width:100%; min-width:0; }
-    #view-agenda .agenda-drawer .form-row > input{ flex:0 0 auto !important; width:100% !important; }
+    #view-agenda .agenda-drawer .form-row > div{ flex:0 0 auto !important; }
+    #view-agenda .agenda-drawer input,
+    #view-agenda .agenda-drawer select,
+    #view-agenda .agenda-drawer textarea,
+    #view-agenda .agenda-drawer .form-row > div{
+      width:100% !important; max-width:100% !important; min-width:0 !important;
+      box-sizing:border-box !important; flex:0 0 auto !important;
+    }
   }
   @media (max-width: 420px){
     #view-dieta .field-grid, #view-treino .field-grid{ grid-template-columns:1fr; }

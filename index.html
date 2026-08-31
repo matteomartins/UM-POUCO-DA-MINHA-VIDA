@@ -284,12 +284,14 @@
 
 #view-agenda .form-grid{display:flex;flex-direction:column;gap:8px;font-family:'Helvetica Neue',Arial,sans-serif;}
 #view-agenda .form-grid label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:2px;}
-#view-agenda .form-grid input, #view-agenda .form-row input, #view-agenda .cuadri-add input{
+#view-agenda .form-grid input, #view-agenda .form-row input, #view-agenda .cuadri-add input,
+#view-agenda .form-grid select{
   width:100%;padding:10px 12px;border:1px solid #E3E6EA;border-radius:9px;
   font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;box-sizing:border-box;
   background:#F1F3F5;color:var(--ink);min-width:0;transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
-#view-agenda .form-grid input:focus, #view-agenda .form-row input:focus, #view-agenda .cuadri-add input:focus{
+#view-agenda .form-grid input:focus, #view-agenda .form-row input:focus, #view-agenda .cuadri-add input:focus,
+#view-agenda .form-grid select:focus{
   outline:none;background:#fff;border-color:var(--ink);box-shadow:0 0 0 3px rgba(28,36,48,.1);
 }
 #view-agenda .form-row{display:flex;gap:6px;min-width:0;}
@@ -341,12 +343,12 @@
 #view-agenda .agenda-drawer .form-row input[type=text]{flex:1 1 150px;}
 #view-agenda .agenda-drawer .form-row input[type=time]{width:auto;flex:0 0 96px;}
 #view-agenda .form-day-toggle{display:flex;gap:6px;margin-bottom:12px;}
-#view-agenda .form-day-btn{
+#view-agenda .form-day-btn, #view-agenda .ovr-mode-btn{
   flex:1;background:none;border:1px solid var(--paper-line);border-radius:16px;
-  padding:6px 0;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:700;
+  padding:6px 4px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:700;
   cursor:pointer;color:var(--muted);
 }
-#view-agenda .form-day-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+#view-agenda .form-day-btn.active, #view-agenda .ovr-mode-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
 #view-agenda .cuadri-wrap .month-label {
   font-family:'Helvetica Neue',Arial,sans-serif;
   font-size:15px;font-weight:700;letter-spacing:.02em;
@@ -1104,6 +1106,30 @@
   }
   #view-ideias .edit-toggle-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
   #view-ideias .ideias-empty{color:var(--muted);font-size:12px;font-style:italic;}
+
+  /* ---------- correções de responsividade mobile (Dieta / Treino) ---------- */
+  @media (max-width: 640px){
+    /* tabelas largas (Refeições do dia, Déficit histórico, Medidas, Cardio, Carga)
+       passam a rolar DENTRO da própria caixa em vez de empurrar a página pro lado */
+    #view-dieta table, #view-treino table{
+      display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    }
+    #view-dieta table thead, #view-treino table thead,
+    #view-dieta table tbody, #view-treino table tbody{
+      display:table; width:100%; min-width:max-content;
+    }
+    /* inputs de data/hora não podem ter largura intrínseca maior que a coluna */
+    #view-dieta input, #view-treino input,
+    #view-dieta select, #view-treino select{ min-width:0; max-width:100%; }
+    #view-dieta .field, #view-treino .field{ min-width:0; }
+    #view-dieta .field-grid, #view-treino .field-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+    /* barra de navegação de data (‹ data ▼ ▲ Hoje) quebra linha em vez de estourar */
+    #view-dieta .date-nav, #view-treino .date-nav{ flex-wrap:wrap; }
+    #view-dieta .date-nav input[type="date"], #view-treino .date-nav input[type="date"]{ flex:1 1 140px; }
+  }
+  @media (max-width: 420px){
+    #view-dieta .field-grid, #view-treino .field-grid{ grid-template-columns:1fr; }
+  }
 </style>
 <script>
 function showToast(msg){
@@ -1190,11 +1216,11 @@ async function storageGetWithRetry(key){
         <div class="app-card-txt"><div class="name">Agenda</div><div class="desc">Mensal e Cuadrimestre</div></div>
       </div>
       <div class="app-card" data-app="cambio">
-        <span class="emoji">🪙</span>
+        <span class="emoji">💵</span>
         <div class="app-card-txt"><div class="name">Financeiro</div><div class="desc">Câmbio, gastos e caixa</div></div>
       </div>
       <div class="app-card" data-app="dieta">
-        <span class="emoji">🥗</span>
+        <span class="emoji">🥩</span>
         <div class="app-card-txt"><div class="name">Dieta</div><div class="desc">Alimentação e água</div></div>
       </div>
       <div class="app-card" data-app="treino">
@@ -1379,6 +1405,23 @@ async function storageGetWithRetry(key){
     </div>
 
     <div class="pend-box">
+      <div class="pend-title">Agendar uma pendência num dia</div>
+      <div class="form-grid">
+        <div>
+          <label>Pendência</label>
+          <select id="schedPendSel"></select>
+        </div>
+        <div class="form-row">
+          <div style="flex:1"><label>Data</label><input type="date" id="schedPendDate"></div>
+          <div style="flex:1"><label>Hora</label><input type="time" id="schedPendTime"></div>
+        </div>
+        <button class="form-save-btn" id="schedPendBtn">+ colocar no cronograma</button>
+        <div style="font-size:10.5px;color:var(--muted);font-style:italic">A pendência continua na lista — isto só cria o horário no dia escolhido.</div>
+        <div class="form-saved-msg" id="schedPendMsg">No cronograma ✓</div>
+      </div>
+    </div>
+
+    <div class="pend-box">
       <div class="pend-title">Adicionar no Cuadrimestre</div>
       <div class="form-grid">
         <div class="form-row">
@@ -1391,11 +1434,27 @@ async function storageGetWithRetry(key){
     </div>
 
     <div class="pend-box">
-      <div class="pend-title">Rotina personalizada por período</div>
+      <div class="pend-title">Rotina personalizada</div>
+      <div class="form-day-toggle">
+        <button class="ovr-mode-btn active" data-ovrmode="range">Por período</button>
+        <button class="ovr-mode-btn" data-ovrmode="weekday">Todo (dia da semana)</button>
+      </div>
       <div class="form-grid">
-        <div class="form-row">
+        <div class="form-row" id="ovrRangeRow">
           <div style="flex:1"><label>De</label><input type="date" id="ovrStart"></div>
           <div style="flex:1"><label>Até</label><input type="date" id="ovrEnd"></div>
+        </div>
+        <div id="ovrWeekdayRow" style="display:none">
+          <label>Dia da semana</label>
+          <select id="ovrWeekday">
+            <option value="0">Todo domingo</option>
+            <option value="1">Toda segunda</option>
+            <option value="2">Toda terça</option>
+            <option value="3">Toda quarta</option>
+            <option value="4">Toda quinta</option>
+            <option value="5" selected>Toda sexta</option>
+            <option value="6">Todo sábado</option>
+          </select>
         </div>
         <div class="form-row">
           <div style="flex:1"><label>Café manhã</label><input type="time" id="ovrManha"></div>
@@ -1405,8 +1464,8 @@ async function storageGetWithRetry(key){
           <div style="flex:1"><label>Café tarde</label><input type="time" id="ovrTarde"></div>
           <div style="flex:1"><label>Jantar</label><input type="time" id="ovrJantar"></div>
         </div>
-        <div style="font-size:10.5px;color:var(--muted);font-style:italic">Horário em branco = mantém o padrão. Vale só nesse intervalo de datas.</div>
-        <button class="form-save-btn" id="ovrSaveBtn">Salvar período</button>
+        <div style="font-size:10.5px;color:var(--muted);font-style:italic">Horário em branco = mantém o padrão. Período tem prioridade sobre dia-da-semana quando os dois batem no mesmo dia.</div>
+        <button class="form-save-btn" id="ovrSaveBtn">Salvar rotina</button>
       </div>
       <ul class="pend-list" id="routineOvrList" style="margin-top:12px"></ul>
     </div>
@@ -1417,7 +1476,7 @@ async function storageGetWithRetry(key){
 </div>
 
 <div class="app-view" id="view-cambio">
-<div class="cambio-entry-title">🪙 FINANCEIRO</div>
+<div class="cambio-entry-title">💵 FINANCEIRO</div>
 <div id="app">
 
   <div class="topbar">
@@ -1586,7 +1645,7 @@ async function storageGetWithRetry(key){
 <div class="app-view" id="view-dieta">
   <div class="app-header" style="position:relative">
     <button id="menuBtnDieta" class="icon-btn" style="position:absolute;right:20px;top:28px;font-size:22px;line-height:1">☰</button>
-    <p class="app-title display">🥗 DIETA</p>
+    <p class="app-title display">🥩 DIETA</p>
     <div id="menuDropdownDieta" class="menu-dropdown">
       <button type="button" class="menu-item" id="exportBtnDieta">⬇️ Exportar backup</button>
       <button type="button" class="menu-item" id="importBtnDieta">⬆️ Importar backup</button>
@@ -2401,20 +2460,29 @@ async function loadAll(){
 function savePendencias(){ storageSetWithRetry('agenda_pendencias', JSON.stringify(pendencias)); }
 function saveUserEvents(){ storageSetWithRetry('agenda_user_events', JSON.stringify(userEvents)); }
 function saveRoutineOverrides(){ storageSetWithRetry('agenda_routine_overrides', JSON.stringify(routineOverrides)); }
-function activeOverrideFor(dateStr){ return routineOverrides.find(o => dateStr >= o.start && dateStr <= o.end); }
+function activeOverrideFor(dateStr){
+  // período (intervalo de datas) tem prioridade — é o mais específico
+  const range = routineOverrides.find(o => (o.kind||'range')==='range' && o.start && o.end && dateStr >= o.start && dateStr <= o.end);
+  if(range) return range;
+  const wd = new Date(dateStr+'T00:00:00').getDay();
+  return routineOverrides.find(o => o.kind==='weekday' && Number(o.weekday) === wd);
+}
+const weekdayShort = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
 
 function renderRoutineOverrides(){
   const el = document.getElementById('routineOvrList');
   if(!el) return;
   if(!routineOverrides.length){ el.innerHTML = '<li class="pend-empty">nenhum período personalizado</li>'; return; }
   const fmtBr = s => s ? s.split('-').reverse().join('/') : '';
-  el.innerHTML = routineOverrides.slice().sort((a,b)=>a.start.localeCompare(b.start)).map(o=>{
+  const sortKey = o => o.kind==='weekday' ? ('9-'+o.weekday) : ('0-'+(o.start||''));
+  el.innerHTML = routineOverrides.slice().sort((a,b)=>sortKey(a).localeCompare(sortKey(b))).map(o=>{
     const parts = [];
     if(o.manha) parts.push('café '+o.manha);
     if(o.almoco) parts.push('almoço '+o.almoco);
     if(o.tarde) parts.push('tarde '+o.tarde);
     if(o.jantar) parts.push('jantar '+o.jantar);
-    return `<li class="pend-item"><span class="pend-text">${fmtBr(o.start)} → ${fmtBr(o.end)}<span class="prazo"> — ${parts.join(' · ')||'sem mudança'}</span></span><button class="pend-remove" data-id="${o.id}" style="display:inline-block">✕</button></li>`;
+    const quando = o.kind==='weekday' ? ('Toda '+weekdayShort[Number(o.weekday)]) : (fmtBr(o.start)+' → '+fmtBr(o.end));
+    return `<li class="pend-item"><span class="pend-text">${quando}<span class="prazo"> — ${parts.join(' · ')||'sem mudança'}</span></span><button class="pend-remove" data-id="${o.id}" style="display:inline-block">✕</button></li>`;
   }).join('');
   el.querySelectorAll('.pend-remove').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -2429,21 +2497,68 @@ function renderRoutineOverrides(){
 function setupRoutineOverrideForm(){
   const btn = document.getElementById('ovrSaveBtn');
   if(!btn) return;
+  let ovrMode = 'range';
+  const rangeRow = document.getElementById('ovrRangeRow');
+  const wdRow = document.getElementById('ovrWeekdayRow');
+  document.querySelectorAll('.ovr-mode-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('.ovr-mode-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      ovrMode = b.dataset.ovrmode;
+      rangeRow.style.display = ovrMode==='range' ? '' : 'none';
+      wdRow.style.display = ovrMode==='weekday' ? '' : 'none';
+      btn.textContent = ovrMode==='weekday' ? 'Salvar dia da semana' : 'Salvar período';
+    });
+  });
   btn.addEventListener('click', ()=>{
-    const start = document.getElementById('ovrStart').value;
-    const end = document.getElementById('ovrEnd').value;
-    if(!start || !end || end < start){ alert('Escolha um intervalo de datas válido (início e fim).'); return; }
-    routineOverrides.push({
-      id: uid(), start, end,
+    const meals = {
       manha: document.getElementById('ovrManha').value || '',
       almoco: document.getElementById('ovrAlmoco').value || '',
       tarde: document.getElementById('ovrTarde').value || '',
       jantar: document.getElementById('ovrJantar').value || '',
-    });
+    };
+    if(!meals.manha && !meals.almoco && !meals.tarde && !meals.jantar){ alert('Preencha pelo menos um horário.'); return; }
+    if(ovrMode==='weekday'){
+      routineOverrides.push({ id: uid(), kind:'weekday', weekday: Number(document.getElementById('ovrWeekday').value), ...meals });
+    } else {
+      const start = document.getElementById('ovrStart').value;
+      const end = document.getElementById('ovrEnd').value;
+      if(!start || !end || end < start){ alert('Escolha um intervalo de datas válido (início e fim).'); return; }
+      routineOverrides.push({ id: uid(), kind:'range', start, end, ...meals });
+    }
     ['ovrStart','ovrEnd','ovrManha','ovrAlmoco','ovrTarde','ovrJantar'].forEach(id=>{ document.getElementById(id).value=''; });
     saveRoutineOverrides();
     renderRoutineOverrides();
     refreshAgenda();
+  });
+}
+
+function fillSchedPendOptions(){
+  const sel = document.getElementById('schedPendSel');
+  if(!sel) return;
+  const prev = sel.value;
+  if(!pendencias.length){ sel.innerHTML = '<option value="">(nenhuma pendência na lista)</option>'; return; }
+  sel.innerHTML = pendencias.map((p,i)=>`<option value="${i}">${p.ti.replace(/&/g,'&amp;').replace(/</g,'&lt;')}${p.setor==='faculdade'?' · faculdade':''}</option>`).join('');
+  if(prev && pendencias[Number(prev)]) sel.value = prev;
+}
+function setupSchedPend(){
+  const btn = document.getElementById('schedPendBtn');
+  if(!btn) return;
+  const sel = document.getElementById('schedPendSel');
+  const dateEl = document.getElementById('schedPendDate');
+  const timeEl = document.getElementById('schedPendTime');
+  if(dateEl && !dateEl.value) dateEl.value = fmt(today);
+  btn.addEventListener('click', ()=>{
+    const p = pendencias[Number(sel.value)];
+    if(!p){ alert('Não há pendência selecionada.'); return; }
+    const d = dateEl.value;
+    if(!d){ alert('Escolha a data.'); return; }
+    userEvents.push({ id:uid(), d, t:timeEl.value||'', ti:p.ti, c:'pessoal', fromPend:true });
+    timeEl.value = '';
+    saveUserEvents();
+    refreshAgenda();
+    const msg = document.getElementById('schedPendMsg');
+    if(msg){ msg.style.display='block'; setTimeout(()=>{ msg.style.display='none'; }, 1800); }
   });
 }
 
@@ -2466,6 +2581,7 @@ function renderPendList(elId, setor){
 function renderPendências(){
   renderPendList('pendGeral','geral');
   renderPendList('pendFaculdade','faculdade');
+  fillSchedPendOptions();
 }
 
 function setupPendAdd(inputId, setor){
@@ -2867,6 +2983,7 @@ loadAll().then(()=>{
   setupAgendaToggle();
   setupAgendaDrawer();
   setupCuadriAdd();
+  setupSchedPend();
   setupRoutineOverrideForm();
   renderRoutineOverrides();
   setupPendEditToggle();

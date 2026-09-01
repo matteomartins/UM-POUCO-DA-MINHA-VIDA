@@ -48,11 +48,12 @@
     box-shadow:0 2px 10px rgba(74,18,26,.13);
     transition:transform .14s ease, filter .14s ease;
   }
-  #home .app-card:nth-child(1){ --band:#6b1c28; --band-ink:#fff; margin-right:70px; }
-  #home .app-card:nth-child(2){ --band:#a13b43; --band-ink:#fff; margin-right:54px; }
-  #home .app-card:nth-child(3){ --band:#cf7a72; --band-ink:#fff; margin-right:38px; }
-  #home .app-card:nth-child(4){ --band:#edc2ba; --band-ink:#6b1c28; margin-right:20px; }
-  #home .app-card:nth-child(5){ --band:#ffffff; --band-ink:#6b1c28; margin-right:0; }
+  #home .app-card:nth-child(1){ --band:#6b1c28; --band-ink:#fff; margin-right:78px; }
+  #home .app-card:nth-child(2){ --band:#8f2f3c; --band-ink:#fff; margin-right:62px; }
+  #home .app-card:nth-child(3){ --band:#a94c4a; --band-ink:#fff; margin-right:46px; }
+  #home .app-card:nth-child(4){ --band:#cf7a72; --band-ink:#fff; margin-right:32px; }
+  #home .app-card:nth-child(5){ --band:#e8bdb4; --band-ink:#6b1c28; margin-right:18px; }
+  #home .app-card:nth-child(6){ --band:#ffffff; --band-ink:#6b1c28; margin-right:0; }
   #home .app-card:hover{ transform:translateX(7px); filter:brightness(1.04); }
   #home .app-card:active{ transform:translateX(3px) scale(.995); }
   #home .app-card .emoji{ font-size:24px; width:30px; text-align:center; flex-shrink:0; margin:0; display:block; }
@@ -80,10 +81,11 @@
     #home .home-brand b{ font-size:clamp(78px,15.5vw,210px); line-height:.88; }
     #home .home-apps{ flex:0 0 clamp(300px,30vw,400px); justify-content:center; }
     #home .app-grid{ gap:8px; }
-    #home .app-card:nth-child(1){ margin-right:90px; }
-    #home .app-card:nth-child(2){ margin-right:66px; }
-    #home .app-card:nth-child(3){ margin-right:42px; }
-    #home .app-card:nth-child(4){ margin-right:20px; }
+    #home .app-card:nth-child(1){ margin-right:96px; }
+    #home .app-card:nth-child(2){ margin-right:76px; }
+    #home .app-card:nth-child(3){ margin-right:56px; }
+    #home .app-card:nth-child(4){ margin-right:38px; }
+    #home .app-card:nth-child(5){ margin-right:20px; }
   }
 
   /* ---------- Topbar comum (dentro de cada app) ---------- */
@@ -336,6 +338,19 @@
   font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);
 }
 #view-agenda .agenda-toggle-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+#view-agenda .crono-edit-toggle{
+  display:inline-block;margin-top:12px;background:none;border:1px solid var(--paper-line);border-radius:20px;
+  padding:5px 14px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;font-weight:700;
+  cursor:pointer;color:var(--muted);
+}
+#view-agenda .crono-edit-toggle.active{background:var(--medb);color:#fff;border-color:var(--medb);}
+/* botões de editar/excluir dos itens ficam escondidos até ligar "Editar cronograma" */
+#view-agenda .cuadri-wrap .pill .pill-del,
+#view-agenda .cuadri-wrap .pill .pill-edit{display:none;}
+#view-agenda.crono-editing .cuadri-wrap .pill .pill-del,
+#view-agenda.crono-editing .cuadri-wrap .pill .pill-edit{display:inline-block;}
+#view-agenda .cuadri-wrap .pill .pill-edit{background:none;border:none;color:inherit;opacity:.55;cursor:pointer;font-size:10px;padding:0 0 0 3px;line-height:1;}
+#view-agenda .cuadri-wrap .pill .pill-edit:hover{opacity:1;}
 
 /* Gaveta de adicionar/editar */
 #view-agenda .agenda-add-fab{
@@ -454,7 +469,8 @@
 #view-agenda .form-save-btn:hover{opacity:.85;}
 #view-agenda .form-saved-msg{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:var(--pessoal);margin-top:6px;display:none;}
 #view-agenda .entry{position:relative;}
-#view-agenda .entry-actions{display:flex;gap:2px;flex-shrink:0;align-self:flex-start;}
+#view-agenda .entry-actions{display:none;gap:2px;flex-shrink:0;align-self:flex-start;}
+#view-agenda.crono-editing .entry-actions{display:flex;}
 #view-agenda .entry-edit,#view-agenda .entry-del{
   background:none;border:none;cursor:pointer;font-size:12px;padding:1px 4px;color:var(--muted);
 }
@@ -1258,6 +1274,76 @@
   @media (max-width: 420px){
     #view-dieta .field-grid, #view-treino .field-grid{ grid-template-columns:1fr; }
   }
+
+  /* ---------- Repaginada: cor principal vinho nas telas internas (orna com a portada) ---------- */
+  :root{ --brand:#7a1f2c; }
+  #backBtn, #refreshBtn{ color:var(--brand); border-color:#e3cfd0; }
+  #backBtn:hover, #refreshBtn:hover{ background:#f3e3e3; }
+  /* títulos de entrada de cada app: mesma cor + mesma linha grossa embaixo */
+  .cambio-entry-title,
+  #view-dieta .app-title,
+  #view-treino .app-title,
+  #view-ideias .ideias-header h1,
+  #view-agenda > .wrap > header > h1{
+    color:var(--brand) !important;
+  }
+  .cambio-entry-title{ padding-bottom:12px; position:relative; }
+  #view-agenda > .wrap > header > h1,
+  #view-dieta .app-header,
+  #view-treino .app-header,
+  #view-ideias .ideias-header{ position:relative; }
+  .cambio-entry-title::after,
+  #view-agenda > .wrap > header > h1::after,
+  #view-dieta .app-title::after,
+  #view-treino .app-title::after,
+  #view-ideias .ideias-header h1::after{
+    content:""; display:block; width:56px; height:3px; border-radius:2px;
+    background:var(--brand); margin:10px auto 2px;
+  }
+  #view-ideias .ideias-header h1::after{ margin-left:0; margin-right:0; }
+
+  /* ---------- Faculdade ---------- */
+  #view-faculdade{ --fac-brand:#7a1f2c; --fac-ink:#2a2320; --fac-muted:#8a7f78; --fac-line:#e7ddd9; --fac-paper:#faf7f5; background:var(--fac-paper); min-height:100vh; }
+  #view-faculdade *{ box-sizing:border-box; }
+  #view-faculdade .fac-wrap{ max-width:1000px; margin:0 auto; padding:64px 20px 60px; font-family:'Helvetica Neue',Arial,sans-serif; color:var(--fac-ink); }
+  #view-faculdade .fac-head{ text-align:center; margin-bottom:24px; }
+  #view-faculdade h1{ margin:0; font-size:28px; font-weight:800; letter-spacing:.02em; color:var(--fac-brand); }
+  #view-faculdade h1::after{ content:""; display:block; width:64px; height:3px; background:var(--fac-brand); border-radius:2px; margin:12px auto 0; }
+  #view-faculdade .fac-tabs{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:20px; }
+  #view-faculdade .fac-tab-btn{ background:none; border:1px solid var(--fac-line); border-radius:20px; padding:7px 16px; font-size:12.5px; font-weight:700; cursor:pointer; color:var(--fac-muted); }
+  #view-faculdade .fac-tab-btn.active{ background:var(--fac-brand); color:#fff; border-color:var(--fac-brand); }
+  #view-faculdade .fac-intro{ font-size:12.5px; line-height:1.6; color:var(--fac-muted); margin:0 0 20px; }
+  #view-faculdade .fac-intro a{ color:var(--fac-brand); font-weight:700; }
+  #view-faculdade .fac-clase{ border:1px solid var(--fac-line); border-radius:12px; overflow:hidden; margin-bottom:14px; background:#fff; }
+  #view-faculdade .fac-clase-head{ background:#f1e7e4; padding:10px 14px; font-size:13.5px; font-weight:800; color:var(--fac-brand); }
+  #view-faculdade .fac-clase-head span{ font-weight:500; color:var(--fac-ink); }
+  #view-faculdade .fac-cols{ display:grid; grid-template-columns:1fr 1fr; }
+  #view-faculdade .fac-col{ padding:12px 14px; min-width:0; }
+  #view-faculdade .fac-col + .fac-col{ border-left:1px solid var(--fac-line); }
+  #view-faculdade .fac-col-h{ font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:3px 8px; border-radius:10px; display:inline-block; }
+  #view-faculdade .fac-col.moodle .fac-col-h{ background:#e5e0f2; color:#453b6b; }
+  #view-faculdade .fac-col.yt .fac-col-h{ background:#f6e6c8; color:#7a5a12; }
+  #view-faculdade .fac-col-total{ font-size:10.5px; color:var(--fac-muted); font-weight:600; margin-left:6px; }
+  #view-faculdade .fac-vid{ font-size:12px; line-height:1.5; padding:4px 0; display:flex; gap:6px; align-items:flex-start; }
+  #view-faculdade .fac-vid + .fac-vid{ border-top:1px solid #f2ece9; }
+  #view-faculdade .fac-vid a{ color:var(--fac-brand); font-weight:700; text-decoration:none; }
+  #view-faculdade .fac-vid a:hover{ text-decoration:underline; }
+  #view-faculdade .fac-vid .dur{ color:var(--fac-muted); font-weight:600; }
+  #view-faculdade .fac-vid .tag{ color:#a06a1e; font-style:italic; }
+  #view-faculdade .fac-vid.miss{ color:var(--fac-muted); }
+  #view-faculdade .fac-vid.miss .name{ text-decoration:line-through; }
+  #view-faculdade .fac-vid.miss .note{ color:#b23b2e; font-weight:700; }
+  #view-faculdade .fac-vid input[type=checkbox]{ margin:2px 0 0; flex-shrink:0; width:14px; height:14px; accent-color:var(--fac-brand); cursor:pointer; }
+  #view-faculdade .fac-vid .fac-spacer{ flex-shrink:0; width:14px; }
+  #view-faculdade .fac-vid.done a, #view-faculdade .fac-vid.done .name{ opacity:.45; }
+  #view-faculdade .fac-notas{ width:100%; min-height:340px; border:1px solid var(--fac-line); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; line-height:1.6; background:#fff; resize:vertical; }
+  #view-faculdade .fac-save-btn{ margin-top:10px; padding:9px 18px; border:none; border-radius:8px; background:var(--fac-brand); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; }
+  #view-faculdade .fac-saved-msg{ margin-left:10px; font-size:11.5px; color:#1f8a70; display:none; }
+  @media(max-width:640px){
+    #view-faculdade .fac-wrap{ padding:58px 12px 50px; }
+    #view-faculdade .fac-cols{ grid-template-columns:1fr; }
+    #view-faculdade .fac-col + .fac-col{ border-left:none; border-top:1px solid var(--fac-line); }
+  }
 </style>
 <script>
 function showToast(msg){
@@ -1362,6 +1448,10 @@ async function storageGetWithRetry(key){
         <span class="emoji">💡</span>
         <div class="app-card-txt"><div class="name">Ideias</div><div class="desc">Livros, filmes, coisas pra fazer</div></div>
       </div>
+      <div class="app-card" data-app="faculdade">
+        <span class="emoji">🎓</span>
+        <div class="app-card-txt"><div class="name">Faculdade</div><div class="desc">Farmacología II, Med Interna, Guardias</div></div>
+      </div>
     </div>
     <div class="home-backup-row">
       <button class="global-backup-btn" id="globalBackupBtnHome">⬇ Backup</button>
@@ -1429,6 +1519,36 @@ async function storageGetWithRetry(key){
   </div>
 </div>
 
+<div class="app-view" id="view-faculdade">
+  <div class="fac-wrap">
+    <header class="fac-head">
+      <h1>🎓 FACULDADE</h1>
+      <div class="fac-tabs">
+        <button class="fac-tab-btn active" data-sec="farmaco">Farmacología II</button>
+        <button class="fac-tab-btn" data-sec="medint">Medicina Interna</button>
+        <button class="fac-tab-btn" data-sec="guardias">Guardias</button>
+      </div>
+    </header>
+
+    <section class="fac-sec" id="facSecFarmaco">
+      <p class="fac-intro">Todos los videos de Farmacología II: los oficiales de la cátedra (<b>Moodle</b>) al lado de la playlist extra de YouTube <b>"Farmaco 2 - Cat 1" (Butters)</b>, organizados por clase del cronograma. Cuando falta un video, se marca explícitamente. Marcá el casillero cuando ya lo viste. <a href="https://campus.fmed.uba.ar/course/view.php?id=1250" target="_blank" rel="noopener">Fuente de la columna Moodle ↗</a></p>
+      <div class="fac-farmaco-list" id="facFarmacoList"></div>
+    </section>
+
+    <section class="fac-sec" id="facSecMedint" style="display:none">
+      <p class="fac-intro">Anotações de <b>Medicina Interna B</b> — cronograma, temas, professores, o que precisar. Clica em <b>Salvar</b> pra guardar.</p>
+      <textarea class="fac-notas" id="facNotasMedint" placeholder="cole ou escreva aqui..."></textarea>
+      <div><button class="fac-save-btn" id="facSaveMedint">Salvar</button><span class="fac-saved-msg" id="facSavedMedint">salvo ✓</span></div>
+    </section>
+
+    <section class="fac-sec" id="facSecGuardias" style="display:none">
+      <p class="fac-intro">Anotações de <b>Guardias</b> — hospitales, fechas, contactos, materias, lo que sea. Clica em <b>Salvar</b> pra guardar.</p>
+      <textarea class="fac-notas" id="facNotasGuardias" placeholder="cole ou escreva aqui..."></textarea>
+      <div><button class="fac-save-btn" id="facSaveGuardias">Salvar</button><span class="fac-saved-msg" id="facSavedGuardias">salvo ✓</span></div>
+    </section>
+  </div>
+</div>
+
 <div class="app-view" id="view-agenda">
 <div class="wrap">
 <header>
@@ -1437,6 +1557,7 @@ async function storageGetWithRetry(key){
     <button class="agenda-toggle-btn active" data-view="mensal">Mensal</button>
     <button class="agenda-toggle-btn" data-view="cuadri">Cuadrimestre</button>
   </div>
+  <button class="crono-edit-toggle" id="cronoEditToggle">✎ Editar cronograma</button>
 </header>
 
 <div id="agendaMensalView">
@@ -1853,6 +1974,7 @@ const BACKUP_KEYS = [
   'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog',
   'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog', 'treino_gymLog', 'treino_gymMinutes',
   'ideias_itens',
+  'faculdade_farmaco_status', 'faculdade_notas_medint', 'faculdade_notas_guardias',
 ];
 
 async function doGlobalExport(){
@@ -2838,6 +2960,17 @@ function setupPendEditToggle(){
   });
 }
 
+function setupCronoEditToggle(){
+  const btn = document.getElementById('cronoEditToggle');
+  if(!btn) return;
+  const view = document.getElementById('view-agenda');
+  btn.addEventListener('click', ()=>{
+    const on = view.classList.toggle('crono-editing');
+    btn.classList.toggle('active', on);
+    btn.textContent = on ? '✓ Pronto' : '✎ Editar cronograma';
+  });
+}
+
 function setupAgendaToggle(){
   const btns = document.querySelectorAll('#view-agenda .agenda-toggle-btn');
   btns.forEach(btn=>{
@@ -2955,7 +3088,7 @@ function renderCuadri(){
       html += `<div class="cell${isToday?' today':''}"><div class="daynum">${day}</div>`;
       dayEvents.forEach(e=>{
         const isUser = e.id !== undefined;
-        html += `<div class="pill ${e.c||'pessoal'}">${e.t?"<b>"+e.t+"</b> ":""}${e.ti}${e.w?`<span class="pill-who">${e.w}</span>`:""}${isUser?`<button class="pill-del" data-id="${e.id}" title="remover">✕</button>`:""}</div>`;
+        html += `<div class="pill ${e.c||'pessoal'}">${e.t?"<b>"+e.t+"</b> ":""}${e.ti}${e.w?`<span class="pill-who">${e.w}</span>`:""}${isUser?`<button class="pill-edit" data-id="${e.id}" title="editar">✎</button><button class="pill-del" data-id="${e.id}" title="remover">✕</button>`:""}</div>`;
       });
       html += `</div>`;
     }
@@ -2975,6 +3108,29 @@ function renderCuadri(){
       const id = btn.dataset.id;
       if(!confirm('Remover esse evento? (some da Mensal também)')) return;
       userEvents = userEvents.filter(e=>e.id !== id);
+      saveUserEvents();
+      refreshAgenda();
+    });
+  });
+
+  container.querySelectorAll('.pill-edit').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const ev = userEvents.find(e=>e.id === btn.dataset.id);
+      if(!ev) return;
+      const nt = prompt('Editar título (deixe em branco e confirme pra EXCLUIR):', ev.ti);
+      if(nt === null) return;
+      if(nt.trim() === ''){
+        if(confirm('Excluir esse evento? (some da Mensal também)')){
+          userEvents = userEvents.filter(e=>e.id !== ev.id);
+          saveUserEvents();
+          refreshAgenda();
+        }
+        return;
+      }
+      const nh = prompt('Editar horário (HH:MM, deixe em branco pra tirar o horário):', ev.t || '');
+      if(nh === null) return;
+      ev.ti = nt.trim();
+      ev.t = nh.trim();
       saveUserEvents();
       refreshAgenda();
     });
@@ -3083,7 +3239,7 @@ function renderDays(){
 
     all.forEach(e=>{
       const editable = e.id !== undefined;
-      const editBtns = editable ? `<span class="entry-actions"><button class="entry-edit" data-id="${e.id}">✎</button></span>` : "";
+      const editBtns = editable ? `<span class="entry-actions"><button class="entry-edit" data-id="${e.id}" title="editar">✎</button><button class="entry-del" data-id="${e.id}" title="excluir">✕</button></span>` : "";
       if(e.c==="saopaulo"){
         html += `<div class="entry saopaulo"><span class="time">⭐${e.t?" "+e.t:""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
       } else {
@@ -3115,6 +3271,18 @@ function renderDays(){
       ev.t = novoHorario.trim();
       saveUserEvents();
       refreshAgenda();
+    });
+  });
+
+  daysContainer.querySelectorAll('.entry-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const ev = userEvents.find(e=>e.id === btn.dataset.id);
+      if(!ev) return;
+      if(confirm('Excluir "'+ev.ti+'"? (some da Mensal e do Cuadrimestre)')){
+        userEvents = userEvents.filter(e=>e.id !== ev.id);
+        saveUserEvents();
+        refreshAgenda();
+      }
     });
   });
 
@@ -3156,6 +3324,7 @@ loadAll().then(()=>{
   setupRoutineOverrideForm();
   renderRoutineOverrides();
   setupPendEditToggle();
+  setupCronoEditToggle();
   renderDays();
 });
 
@@ -4025,7 +4194,7 @@ function buildXAxisLabels(labels, xFn, height, padding) {
 }
 
 function buildLineChartSVG(data, opts) {
-  const { width = 430, color = '#2F7D4F', negColor = null, unit = '', zeroLine = false } = opts || {};
+  const { width = 430, color = '#2F7D4F', negColor = null, lineColor = null, unit = '', zeroLine = false } = opts || {};
   if (!data.length) return '<div class="empty">Sem dados suficientes ainda pra montar o gráfico.</div>';
   if (data.length === 1) data = [data[0], data[0]];
   const rotate = data.length > 10;
@@ -4046,9 +4215,12 @@ function buildLineChartSVG(data, opts) {
   }));
   const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
   const areaD = pathD + ` L${points[points.length - 1].x.toFixed(1)},${height - padding} L${points[0].x.toFixed(1)},${height - padding} Z`;
-  // Com negColor: cada trecho da linha fica verde (valor >= 0 = déficit / abaixo da meta)
-  // ou vermelho (algum ponto < 0 = superávit / passou da meta).
-  const lineSvg = negColor
+  // lineColor: linha de ligação neutra (cinza) — usada quando o valor oscila entre
+  // déficit e superávit dia a dia, então a linha em si não deve "puxar" pra uma cor.
+  // Sem lineColor mas com negColor: cada trecho fica verde (>= 0) ou vermelho (< 0).
+  const lineSvg = lineColor
+    ? `<path d="${pathD}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
+    : negColor
     ? points.slice(0, -1).map((p, i) => {
         const q = points[i + 1];
         const segColor = (p.value < 0 || q.value < 0) ? negColor : color;
@@ -4066,7 +4238,7 @@ function buildLineChartSVG(data, opts) {
   }).join('');
   return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;display:block">
     ${yAxis}
-    <path d="${areaD}" fill="${color}22" stroke="none"/>
+    <path d="${areaD}" fill="${(lineColor || color)}1f" stroke="none"/>
     ${lineSvg}
     ${circles}${xLabels}
   </svg>`;
@@ -4612,7 +4784,7 @@ function deficitChartHtml() {
   const hasAny = DB.dietLog.some(e => days.includes(e.date));
   const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
   if (!hasAny) return '<div class="empty">Registre refeições pra ver esse gráfico.</div>' + rangeInfo;
-  return buildLineChartSVG(data, { color: '#2F7D4F', negColor: '#C4573F', unit: ' kcal', zeroLine: true }) + rangeInfo;
+  return buildLineChartSVG(data, { color: '#2F7D4F', negColor: '#C4573F', lineColor: '#9AA0A6', unit: ' kcal', zeroLine: true }) + rangeInfo;
 }
 
 function deficitTableHtml() {
@@ -5663,7 +5835,7 @@ function buildXAxisLabels(labels, xFn, height, padding) {
 }
 
 function buildLineChartSVG(data, opts) {
-  const { width = 430, color = '#2F7D4F', negColor = null, unit = '', zeroLine = false } = opts || {};
+  const { width = 430, color = '#2F7D4F', negColor = null, lineColor = null, unit = '', zeroLine = false } = opts || {};
   if (!data.length) return '<div class="empty">Sem dados suficientes ainda pra montar o gráfico.</div>';
   if (data.length === 1) data = [data[0], data[0]];
   const rotate = data.length > 10;
@@ -5684,9 +5856,12 @@ function buildLineChartSVG(data, opts) {
   }));
   const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
   const areaD = pathD + ` L${points[points.length - 1].x.toFixed(1)},${height - padding} L${points[0].x.toFixed(1)},${height - padding} Z`;
-  // Com negColor: cada trecho da linha fica verde (valor >= 0 = déficit / abaixo da meta)
-  // ou vermelho (algum ponto < 0 = superávit / passou da meta).
-  const lineSvg = negColor
+  // lineColor: linha de ligação neutra (cinza) — usada quando o valor oscila entre
+  // déficit e superávit dia a dia, então a linha em si não deve "puxar" pra uma cor.
+  // Sem lineColor mas com negColor: cada trecho fica verde (>= 0) ou vermelho (< 0).
+  const lineSvg = lineColor
+    ? `<path d="${pathD}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
+    : negColor
     ? points.slice(0, -1).map((p, i) => {
         const q = points[i + 1];
         const segColor = (p.value < 0 || q.value < 0) ? negColor : color;
@@ -5704,7 +5879,7 @@ function buildLineChartSVG(data, opts) {
   }).join('');
   return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;display:block">
     ${yAxis}
-    <path d="${areaD}" fill="${color}22" stroke="none"/>
+    <path d="${areaD}" fill="${(lineColor || color)}1f" stroke="none"/>
     ${lineSvg}
     ${circles}${xLabels}
   </svg>`;
@@ -6369,7 +6544,7 @@ function deficitChartHtml() {
   const hasAny = DB.dietLog.some(e => days.includes(e.date));
   const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
   if (!hasAny) return '<div class="empty">Registre refeições pra ver esse gráfico.</div>' + rangeInfo;
-  return buildLineChartSVG(data, { color: '#2F7D4F', negColor: '#C4573F', unit: ' kcal', zeroLine: true }) + rangeInfo;
+  return buildLineChartSVG(data, { color: '#2F7D4F', negColor: '#C4573F', lineColor: '#9AA0A6', unit: ' kcal', zeroLine: true }) + rangeInfo;
 }
 
 function deficitTableHtml() {
@@ -7430,6 +7605,257 @@ window.init_ideias = function(){
 
   storageGetWithRetry('ideias_itens').then(r=>{
     itens = (r && r.value !== undefined) ? JSON.parse(r.value) : seedItens.slice();
+    render();
+  });
+};
+
+window.init_faculdade = function(){
+  // Videos de Farmacología II — coluna Moodle (oficial da cátedra) x playlist YouTube "Farmaco 2 - Cat 1" (Butters).
+  // u = id do YouTube (link vira https://youtu.be/<u>). miss:true = não tem vídeo. alt:true = versión alternativa.
+  const FARMACO = [
+    { n:'Clase 1', t:'Hipolipemiantes, Antihipertensivos, Diuréticos',
+      moodle:{ total:'1h59min', items:[
+        { x:'Hipolipemiantes', miss:true, note:'sin video en Moodle (solo PDF de guía)' },
+        { x:'Antihipertensivos', d:'59 min', u:'MV87vCKSrLs' },
+        { x:'Diuréticos', d:'1h00', u:'F1Dg8fQnnj0' },
+      ]},
+      yt:{ total:'2h09min', items:[
+        { x:'Hipolipemiantes', d:'1h20', u:'XO1w6iI4xsw' },
+        { x:'Antihipertensivos (antihta nuevo)', d:'26 min', u:'3WpPnRLEu2Q' },
+        { x:'Diuréticos (verano23)', d:'23 min', u:'M2XnCKZaVBE' },
+      ]}
+    },
+    { n:'Clase 2', t:'Antiarrítmicos, Farmacología de la Sangre',
+      moodle:{ total:'22 min', items:[
+        { x:'Antiarrítmicos — video complementario (Modulación del Potencial de Acción)', d:'22 min', u:'FjG8xJdPrNw' },
+        { x:'Sangre', miss:true, note:'sin video en Moodle' },
+      ]},
+      yt:{ total:'1h40min', items:[
+        { x:'Antiarrítmicos (Alumnos 2023)', d:'46 min', u:'c9dxAeMc0xQ' },
+        { x:'Farmacología de la Sangre (2023 FCO II)', d:'54 min', u:'vkh3tTknjX8' },
+      ]}
+    },
+    { n:'Clase 3', t:'Antianginosos y Vasodilatadores, Inotrópicos',
+      moodle:{ items:[
+        { x:'Antianginosos y Vasodilatadores', miss:true, note:'sin video en Moodle' },
+        { x:'Inotrópicos', miss:true, note:'sin video en Moodle' },
+      ]},
+      yt:{ total:'2h13min', items:[
+        { x:'Antianginosos (clase)', d:'1h11', u:'Fr-cV5kfNU8' },
+        { x:'Insuficiencia cardíaca e Inotrópicos', d:'1h02', u:'x-opF9tDzmk' },
+      ]}
+    },
+    { n:'Clase 4', t:'Video sin TP — Farmacología del Sistema Respiratorio',
+      moodle:{ total:'59 min', items:[
+        { x:'Farmacología del Sistema Respiratorio', d:'59 min', u:'H5jM-MpUPN0' },
+      ]},
+      yt:{ total:'1h15min', items:[
+        { x:'Farmacología Respiratoria (Escuela de verano 2023 FCO II)', d:'1h15', u:'6O1_GjZwh6k' },
+      ]}
+    },
+    { n:'Clase 5', t:'Generalidades de ATB, Betalactámicos, Glicopéptidos',
+      moodle:{ items:[
+        { x:'Generalidades de Antibióticos', miss:true, note:'sin video en Moodle' },
+        { x:'Betalactámicos', miss:true, note:'sin video en Moodle (solo guía TP)' },
+        { x:'Glicopéptidos', miss:true, note:'sin video en Moodle' },
+      ]},
+      yt:{ total:'1h57min', items:[
+        { x:'Generalidades de ATB', d:'21 min', u:'pFQnCQNPw4o' },
+        { x:'Generalidades de ATB', d:'1h06', u:'Vjfp69yBYAA', alt:true },
+        { x:'Beta lactámicos y Glucopéptidos', d:'1h36', u:'AzmWPSzpQd4' },
+        { x:'Beta lactámicos y Glucopéptidos', d:'58 min', u:'zdgY2cosres', alt:true },
+      ]}
+    },
+    { n:'Clase 6', t:'Antimicobacterianos, Aminoglucósidos, Quinolonas',
+      moodle:{ total:'22 min', items:[
+        { x:'Antimicobacterianos (tuberculosis)', d:'22 min', u:'huiUWkWAjik' },
+        { x:'Aminoglucósidos', miss:true, note:'sin video en Moodle (solo PDF)' },
+        { x:'Quinolonas', miss:true, note:'sin video en Moodle' },
+      ]},
+      yt:{ total:'2h51min', items:[
+        { x:'Antimicobacterianos', d:'1h45', u:'YN3siKSc4Vs' },
+        { x:'Antimicobacterianos (2022)', d:'1h24', u:'zmQ-7qKItGs', alt:true },
+        { x:'Aminoglucósidos', d:'35 min', u:'zyHyFl64Rcc' },
+        { x:'Aminoglucósidos', d:'34 min', u:'PMXa4D8AHqw', alt:true },
+        { x:'Quinolonas (2022)', d:'31 min', u:'rgdw6olMXDk' },
+      ]}
+    },
+    { n:'Clase 7', t:'Antifúngicos, Macrólidos/Bacteriostáticos, Antifolatos, Nitrocompuestos',
+      moodle:{ items:[
+        { x:'Antifúngicos', miss:true, note:'sin video en Moodle' },
+        { x:'Macrólidos y Otros Bacteriostáticos', miss:true, note:'sin video en Moodle' },
+        { x:'Antifolatos', miss:true, note:'sin video en Moodle' },
+        { x:'Nitrocompuestos', miss:true, note:'sin video en Moodle (solo PDF junto con Antifolatos)' },
+      ]},
+      yt:{ total:'2h45min', items:[
+        { x:'Antifúngicos (Clase 2022 — Jorge Quercetti)', d:'46 min', u:'il-gTkWj9Kw' },
+        { x:'Cloranfenicol y Macrólidos', d:'49 min', u:'MKiYS3jHBlQ' },
+        { x:'Macrólidos y Cloranfenicol (teórico)', d:'26 min', u:'AhvMAY3KUnE', alt:true },
+        { x:'Sulfas y Nitrocompuestos (2022)', d:'35 min', u:'vspTvkW-pm8' },
+        { x:'Tetraciclinas (2022)', d:'35 min', u:'fhKfPbcFWzs', bonus:'bônus — no está en el cronograma de esta cursada' },
+      ]}
+    },
+    { n:'Clase 8', t:'Antineoplásicos, Antirretrovirales, Antivirales',
+      moodle:{ total:'1h29min', items:[
+        { x:'Antineoplásicos', miss:true, note:'sin video en Moodle (solo PDF)' },
+        { x:'Antirretrovirales', d:'59 min', u:'GxGSeEI1iq4' },
+        { x:'Antivirales', d:'30 min', u:'02qZXQgc3yI' },
+      ]},
+      yt:{ total:'2h48min', items:[
+        { x:'Antineoplásicos COMPLETO (2022)', d:'56 min', u:'cZBrburI3JY' },
+        { x:'Antirretrovirales (2022)', d:'1h14', u:'H8t17XB47Lg' },
+        { x:'Antivirales (2022)', d:'38 min', u:'oOy_yJ28T6c' },
+      ]}
+    },
+    { n:'Clase 9', t:'Video sin TP — Resistencia, Antiparasitarios, Farmacología de la Piel',
+      moodle:{ total:'2h38min', items:[
+        { x:'Resistencia Antimicrobiana', d:'30 min', u:'gBh5vFHD_Qs' },
+        { x:'Antiparasitarios — Parte 1/3', d:'26 min', u:'NKzo-lQMFiI' },
+        { x:'Antiparasitarios — Parte 2/3', d:'45 min', u:'_h8H_ubKWT8' },
+        { x:'Antiparasitarios — Parte 3/3', d:'22 min', u:'BpuMMaVyQAM' },
+        { x:'Farmacología de la Piel — Parte 1/3', d:'8 min', u:'bCouuvehrr0' },
+        { x:'Farmacología de la Piel — Parte 2/3', d:'14 min', u:'zGa6e7TvZ70' },
+        { x:'Farmacología de la Piel — Parte 3/3', d:'13 min', u:'BZ-_3xj8uZI' },
+      ]},
+      yt:{ total:'2h57min', items:[
+        { x:'RAM (2022) — Resistencia Antimicrobiana', d:'27 min', u:'y6M0lWF3YRs' },
+        { x:'Antihelmínticos final', d:'44 min', u:'xgFvXzTZl-s' },
+        { x:'Antihelmínticos', d:'34 min', u:'XO18AJEYLuc', alt:true },
+        { x:'Antiprotozoarios', d:'55 min', u:'9k8UETezcJg' },
+        { x:'Farmacología de la Piel', d:'29 min', u:'h2wBwSbo_F8' },
+        { x:'Antisépticos y Desinfectantes', d:'22 min', u:'H6PpklYZCkg', bonus:'bônus — relacionado, no está en el cronograma' },
+      ]}
+    },
+    { n:'Clase 10', t:'Generalidades de Psicofarmacología, Antidepresivos',
+      moodle:{ items:[
+        { x:'Generalidades de Psicofarmacología', miss:true, note:'sin video en Moodle (solo libro)' },
+        { x:'Antidepresivos', miss:true, note:'sin video en Moodle (solo PDF/guía/libro)' },
+      ]},
+      yt:{ total:'1h51min', items:[
+        { x:'Antidepresivos 1 — Mecanismo de acción y clasificaciones', d:'42 min', u:'zD4xvIn_pzI' },
+        { x:'Antidepresivos 2 — Perfiles de los más utilizados', d:'49 min', u:'1Xh0udkpvBw' },
+        { x:'Antidepresivos 3 — Viejos antidepresivos y nuevos horizontes', d:'20 min', u:'PsPauWLLDiI' },
+      ]}
+    },
+    { n:'Clase 11', t:'Ansiolíticos e Hipnóticos, Antiepilépticos y Litio',
+      moodle:{ total:'2h43min', items:[
+        { x:'Ansiolíticos e Hipnóticos (Benzodiacepinas)', d:'1h36', u:'jwicag1oQDw' },
+        { x:'Antiepilépticos y Litio (Estabilizadores del Ánimo)', d:'1h07', u:'nU180j7lk3U' },
+      ]},
+      yt:{ total:'2h51min', items:[
+        { x:'Ansiolíticos e hipnosedantes', d:'49 min', u:'FqZHY0as8QQ' },
+        { x:'Anticonvulsivantes (2023)', d:'1h18', u:'p4iRVBg4X7E' },
+        { x:'Antirrecurrenciales — Litio final', d:'44 min', u:'qFRVzBrNyJ8' },
+        { x:'Antirrecurrenciales — Litio 1', d:'36 min', u:'UpQ-O_XrKqM', alt:true },
+      ]}
+    },
+    { n:'Clase 12', t:'Antipsicóticos, Farmacología Digestiva',
+      moodle:{ total:'6h13min', items:[
+        { x:'Antipsicóticos', d:'2h18', u:'TwHPxMPxPNo' },
+        { x:'Farm. Digestiva — Parte 1/4 (Generalidades y protectores gástricos)', d:'1h11', u:'NjdB-xh3dhE' },
+        { x:'Farm. Digestiva — Parte 2/4 (Antieméticos)', d:'42 min', u:'McD-tmLUDvU' },
+        { x:'Farm. Digestiva — Parte 3/4 (Laxantes y catárticos)', d:'1h06', u:'vfPGjuWeVQg' },
+        { x:'Farm. Digestiva — Parte 4/4 (Antidiarreicos, antiespasm., coleréticos, antiflat.)', d:'56 min', u:'IOlkKweU9HA' },
+      ]},
+      yt:{ total:'2h53min', items:[
+        { x:'Antipsicóticos 1 — Mecanismo de acción', d:'37 min', u:'uFRyVvXL5yE' },
+        { x:'Antipsicóticos 2 — Clasificación. Típicos', d:'27 min', u:'3z2wGmjfEkE' },
+        { x:'Antipsicóticos 3 — Atípicos', d:'20 min', u:'bR4j8BwmlZg' },
+        { x:'Farmacología del Aparato Digestivo — Parte 1', d:'1h13', u:'ATFmGC4Njbg' },
+        { x:'Farmacología del Aparato Digestivo — Parte 2', d:'16 min', u:'muzpvQNRORM' },
+      ]}
+    },
+    { n:'Clase 13', t:'Video sin TP — Antiparkinsonianos, Psicoestimulantes',
+      moodle:{ total:'1h11min', items:[
+        { x:'Antiparkinsonianos', d:'33 min', u:'1MIhCnJht9M' },
+        { x:'Psicoestimulantes', d:'38 min', u:'4Xc2Qgxw35E' },
+      ]},
+      yt:{ total:'1h09min', items:[
+        { x:'Clase Parkinson (2022 — Jorge Quercetti)', d:'1h09', u:'PVqn_16S654' },
+        { x:'Psicoestimulantes', miss:true, note:'FALTA — no está en la playlist de YouTube' },
+      ]}
+    },
+    { n:'Bônus', t:'Generalidades de Farmacología (no atadas a una clase; parecen repaso de Farmacología I)',
+      moodle:{ items:[] },
+      yt:{ total:'2h04min', items:[
+        { x:'Gliflozinas — Dr. Serra', d:'42 min', u:'ijWGpObFC9A' },
+        { x:'Farmacocinética — Dr. Serra', d:'26 min', u:'8iulln1-JTU' },
+        { x:'Farmacodinamia — Dr. Serra', d:'24 min', u:'aluW_G7CDE4' },
+        { x:'Farmacodinamia molecular — Dr. Serra', d:'32 min', u:'GL74jShv2Pk' },
+      ]}
+    },
+  ];
+
+  const listEl = document.getElementById('facFarmacoList');
+  let seen = {};
+
+  function vidRow(ci, col, i, it){
+    if(it.miss){
+      return `<div class="fac-vid miss"><span class="fac-spacer"></span><span><span class="name">${it.x}</span> <span class="note">— ${it.note || 'sin video en Moodle'}</span></span></div>`;
+    }
+    const key = 'c' + ci + '-' + col + '-' + i;
+    const isDone = !!seen[key];
+    const dur = it.d ? ` <span class="dur">· ${it.d}</span>` : '';
+    const tag = it.alt ? ` <span class="tag">(versión alternativa — mismo tema)</span>`
+             : it.bonus ? ` <span class="tag">(${it.bonus})</span>` : '';
+    return `<div class="fac-vid${isDone ? ' done' : ''}">`
+      + `<input type="checkbox" data-k="${key}"${isDone ? ' checked' : ''} title="marcar como visto">`
+      + `<span><a href="https://youtu.be/${it.u}" target="_blank" rel="noopener"><span class="name">${it.x}</span></a>${dur}${tag}</span>`
+      + `</div>`;
+  }
+
+  function colHtml(ci, side, col){
+    const label = col === 'm' ? 'Moodle (oficial)' : 'Playlist YouTube — Butters';
+    const cls = col === 'm' ? 'moodle' : 'yt';
+    const total = side.total ? `<span class="fac-col-total">Total: ${side.total}</span>` : '';
+    const rows = side.items.length
+      ? side.items.map((it, i) => vidRow(ci, col, i, it)).join('')
+      : `<div class="fac-vid miss"><span></span><span class="note" style="font-style:italic">— (sem coluna nesta clase)</span></div>`;
+    return `<div class="fac-col ${cls}"><div><span class="fac-col-h">${label}</span>${total}</div>${rows}</div>`;
+  }
+
+  function render(){
+    listEl.innerHTML = FARMACO.map((c, ci) => {
+      return `<div class="fac-clase">
+        <div class="fac-clase-head">${c.n} <span>— ${c.t}</span></div>
+        <div class="fac-cols">${colHtml(ci, c.moodle, 'm')}${colHtml(ci, c.yt, 'y')}</div>
+      </div>`;
+    }).join('');
+    listEl.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if(cb.checked) seen[cb.dataset.k] = true; else delete seen[cb.dataset.k];
+        cb.closest('.fac-vid').classList.toggle('done', cb.checked);
+        storageSetWithRetry('faculdade_farmaco_status', JSON.stringify(seen));
+      });
+    });
+  }
+
+  document.querySelectorAll('#view-faculdade .fac-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#view-faculdade .fac-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const s = btn.dataset.sec;
+      document.getElementById('facSecFarmaco').style.display  = s === 'farmaco'  ? '' : 'none';
+      document.getElementById('facSecMedint').style.display   = s === 'medint'   ? '' : 'none';
+      document.getElementById('facSecGuardias').style.display = s === 'guardias' ? '' : 'none';
+    });
+  });
+
+  function wireNotas(key, taId, btnId, msgId){
+    const ta = document.getElementById(taId);
+    storageGetWithRetry(key).then(r => { if(r && r.value !== undefined) ta.value = r.value; });
+    document.getElementById(btnId).addEventListener('click', () => {
+      storageSetWithRetry(key, ta.value);
+      const m = document.getElementById(msgId);
+      m.style.display = 'inline';
+      setTimeout(() => { m.style.display = 'none'; }, 1600);
+    });
+  }
+  wireNotas('faculdade_notas_medint', 'facNotasMedint', 'facSaveMedint', 'facSavedMedint');
+  wireNotas('faculdade_notas_guardias', 'facNotasGuardias', 'facSaveGuardias', 'facSavedGuardias');
+
+  storageGetWithRetry('faculdade_farmaco_status').then(r => {
+    if(r && r.value !== undefined){ try { seen = JSON.parse(r.value) || {}; } catch(e){ seen = {}; } }
     render();
   });
 };

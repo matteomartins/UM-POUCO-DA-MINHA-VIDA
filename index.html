@@ -1314,6 +1314,10 @@
   #view-faculdade .fac-tab-btn.active{ background:var(--fac-brand); color:#fff; border-color:var(--fac-brand); }
   #view-faculdade .fac-intro{ font-size:12.5px; line-height:1.6; color:var(--fac-muted); margin:0 0 20px; }
   #view-faculdade .fac-intro a{ color:var(--fac-brand); font-weight:700; }
+  #view-faculdade .fac-parcial{ margin:26px 0 12px; padding:10px 16px; border-radius:10px; background:var(--fac-brand); color:#fff; }
+  #view-faculdade .fac-parcial:first-child{ margin-top:4px; }
+  #view-faculdade .fac-parcial-t{ font-size:14px; font-weight:800; letter-spacing:.02em; }
+  #view-faculdade .fac-parcial-s{ font-size:11px; opacity:.85; margin-top:2px; }
   #view-faculdade .fac-clase{ border:1px solid var(--fac-line); border-radius:12px; overflow:hidden; margin-bottom:14px; background:#fff; }
   #view-faculdade .fac-clase-head{ background:#f1e7e4; padding:10px 14px; font-size:13.5px; font-weight:800; color:var(--fac-brand); }
   #view-faculdade .fac-clase-head span{ font-weight:500; color:var(--fac-ink); }
@@ -7814,9 +7818,18 @@ window.init_faculdade = function(){
     return `<div class="fac-col ${cls}"><div><span class="fac-col-h">${label}</span>${total}</div>${rows}</div>`;
   }
 
+  // Divisores dos 3 parciais (pelos módulos da cátedra). Chave = índice da 1ª clase de cada bloco.
+  const PARCIAIS = {
+    0: { t: '1º Parcial · Módulo I', sub: 'Clases 1 a 4 — prova 07/09' },
+    4: { t: '2º Parcial · Módulo II', sub: 'Clases 5 a 9 — prova 19/10' },
+    9: { t: '3º Parcial · Módulo III', sub: 'Clases 10 a 13 + Bônus — prova 16/11' },
+  };
+
   function render(){
     listEl.innerHTML = FARMACO.map((c, ci) => {
-      return `<div class="fac-clase">
+      const p = PARCIAIS[ci];
+      const div = p ? `<div class="fac-parcial"><div class="fac-parcial-t">${p.t}</div><div class="fac-parcial-s">${p.sub}</div></div>` : '';
+      return div + `<div class="fac-clase">
         <div class="fac-clase-head">${c.n} <span>— ${c.t}</span></div>
         <div class="fac-cols">${colHtml(ci, c.moodle, 'm')}${colHtml(ci, c.yt, 'y')}</div>
       </div>`;

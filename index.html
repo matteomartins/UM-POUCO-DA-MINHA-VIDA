@@ -263,6 +263,11 @@
   #view-agenda .entry.inscricao .title {color:#880E4F;font-weight:700;}
   #view-agenda .entry.inscricao .who {color:#AD1457;font-style:normal;}
   #view-agenda .cuadri-wrap .pill.inscricao {background:#FCE4EC;color:#880E4F;border-left:2px solid #E91E63;}
+  #view-agenda .entry.asignacion {border-color:#7B1FA2;background:#F3E5F5;}
+  #view-agenda .entry.asignacion .time {color:#6A1B9A;}
+  #view-agenda .entry.asignacion .title {color:#4A148C;font-weight:700;}
+  #view-agenda .entry.asignacion .who {color:#6A1B9A;font-style:normal;}
+  #view-agenda .cuadri-wrap .pill.asignacion {background:#F3E5F5;color:#4A148C;border-left:2px solid #7B1FA2;}
 
   #view-agenda footer {
     margin-top:30px;padding-top:14px;border-top:1px solid var(--paper-line);
@@ -1444,6 +1449,7 @@ async function storageGetWithRetry(key){
     <span><i class="dot" style="background:#c9a227"></i>Exercício</span>
     <span><i class="dot" style="background:var(--pessoal)"></i>Pessoal</span>
     <span><i class="dot" style="background:#E91E63"></i>Inscrições</span>
+    <span><i class="dot" style="background:#7B1FA2"></i>Asignación</span>
     <span><i class="dot" style="background:var(--saopaulo-red)"></i>⭐ São Paulo</span>
   </div>
 </div>
@@ -4019,13 +4025,13 @@ function buildXAxisLabels(labels, xFn, height, padding) {
 }
 
 function buildLineChartSVG(data, opts) {
-  const { width = 640, color = '#2F7D4F', negColor = null, unit = '', zeroLine = false } = opts || {};
+  const { width = 430, color = '#2F7D4F', negColor = null, unit = '', zeroLine = false } = opts || {};
   if (!data.length) return '<div class="empty">Sem dados suficientes ainda pra montar o gráfico.</div>';
   if (data.length === 1) data = [data[0], data[0]];
   const rotate = data.length > 10;
   const padding = rotate ? 56 : 26;
   const paddingLeft = opts && opts.paddingLeft || 42;
-  const height = (opts && opts.height) || (rotate ? 240 : 190);
+  const height = (opts && opts.height) || (rotate ? 300 : 225);
   const values = data.map(d => d.value);
   let min = Math.min(...values), max = Math.max(...values);
   if (zeroLine) { min = Math.min(min, 0); max = Math.max(max, 0); }
@@ -4067,12 +4073,12 @@ function buildLineChartSVG(data, opts) {
 }
 
 function buildBarChartSVG(data, opts) {
-  const { width = 640, color = '#2F7D4F', goal = null, goalColor = '#C4573F' } = opts || {};
+  const { width = 430, color = '#2F7D4F', goal = null, goalColor = '#C4573F' } = opts || {};
   if (!data.length) return '<div class="empty">Sem dados suficientes ainda pra montar o gráfico.</div>';
   const rotate = data.length > 10;
   const padding = rotate ? 56 : 26;
   const paddingLeft = (opts && opts.paddingLeft) || 42;
-  const height = (opts && opts.height) || (rotate ? 240 : 190);
+  const height = (opts && opts.height) || (rotate ? 300 : 225);
   const values = data.map(d => d.value);
   const max = Math.max(...values, goal || 0) * 1.15 || 1;
   const plotW = width - paddingLeft - padding;
@@ -4102,7 +4108,7 @@ function buildBarChartSVG(data, opts) {
 
 // Gráfico de barras "divergente" — sobe do zero pra cima (déficit) ou desce pra baixo (superávit)
 function buildDivergingBarChartSVG(data, opts) {
-  const { width = 640, height = 190, padding = 26, paddingLeft = 46, posColor = '#2F7D4F', negColor = '#C4573F' } = opts || {};
+  const { width = 430, height = 225, padding = 26, paddingLeft = 46, posColor = '#2F7D4F', negColor = '#C4573F' } = opts || {};
   if (!data.length) return '<div class="empty">Sem dados suficientes ainda pra montar o gráfico.</div>';
   const values = data.map(d => d.value);
   const maxAbs = Math.max(...values.map(v => Math.abs(v)), 1) * 1.15;
@@ -5238,7 +5244,7 @@ function buildFreqChartSVG(weeks) {
   if (!weeks.length || weeks.every(w => w.gym + w.cardio === 0)) {
     return '<div class="empty">Marque "treinei hoje" na aba Treino e registre cardios pra ver sua frequência aqui.</div>';
   }
-  const width = 640, padding = 30, paddingLeft = 30, height = 200;
+  const width = 460, padding = 32, paddingLeft = 32, height = 250;
   const max = Math.max(...weeks.map(w => w.gym + w.cardio), 3);
   const plotW = width - paddingLeft - padding;
   const plotH = height - padding * 2;
@@ -5657,13 +5663,13 @@ function buildXAxisLabels(labels, xFn, height, padding) {
 }
 
 function buildLineChartSVG(data, opts) {
-  const { width = 640, color = '#2F7D4F', negColor = null, unit = '', zeroLine = false } = opts || {};
+  const { width = 430, color = '#2F7D4F', negColor = null, unit = '', zeroLine = false } = opts || {};
   if (!data.length) return '<div class="empty">Sem dados suficientes ainda pra montar o gráfico.</div>';
   if (data.length === 1) data = [data[0], data[0]];
   const rotate = data.length > 10;
   const padding = rotate ? 56 : 26;
   const paddingLeft = opts && opts.paddingLeft || 42;
-  const height = (opts && opts.height) || (rotate ? 240 : 190);
+  const height = (opts && opts.height) || (rotate ? 300 : 225);
   const values = data.map(d => d.value);
   let min = Math.min(...values), max = Math.max(...values);
   if (zeroLine) { min = Math.min(min, 0); max = Math.max(max, 0); }
@@ -5705,12 +5711,12 @@ function buildLineChartSVG(data, opts) {
 }
 
 function buildBarChartSVG(data, opts) {
-  const { width = 640, color = '#2F7D4F', goal = null, goalColor = '#C4573F' } = opts || {};
+  const { width = 430, color = '#2F7D4F', goal = null, goalColor = '#C4573F' } = opts || {};
   if (!data.length) return '<div class="empty">Sem dados suficientes ainda pra montar o gráfico.</div>';
   const rotate = data.length > 10;
   const padding = rotate ? 56 : 26;
   const paddingLeft = (opts && opts.paddingLeft) || 42;
-  const height = (opts && opts.height) || (rotate ? 240 : 190);
+  const height = (opts && opts.height) || (rotate ? 300 : 225);
   const values = data.map(d => d.value);
   const max = Math.max(...values, goal || 0) * 1.15 || 1;
   const plotW = width - paddingLeft - padding;
@@ -5740,7 +5746,7 @@ function buildBarChartSVG(data, opts) {
 
 // Gráfico de barras "divergente" — sobe do zero pra cima (déficit) ou desce pra baixo (superávit)
 function buildDivergingBarChartSVG(data, opts) {
-  const { width = 640, height = 190, padding = 26, paddingLeft = 46, posColor = '#2F7D4F', negColor = '#C4573F' } = opts || {};
+  const { width = 430, height = 225, padding = 26, paddingLeft = 46, posColor = '#2F7D4F', negColor = '#C4573F' } = opts || {};
   if (!data.length) return '<div class="empty">Sem dados suficientes ainda pra montar o gráfico.</div>';
   const values = data.map(d => d.value);
   const maxAbs = Math.max(...values.map(v => Math.abs(v)), 1) * 1.15;
@@ -6973,7 +6979,7 @@ function buildFreqChartSVG(weeks) {
   if (!weeks.length || weeks.every(w => w.gym + w.cardio === 0)) {
     return '<div class="empty">Marque "treinei hoje" na aba Treino e registre cardios pra ver sua frequência aqui.</div>';
   }
-  const width = 640, padding = 30, paddingLeft = 30, height = 200;
+  const width = 460, padding = 32, paddingLeft = 32, height = 250;
   const max = Math.max(...weeks.map(w => w.gym + w.cardio), 3);
   const plotW = width - paddingLeft - padding;
   const plotH = height - padding * 2;

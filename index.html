@@ -111,6 +111,48 @@
     #backBtn svg, #refreshBtn svg{ width:23px; height:23px; }
   }
 
+  /* ---------- Pendências: aba lateral + painel global ---------- */
+  #pendTab{
+    position:fixed; left:0; top:45%; transform:translateY(-50%); z-index:120;
+    background:#7a1f2c; color:#fff; border:none; cursor:pointer;
+    border-radius:0 13px 13px 0; padding:14px 6px 12px; display:flex; flex-direction:column;
+    align-items:center; gap:9px; box-shadow:2px 3px 12px rgba(0,0,0,.22);
+  }
+  #pendTab[hidden]{ display:none; }
+  #pendTab .pend-tab-label{ writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg);
+    font-size:11px; font-weight:800; letter-spacing:.16em; }
+  #pendTab .pend-tab-count{ background:#fff; color:#7a1f2c; font-size:11px; font-weight:800;
+    min-width:18px; height:18px; border-radius:9px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+  #pendTab .pend-tab-count.zero{ display:none; }
+  #pendPanelBackdrop{ position:fixed; inset:0; background:rgba(0,0,0,.38); z-index:130; }
+  #pendPanelBackdrop[hidden]{ display:none; }
+  #pendPanel{
+    position:fixed; left:0; top:0; bottom:0; width:min(360px,87vw); z-index:140;
+    background:#faf7f5; box-shadow:4px 0 24px rgba(0,0,0,.28); display:flex; flex-direction:column;
+    font-family:'Helvetica Neue',Arial,sans-serif; animation:pendSlideIn .18s ease;
+  }
+  #pendPanel[hidden]{ display:none; }
+  @keyframes pendSlideIn{ from{ transform:translateX(-100%); } to{ transform:translateX(0); } }
+  #pendPanel .pend-panel-head{ display:flex; align-items:center; justify-content:space-between;
+    padding:18px 18px 13px; font-size:19px; font-weight:800; color:#7a1f2c; border-bottom:1px solid #ece2de; }
+  #pendPanel .pend-panel-head button{ background:none; border:none; font-size:18px; cursor:pointer; color:#8a7f78; }
+  #pendPanel .pend-panel-body{ flex:1; overflow-y:auto; padding:10px 16px 22px; }
+  #pendPanel .pend-grp-t{ font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    color:#8a7f78; margin:16px 0 4px; }
+  #pendPanel .pend-grp-t:first-child{ margin-top:2px; }
+  #pendPanel .pend-row{ display:flex; align-items:flex-start; gap:9px; padding:9px 0; border-top:1px solid #f0e8e4; }
+  #pendPanel .pend-row input[type=checkbox]{ margin-top:1px; width:16px; height:16px; flex-shrink:0; accent-color:#7a1f2c; cursor:pointer; }
+  #pendPanel .pend-row-txt{ flex:1; font-size:13px; line-height:1.4; word-break:break-word; }
+  #pendPanel .pend-row.done .pend-row-txt{ text-decoration:line-through; color:#a89e97; }
+  #pendPanel .pend-row-link{ display:inline-block; font-size:11px; color:#7a1f2c; font-weight:700; text-decoration:none; margin-top:3px; }
+  #pendPanel .pend-row-link:hover{ text-decoration:underline; }
+  #pendPanel .pend-row-acts{ display:flex; gap:0; flex-shrink:0; }
+  #pendPanel .pend-row-acts button{ background:none; border:none; cursor:pointer; font-size:14px; padding:2px 5px; color:#8a7f78; line-height:1; }
+  #pendPanel .pend-row-acts button:hover{ color:#7a1f2c; }
+  #pendPanel .pend-panel-foot{ padding:12px 18px; font-size:11px; color:#8a7f78; border-top:1px solid #ece2de; line-height:1.5; }
+  #pendPanel .pend-panel-empty{ font-size:12.5px; color:#8a7f78; padding:20px 4px; }
+  @media(max-width:640px){ #pendTab{ top:auto; bottom:88px; transform:none; } }
+
   .app-view{display:none;}
   .app-view.show{display:block;}
 
@@ -173,12 +215,14 @@
   #view-agenda .setor-head.faculdade {background:var(--farmaco-strong);}
   #view-agenda .pend-list {list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
   #view-agenda .pend-item {
-    display:flex;align-items:baseline;gap:8px;
+    display:flex;align-items:flex-start;gap:8px;
     font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;
     padding:6px 8px;border-radius:3px;
   }
   #view-agenda .pend-item:nth-child(odd) {background:rgba(0,0,0,.02);}
-  #view-agenda .pend-item::before {content:"—";color:var(--rotina);font-weight:700;}
+  #view-agenda .pend-item .pend-check {margin-top:2px;width:15px;height:15px;flex-shrink:0;accent-color:var(--medb);cursor:pointer;}
+  #view-agenda .pend-item.done .pend-text {text-decoration:line-through;color:var(--muted);}
+  #view-agenda .pend-item .pend-vlink {text-decoration:none;font-size:11px;}
   #view-agenda .pend-item .prazo {font-size:10.5px;color:var(--muted);font-style:italic;}
   #view-agenda .pend-empty {font-family:'Helvetica Neue',Arial,sans-serif;font-size:12.5px;color:var(--muted);font-style:italic;padding:0 8px;}
 
@@ -1319,8 +1363,13 @@
   #view-faculdade .fac-parcial-t{ font-size:14px; font-weight:800; letter-spacing:.02em; }
   #view-faculdade .fac-parcial-s{ font-size:11px; opacity:.85; margin-top:2px; }
   #view-faculdade .fac-clase{ border:1px solid var(--fac-line); border-radius:12px; overflow:hidden; margin-bottom:14px; background:#fff; }
-  #view-faculdade .fac-clase-head{ background:#f1e7e4; padding:10px 14px; font-size:13.5px; font-weight:800; color:var(--fac-brand); }
-  #view-faculdade .fac-clase-head span{ font-weight:500; color:var(--fac-ink); }
+  #view-faculdade .fac-clase-head{ background:#f1e7e4; padding:9px 12px 9px 14px; font-size:13.5px; font-weight:800; color:var(--fac-brand); display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  #view-faculdade .fac-clase-head .fac-clase-title{ min-width:0; }
+  #view-faculdade .fac-clase-head .fac-clase-sub{ font-weight:500; color:var(--fac-ink); }
+  #view-faculdade .fac-addpend{ flex-shrink:0; background:none; border:1px solid #d9cfca; color:var(--fac-brand); border-radius:8px; font-size:11px; font-weight:800; cursor:pointer; padding:2px 7px; line-height:1.5; white-space:nowrap; }
+  #view-faculdade .fac-addpend:hover{ background:#efe2de; }
+  #view-faculdade .fac-addpend.in{ background:var(--fac-brand); color:#fff; border-color:var(--fac-brand); cursor:default; }
+  #view-faculdade .fac-vid > .fac-addpend{ align-self:flex-start; margin-top:1px; }
   #view-faculdade .fac-cols{ display:grid; grid-template-columns:1fr 1fr; }
   #view-faculdade .fac-col{ padding:12px 14px; min-width:0; }
   #view-faculdade .fac-col + .fac-col{ border-left:1px solid var(--fac-line); }
@@ -1329,6 +1378,7 @@
   #view-faculdade .fac-col.yt .fac-col-h{ background:#f6e6c8; color:#7a5a12; }
   #view-faculdade .fac-col-total{ font-size:10.5px; color:var(--fac-muted); font-weight:600; margin-left:6px; }
   #view-faculdade .fac-vid{ font-size:12px; line-height:1.5; padding:4px 0; display:flex; gap:6px; align-items:flex-start; }
+  #view-faculdade .fac-vid > span{ flex:1 1 auto; min-width:0; }
   #view-faculdade .fac-vid + .fac-vid{ border-top:1px solid #f2ece9; }
   #view-faculdade .fac-vid a{ color:var(--fac-brand); font-weight:700; text-decoration:none; }
   #view-faculdade .fac-vid a:hover{ text-decoration:underline; }
@@ -1338,7 +1388,7 @@
   #view-faculdade .fac-vid.miss .name{ text-decoration:line-through; }
   #view-faculdade .fac-vid.miss .note{ color:#b23b2e; font-weight:700; }
   #view-faculdade .fac-vid input[type=checkbox]{ margin:2px 0 0; flex-shrink:0; width:14px; height:14px; accent-color:var(--fac-brand); cursor:pointer; }
-  #view-faculdade .fac-vid .fac-spacer{ flex-shrink:0; width:14px; }
+  #view-faculdade .fac-vid .fac-spacer{ flex:0 0 14px; width:14px; }
   #view-faculdade .fac-vid.done a, #view-faculdade .fac-vid.done .name{ opacity:.45; }
   #view-faculdade .fac-notas{ width:100%; min-height:340px; border:1px solid var(--fac-line); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; line-height:1.6; background:#fff; resize:vertical; }
   #view-faculdade .fac-save-btn{ margin-top:10px; padding:9px 18px; border:none; border-radius:8px; background:var(--fac-brand); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; }
@@ -1426,6 +1476,18 @@ async function storageGetWithRetry(key){
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
   </button>
 </div>
+
+<!-- Pendências: aba lateral esquerda + painel deslizante. Aparece em todas as telas menos a inicial. -->
+<button id="pendTab" hidden>
+  <span class="pend-tab-label">PENDÊNCIAS</span>
+  <span class="pend-tab-count" id="pendTabCount">0</span>
+</button>
+<div id="pendPanelBackdrop" hidden></div>
+<aside id="pendPanel" hidden>
+  <div class="pend-panel-head"><span>Pendências</span><button id="pendPanelClose" aria-label="fechar">✕</button></div>
+  <div class="pend-panel-body" id="pendPanelBody"></div>
+  <div class="pend-panel-foot">Pra criar novas: aba <b>Agenda</b>, ou o <b>+</b> nos vídeos/clases da <b>Faculdade</b>.</div>
+</aside>
 
 <div id="home">
   <div class="home-inner">
@@ -1946,14 +2008,168 @@ async function storageGetWithRetry(key){
 </div>
 
 <script>
-const APP_LABELS = { agenda:"Agenda", cambio:"Financeiro", dieta:"Dieta", treino:"Treino", ideias:"Ideias" };
-const initialized = { agenda:false, cambio:false, dieta:false, treino:false, ideias:false };
+const APP_LABELS = { agenda:"Agenda", cambio:"Financeiro", dieta:"Dieta", treino:"Treino", ideias:"Ideias", faculdade:"Faculdade" };
+const initialized = { agenda:false, cambio:false, dieta:false, treino:false, ideias:false, faculdade:false };
+
+// ===================== Pendências: store global (fonte única) =====================
+// Compartilhado pela barra da Agenda e pelo painel lateral global. Chave Supabase: agenda_pendencias.
+// Shape do item: { id, ti, prazo, setor:'geral'|'faculdade', done, vidKey?, claseKey?, link? }
+const PEND = {
+  list: [], loaded: false, _subs: [],
+  _rid(){ return 'pd_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); },
+  _mig(){
+    this.list.forEach(p=>{
+      if(!p.id) p.id = this._rid();
+      if(p.done === undefined) p.done = false;
+      if(!p.setor) p.setor = 'geral';
+    });
+  },
+  async load(){
+    const r = await storageGetWithRetry('agenda_pendencias');
+    try { this.list = (r && r.value !== undefined) ? JSON.parse(r.value) : []; }
+    catch(e){ this.list = []; }
+    if(!Array.isArray(this.list)) this.list = [];
+    this._mig(); this.loaded = true; this.emit();
+  },
+  async ensure(){ if(!this.loaded) await this.load(); },
+  save(){ this._mig(); storageSetWithRetry('agenda_pendencias', JSON.stringify(this.list)); this.emit(); },
+  emit(){ this._subs.forEach(fn=>{ try{ fn(); }catch(e){ console.error('PEND sub', e); } }); },
+  on(fn){ this._subs.push(fn); },
+  add(p){
+    this.list.push(Object.assign({ id:this._rid(), prazo:null, done:false, setor:'geral' }, p));
+    this.save();
+  },
+  byVid(k){ return this.list.find(p=>p.vidKey === k); },
+  byClase(k){ return this.list.find(p=>p.claseKey === k); },
+  setDone(id, val){
+    const p = this.list.find(x=>x.id === id); if(!p) return;
+    const nv = (val === undefined) ? !p.done : !!val;
+    if(p.done === nv) return;
+    p.done = nv; this.save();
+    if(p.vidKey){
+      if(typeof window.__facSetVisto === 'function') window.__facSetVisto(p.vidKey, nv);
+      else syncFacVistoStorage(p.vidKey, nv); // Faculdade não está aberta: grava direto
+    }
+  },
+  remove(id){ this.list = this.list.filter(x=>x.id !== id); this.save(); },
+};
+window.PEND = PEND;
+
+// Grava faculdade_farmaco_status direto quando a aba Faculdade ainda não foi aberta nesta sessão
+async function syncFacVistoStorage(key, val){
+  const r = await storageGetWithRetry('faculdade_farmaco_status');
+  let s;
+  try { s = (r && r.value !== undefined) ? JSON.parse(r.value) : {}; } catch(e){ s = {}; }
+  if(!s || typeof s !== 'object') s = {};
+  if(val) s[key] = true; else delete s[key];
+  storageSetWithRetry('faculdade_farmaco_status', JSON.stringify(s));
+}
+
+// Reflete no painel da Agenda (se aberto) mudanças feitas por fora
+window.refreshAgendaPend = function(){ /* preenchido por init_agenda */ };
+
+function pendOpenCount(){ return PEND.list.filter(p=>!p.done).length; }
+
+function renderPendTab(){
+  const tab = document.getElementById('pendTab');
+  const c = document.getElementById('pendTabCount');
+  if(!tab || !c) return;
+  const n = pendOpenCount();
+  c.textContent = n;
+  c.classList.toggle('zero', n === 0);
+}
+
+function renderPendPanel(){
+  const body = document.getElementById('pendPanelBody');
+  if(!body) return;
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const groups = [['faculdade','Faculdade'], ['geral','Geral']];
+  let html = '';
+  groups.forEach(([k, label])=>{
+    const items = PEND.list.filter(p=>p.setor === k);
+    if(!items.length) return;
+    // não-feitas primeiro, feitas por último
+    items.sort((a,b)=> (a.done?1:0) - (b.done?1:0));
+    html += `<div class="pend-grp-t">${label}</div>`;
+    items.forEach(p=>{
+      html += `<div class="pend-row${p.done?' done':''}">`
+        + `<input type="checkbox" data-pd-done="${p.id}"${p.done?' checked':''}>`
+        + `<div class="pend-row-txt">${esc(p.ti)}`
+        + (p.link ? `<a class="pend-row-link" href="${esc(p.link)}" target="_blank" rel="noopener">▶ abrir vídeo</a>` : '')
+        + `</div>`
+        + `<div class="pend-row-acts">`
+        + `<button data-pd-sched="${p.id}" title="agendar no cronograma">📅</button>`
+        + `<button data-pd-del="${p.id}" title="excluir">✕</button>`
+        + `</div></div>`;
+    });
+  });
+  body.innerHTML = html || '<div class="pend-panel-empty">Nenhuma pendência. Adicione pela aba Agenda ou pelo + na Faculdade.</div>';
+
+  body.querySelectorAll('[data-pd-done]').forEach(cb=>{
+    cb.addEventListener('change', ()=> PEND.setDone(cb.dataset.pdDone, cb.checked));
+  });
+  body.querySelectorAll('[data-pd-del]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const p = PEND.list.find(x=>x.id === b.dataset.pdDel);
+      if(p && confirm('Excluir "'+p.ti+'"?')) PEND.remove(b.dataset.pdDel);
+    });
+  });
+  body.querySelectorAll('[data-pd-sched]').forEach(b=>{
+    b.addEventListener('click', ()=> schedPendFromPanel(b.dataset.pdSched));
+  });
+}
+
+async function schedPendFromPanel(id){
+  const p = PEND.list.find(x=>x.id === id);
+  if(!p) return;
+  const today = new Date();
+  const def = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  const d = prompt('Colocar "'+p.ti+'" no cronograma.\n\nData (AAAA-MM-DD):', def);
+  if(d === null) return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d.trim())){ alert('Data inválida. Use o formato AAAA-MM-DD.'); return; }
+  const t = prompt('Hora (HH:MM) — pode deixar em branco:', '');
+  if(t === null) return;
+  const tt = t.trim();
+  if(tt && !/^\d{1,2}:\d{2}$/.test(tt)){ alert('Hora inválida.'); return; }
+  const r = await storageGetWithRetry('agenda_user_events');
+  let evs;
+  try { evs = (r && r.value !== undefined) ? JSON.parse(r.value) : []; } catch(e){ evs = []; }
+  if(!Array.isArray(evs)) evs = [];
+  evs.push({ id: 'ev_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+             d: d.trim(), t: tt, ti: p.ti, c: 'pessoal', scope: 'mensal', fromPend: true });
+  await storageSetWithRetry('agenda_user_events', JSON.stringify(evs));
+  if(typeof window.refreshAgendaExternal === 'function') window.refreshAgendaExternal();
+  alert('Adicionado ao cronograma em ' + d.trim() + (tt ? (' às ' + tt) : '') + '.\nA pendência continua na lista até você marcar como feita.');
+}
+
+function openPendPanel(){
+  renderPendPanel();
+  document.getElementById('pendPanelBackdrop').hidden = false;
+  document.getElementById('pendPanel').hidden = false;
+}
+function closePendPanel(){
+  document.getElementById('pendPanelBackdrop').hidden = true;
+  document.getElementById('pendPanel').hidden = true;
+}
+
+function initPendWidget(){
+  document.getElementById('pendTab').addEventListener('click', openPendPanel);
+  document.getElementById('pendPanelClose').addEventListener('click', closePendPanel);
+  document.getElementById('pendPanelBackdrop').addEventListener('click', closePendPanel);
+  PEND.on(()=>{
+    renderPendTab();
+    if(!document.getElementById('pendPanel').hidden) renderPendPanel();
+    if(typeof window.refreshAgendaPend === 'function') window.refreshAgendaPend();
+  });
+  PEND.load().then(renderPendTab);
+}
 
 function showApp(app){
   document.getElementById('home').style.display = 'none';
   document.querySelectorAll('.app-view').forEach(v=>v.classList.remove('show'));
   document.getElementById('view-'+app).classList.add('show');
   document.getElementById('topbar').classList.add('show');
+  document.getElementById('pendTab').hidden = false;
   if(!initialized[app] && window['init_'+app]){
     initialized[app] = true;
     window['init_'+app]();
@@ -1964,7 +2180,11 @@ function showHome(){
   document.getElementById('home').style.display = 'flex';
   document.querySelectorAll('.app-view').forEach(v=>v.classList.remove('show'));
   document.getElementById('topbar').classList.remove('show');
+  document.getElementById('pendTab').hidden = true;
+  closePendPanel();
 }
+
+initPendWidget();
 
 document.querySelectorAll('.app-card').forEach(card=>{
   card.addEventListener('click', ()=> showApp(card.getAttribute('data-app')));
@@ -2726,14 +2946,15 @@ function timeVal(t){ return t ? parseInt(t.replace(":",""),10) : -1; }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
 async function loadAll(){
-  const p = await storageGetWithRetry('agenda_pendencias');
-  pendencias = (p && p.value !== undefined) ? JSON.parse(p.value) : seedPendencias.slice();
+  // pendências agora vêm do store global PEND (mesma chave agenda_pendencias, fonte única)
+  await PEND.ensure();
+  pendencias = PEND.list;
   const e = await storageGetWithRetry('agenda_user_events');
   userEvents = (e && e.value !== undefined) ? JSON.parse(e.value) : [];
   const ro = await storageGetWithRetry('agenda_routine_overrides');
   routineOverrides = (ro && ro.value !== undefined) ? JSON.parse(ro.value) : [];
 }
-function savePendencias(){ storageSetWithRetry('agenda_pendencias', JSON.stringify(pendencias)); }
+function savePendencias(){ PEND.list = pendencias; PEND.save(); }
 function saveUserEvents(){ storageSetWithRetry('agenda_user_events', JSON.stringify(userEvents)); }
 function saveRoutineOverrides(){ storageSetWithRetry('agenda_routine_overrides', JSON.stringify(routineOverrides)); }
 function activeOverrideFor(dateStr){
@@ -2843,17 +3064,20 @@ function setupSchedPend(){
 
 function renderPendList(elId, setor){
   const el = document.getElementById(elId);
-  const items = pendencias.map((p,i)=>({...p, idx:i})).filter(p=>p.setor===setor);
+  const items = pendencias.filter(p=>p.setor===setor).slice().sort((a,b)=>(a.done?1:0)-(b.done?1:0));
   if(items.length===0){
     el.innerHTML = `<li class="pend-empty">nenhuma pendência</li>`;
   } else {
-    el.innerHTML = items.map(p=>`<li class="pend-item"><span class="pend-text">${p.ti}${p.prazo?`<span class="prazo"> — até ${p.prazo}</span>`:""}</span><button class="pend-remove" data-idx="${p.idx}">✕</button></li>`).join("");
+    el.innerHTML = items.map(p=>`<li class="pend-item${p.done?' done':''}"><input type="checkbox" class="pend-check" data-id="${p.id}"${p.done?' checked':''}><span class="pend-text">${p.ti}${p.link?` <a href="${p.link}" target="_blank" rel="noopener" class="pend-vlink">▶</a>`:""}${p.prazo?`<span class="prazo"> — até ${p.prazo}</span>`:""}</span><button class="pend-remove" data-id="${p.id}">✕</button></li>`).join("");
   }
+  el.querySelectorAll('.pend-check').forEach(cb=>{
+    cb.addEventListener('change', ()=> PEND.setDone(cb.dataset.id, cb.checked));
+  });
   el.querySelectorAll('.pend-remove').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      pendencias.splice(Number(btn.dataset.idx),1);
-      savePendencias();
-      renderPendências();
+      const p = pendencias.find(x=>x.id===btn.dataset.id);
+      if(p && !confirm('Excluir "'+p.ti+'"?')) return;
+      PEND.remove(btn.dataset.id);
     });
   });
 }
@@ -3330,6 +3554,16 @@ loadAll().then(()=>{
   setupPendEditToggle();
   setupCronoEditToggle();
   renderDays();
+
+  // mantém a barra da Agenda sincronizada com o painel global de pendências
+  window.refreshAgendaPend = function(){ pendencias = PEND.list; renderPendências(); };
+  PEND.on(window.refreshAgendaPend);
+  // permite ao painel global recarregar a Agenda depois de mexer no cronograma
+  window.refreshAgendaExternal = async function(){
+    const e = await storageGetWithRetry('agenda_user_events');
+    userEvents = (e && e.value !== undefined) ? JSON.parse(e.value) : [];
+    refreshAgenda();
+  };
 });
 
 };
@@ -7792,8 +8026,19 @@ window.init_faculdade = function(){
 
   const listEl = document.getElementById('facFarmacoList');
   let seen = {};
+  let _facLoaded = false;
+  let _facSyncing = false;
+  const claseKeyOf = ci => 'fclase-' + ci;
+  const inPend = fn => !!(window.PEND && fn());
 
-  function vidRow(ci, col, i, it){
+  function addPendBtnVid(key, name, claseLabel, u){
+    const has = inPend(() => PEND.byVid(key));
+    return `<button class="fac-addpend${has ? ' in' : ''}" data-fac-addpend="${key}"`
+      + ` data-name="${String(name).replace(/"/g,'&quot;')}" data-clase="${claseLabel}" data-u="${u}"`
+      + ` title="${has ? 'já está nas pendências' : 'adicionar às pendências'}">${has ? '✓' : '+'}</button>`;
+  }
+
+  function vidRow(ci, col, i, it, claseLabel){
     if(it.miss){
       return `<div class="fac-vid miss"><span class="fac-spacer"></span><span><span class="name">${it.x}</span> <span class="note">— ${it.note || 'sin video en Moodle'}</span></span></div>`;
     }
@@ -7805,15 +8050,16 @@ window.init_faculdade = function(){
     return `<div class="fac-vid${isDone ? ' done' : ''}">`
       + `<input type="checkbox" data-k="${key}"${isDone ? ' checked' : ''} title="marcar como visto">`
       + `<span><a href="https://youtu.be/${it.u}" target="_blank" rel="noopener"><span class="name">${it.x}</span></a>${dur}${tag}</span>`
+      + addPendBtnVid(key, it.x, claseLabel, it.u)
       + `</div>`;
   }
 
-  function colHtml(ci, side, col){
+  function colHtml(ci, side, col, claseLabel){
     const label = col === 'm' ? 'Moodle (oficial)' : 'Playlist YouTube — Butters';
     const cls = col === 'm' ? 'moodle' : 'yt';
     const total = side.total ? `<span class="fac-col-total">Total: ${side.total}</span>` : '';
     const rows = side.items.length
-      ? side.items.map((it, i) => vidRow(ci, col, i, it)).join('')
+      ? side.items.map((it, i) => vidRow(ci, col, i, it, claseLabel)).join('')
       : `<div class="fac-vid miss"><span></span><span class="note" style="font-style:italic">— (sem coluna nesta clase)</span></div>`;
     return `<div class="fac-col ${cls}"><div><span class="fac-col-h">${label}</span>${total}</div>${rows}</div>`;
   }
@@ -7829,19 +8075,53 @@ window.init_faculdade = function(){
     listEl.innerHTML = FARMACO.map((c, ci) => {
       const p = PARCIAIS[ci];
       const div = p ? `<div class="fac-parcial"><div class="fac-parcial-t">${p.t}</div><div class="fac-parcial-s">${p.sub}</div></div>` : '';
+      const ck = claseKeyOf(ci);
+      const claseHas = inPend(() => PEND.byClase(ck));
+      const claseBtn = `<button class="fac-addpend fac-addpend-clase${claseHas ? ' in' : ''}" data-fac-addclase="${ci}"`
+        + ` title="${claseHas ? 'clase já está nas pendências' : 'adicionar clase inteira às pendências'}">${claseHas ? '✓ pendência' : '+ pendência'}</button>`;
       return div + `<div class="fac-clase">
-        <div class="fac-clase-head">${c.n} <span>— ${c.t}</span></div>
-        <div class="fac-cols">${colHtml(ci, c.moodle, 'm')}${colHtml(ci, c.yt, 'y')}</div>
+        <div class="fac-clase-head"><span class="fac-clase-title">${c.n} <span class="fac-clase-sub">— ${c.t}</span></span>${claseBtn}</div>
+        <div class="fac-cols">${colHtml(ci, c.moodle, 'm', c.n)}${colHtml(ci, c.yt, 'y', c.n)}</div>
       </div>`;
     }).join('');
+
     listEl.querySelectorAll('input[type=checkbox]').forEach(cb => {
-      cb.addEventListener('change', () => {
-        if(cb.checked) seen[cb.dataset.k] = true; else delete seen[cb.dataset.k];
-        cb.closest('.fac-vid').classList.toggle('done', cb.checked);
-        storageSetWithRetry('faculdade_farmaco_status', JSON.stringify(seen));
+      cb.addEventListener('change', () => setVisto(cb.dataset.k, cb.checked, false));
+    });
+    listEl.querySelectorAll('[data-fac-addpend]').forEach(b => {
+      b.addEventListener('click', () => {
+        if(b.classList.contains('in') || !window.PEND) return;
+        PEND.add({ ti: '▶ Ver: ' + b.dataset.name + ' · Farmaco ' + b.dataset.clase,
+                   setor: 'faculdade', vidKey: b.dataset.facAddpend, link: 'https://youtu.be/' + b.dataset.u });
+      });
+    });
+    listEl.querySelectorAll('[data-fac-addclase]').forEach(b => {
+      b.addEventListener('click', () => {
+        if(b.classList.contains('in') || !window.PEND) return;
+        const c = FARMACO[Number(b.dataset.facAddclase)];
+        PEND.add({ ti: 'Estudar Farmaco ' + c.n + ' — ' + c.t, setor: 'faculdade', claseKey: claseKeyOf(Number(b.dataset.facAddclase)) });
       });
     });
   }
+
+  // marca/desmarca "visto", persiste, e sincroniza com a pendência do vídeo (se houver)
+  function setVisto(key, val, fromPend){
+    if(val) seen[key] = true; else delete seen[key];
+    const cb = listEl.querySelector('.fac-vid input[data-k="' + key + '"]');
+    if(cb){ cb.checked = !!val; cb.closest('.fac-vid').classList.toggle('done', !!val); }
+    storageSetWithRetry('faculdade_farmaco_status', JSON.stringify(seen));
+    if(!fromPend && !_facSyncing && window.PEND){
+      const p = PEND.byVid(key);
+      if(p && p.done !== !!val){ _facSyncing = true; PEND.setDone(p.id, !!val); _facSyncing = false; }
+    }
+  }
+  window.__facSetVisto = function(key, val){
+    if(_facSyncing) return;
+    _facSyncing = true;
+    setVisto(key, val, true);
+    _facSyncing = false;
+  };
+  if(window.PEND) PEND.on(() => { if(_facLoaded) render(); });
 
   document.querySelectorAll('#view-faculdade .fac-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -7869,6 +8149,7 @@ window.init_faculdade = function(){
 
   storageGetWithRetry('faculdade_farmaco_status').then(r => {
     if(r && r.value !== undefined){ try { seen = JSON.parse(r.value) || {}; } catch(e){ seen = {}; } }
+    _facLoaded = true;
     render();
   });
 };

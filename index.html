@@ -1425,6 +1425,31 @@
   #view-faculdade .fac-notas{ width:100%; min-height:340px; border:1px solid var(--fac-line); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; line-height:1.6; background:#fff; resize:vertical; }
   #view-faculdade .fac-save-btn{ margin-top:10px; padding:9px 18px; border:none; border-radius:8px; background:var(--fac-brand); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; }
   #view-faculdade .fac-saved-msg{ margin-left:10px; font-size:11.5px; color:#1f8a70; display:none; }
+
+  /* ---- Guardias: guía rápida ---- */
+  #view-faculdade .grd-disc{ background:#f6e9e6; border:1px solid #e6cfc9; color:#7a1f2c; font-size:11.5px; line-height:1.5; padding:9px 12px; border-radius:9px; margin-bottom:14px; }
+  #view-faculdade details.grd{ border:1px solid var(--fac-line); border-radius:11px; margin-bottom:10px; background:#fff; overflow:hidden; }
+  #view-faculdade details.grd > summary.grd-h{ list-style:none; cursor:pointer; padding:11px 14px; font-size:13.5px; font-weight:800; color:var(--fac-brand); background:#f4ece9; display:flex; align-items:center; gap:8px; }
+  #view-faculdade details.grd > summary.grd-h::-webkit-details-marker{ display:none; }
+  #view-faculdade details.grd > summary.grd-h::after{ content:"▸"; margin-left:auto; font-size:12px; opacity:.6; transition:transform .15s; }
+  #view-faculdade details.grd[open] > summary.grd-h::after{ transform:rotate(90deg); }
+  #view-faculdade .grd-body{ padding:12px 14px 14px; font-size:12.5px; line-height:1.5; color:var(--fac-ink); }
+  #view-faculdade .grd-cond{ padding:8px 0; border-top:1px solid #f0e8e5; }
+  #view-faculdade .grd-cond:first-child{ border-top:none; padding-top:2px; }
+  #view-faculdade .grd-sub{ font-weight:800; color:#5b1621; margin-bottom:3px; }
+  #view-faculdade .grd-cond p{ margin:3px 0; }
+  #view-faculdade .grd-tag{ display:inline-block; font-size:9.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:1px 6px; border-radius:6px; margin-right:5px; vertical-align:1px; }
+  #view-faculdade .grd-tag.dx{ background:#e5e0f2; color:#453b6b; }
+  #view-faculdade .grd-tag.tto{ background:#f6e6c8; color:#7a5a12; }
+  #view-faculdade .grd-tag.tip{ background:#dfeede; color:#2f6b3a; }
+  #view-faculdade .grd-body table{ width:100%; border-collapse:collapse; font-size:11.5px; margin:4px 0 8px; }
+  #view-faculdade .grd-body table td{ padding:3px 6px; border-bottom:1px solid #f0e8e5; vertical-align:top; }
+  #view-faculdade .grd-body table td:first-child{ font-weight:700; color:#5b1621; white-space:nowrap; }
+  #view-faculdade .grd-lab-h{ font-weight:800; color:var(--fac-brand); font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; margin:12px 0 2px; }
+  #view-faculdade .grd-lab-h:first-child{ margin-top:0; }
+  #view-faculdade .grd-notes-block{ margin-top:20px; }
+  #view-faculdade .grd-notes-block .fac-clase-head{ border-radius:10px 10px 0 0; }
+  #view-faculdade .grd-notes-block .fac-notas{ border-radius:0 0 10px 10px; border-top:none; min-height:220px; }
   @media(max-width:640px){
     #view-faculdade .fac-wrap{ padding:58px 12px 50px; }
     #view-faculdade .fac-cols{ grid-template-columns:1fr; }
@@ -1654,9 +1679,311 @@ async function storageGetWithRetry(key){
     </section>
 
     <section class="fac-sec" id="facSecGuardias" style="display:none">
-      <p class="fac-intro">Anotações de <b>Guardias</b> — hospitales, fechas, contactos, materias, lo que sea. Clica em <b>Salvar</b> pra guardar.</p>
-      <textarea class="fac-notas" id="facNotasGuardias" placeholder="cole ou escreva aqui..."></textarea>
-      <div><button class="fac-save-btn" id="facSaveGuardias">Salvar</button><span class="fac-saved-msg" id="facSavedGuardias">salvo ✓</span></div>
+      <p class="fac-intro">Guía rápida de guardia — <b>diagnóstico y tratamiento inicial</b> por sistema, valores de laboratorio, scores y fórmulas. Tocá cada título para desplegarlo. Tu campo de anotaciones está al final.</p>
+      <div class="grd-disc">⚠️ <b>Resumen de estudio, no protocolo.</b> No reemplaza la guía del servicio ni la indicación del médico de planta. Dosis y conductas son orientativas — confirmá siempre antes de indicar.</div>
+
+      <details class="grd" open><summary class="grd-h">⚗️ Valores normales de laboratorio</summary>
+        <div class="grd-body">
+          <div class="grd-lab-h">Hemograma</div>
+          <table>
+            <tr><td>Hb</td><td>H 13,5–17,5 · M 12–16 g/dL</td></tr>
+            <tr><td>Hto</td><td>H 41–53% · M 36–46%</td></tr>
+            <tr><td>Leucocitos</td><td>4.000–11.000 /mm³ (NØ 40–75, LØ 20–45, MØ 2–10, EØ 1–6, BØ &lt;1 %)</td></tr>
+            <tr><td>Plaquetas</td><td>150.000–400.000 /mm³</td></tr>
+            <tr><td>VCM / HCM</td><td>80–100 fL · 27–33 pg · RDW 11,5–14,5%</td></tr>
+            <tr><td>Reticulocitos</td><td>0,5–2,5%</td></tr>
+          </table>
+          <div class="grd-lab-h">Medio interno / ionograma</div>
+          <table>
+            <tr><td>Na</td><td>135–145 mEq/L</td></tr>
+            <tr><td>K</td><td>3,5–5,0 mEq/L</td></tr>
+            <tr><td>Cl</td><td>98–107 mEq/L</td></tr>
+            <tr><td>HCO₃⁻</td><td>22–26 mEq/L</td></tr>
+            <tr><td>Ca total / iónico</td><td>8,5–10,5 mg/dL · 1,1–1,35 mmol/L</td></tr>
+            <tr><td>Mg / P</td><td>1,7–2,4 · 2,5–4,5 mg/dL</td></tr>
+            <tr><td>Osmolaridad</td><td>275–295 mOsm/kg</td></tr>
+            <tr><td>Anion gap</td><td>8–12 mEq/L (corregir +2,5 por cada 1 g/dL de albúmina &lt;4)</td></tr>
+          </table>
+          <div class="grd-lab-h">Función renal</div>
+          <table>
+            <tr><td>Urea / BUN</td><td>15–45 · 7–20 mg/dL</td></tr>
+            <tr><td>Creatinina</td><td>H 0,7–1,3 · M 0,6–1,1 mg/dL</td></tr>
+            <tr><td>FG (CKD-EPI)</td><td>&gt;90 normal</td></tr>
+            <tr><td>Ácido úrico</td><td>H 3,5–7,2 · M 2,6–6,0 mg/dL</td></tr>
+          </table>
+          <div class="grd-lab-h">Hepatograma</div>
+          <table>
+            <tr><td>AST / ALT</td><td>5–40 · 7–56 U/L</td></tr>
+            <tr><td>FAL / GGT</td><td>40–130 U/L · H &lt;55 M &lt;38</td></tr>
+            <tr><td>Bilirrubina T (D)</td><td>0,3–1,2 (&lt;0,3) mg/dL</td></tr>
+            <tr><td>Albúmina / Prot T</td><td>3,5–5,0 · 6,4–8,3 g/dL</td></tr>
+            <tr><td>LDH</td><td>140–280 U/L</td></tr>
+          </table>
+          <div class="grd-lab-h">Coagulación</div>
+          <table>
+            <tr><td>TP</td><td>11–14 s · 70–100% · RIN 0,8–1,2</td></tr>
+            <tr><td>KPTT</td><td>25–35 s</td></tr>
+            <tr><td>Fibrinógeno</td><td>200–400 mg/dL</td></tr>
+            <tr><td>Dímero D</td><td>&lt;500 ng/mL</td></tr>
+          </table>
+          <div class="grd-lab-h">Gases arteriales (aire ambiente)</div>
+          <table>
+            <tr><td>pH</td><td>7,35–7,45</td></tr>
+            <tr><td>PaCO₂ / PaO₂</td><td>35–45 · 80–100 mmHg</td></tr>
+            <tr><td>HCO₃⁻ / EB</td><td>22–26 · ±2</td></tr>
+            <tr><td>SatO₂ / Lactato</td><td>&gt;95% · &lt;2 mmol/L</td></tr>
+            <tr><td>PaFi</td><td>&gt;300 normal · &lt;300 injuria · &lt;200 SDRA moderado</td></tr>
+          </table>
+          <div class="grd-lab-h">Cardíaco</div>
+          <table>
+            <tr><td>Troponina hs</td><td>percentil 99 según método (TnT-hs ~&gt;14 ng/L)</td></tr>
+            <tr><td>CPK / CK-MB</td><td>30–200 U/L · &lt;25 U/L (o &lt;5% CPK)</td></tr>
+            <tr><td>BNP / NT-proBNP</td><td>&lt;100 · &lt;300 pg/mL descarta IC aguda</td></tr>
+          </table>
+          <div class="grd-lab-h">Orina</div>
+          <table>
+            <tr><td>Densidad / pH</td><td>1.005–1.030 · 4,5–8</td></tr>
+            <tr><td>Proteinuria</td><td>&lt;150 mg/24 h</td></tr>
+            <tr><td>Sedimento</td><td>&lt;5 GR y &lt;5 GB /campo</td></tr>
+            <tr><td>Na urinario</td><td>prerrenal &lt;20 · NTA &gt;40</td></tr>
+            <tr><td>FeNa</td><td>prerrenal &lt;1% · renal &gt;2%</td></tr>
+          </table>
+          <div class="grd-lab-h">LCR</div>
+          <table>
+            <tr><td>Presión apert.</td><td>10–20 cm H₂O</td></tr>
+            <tr><td>Células</td><td>&lt;5 /mm³ (linfocitos)</td></tr>
+            <tr><td>Proteínas / Glucosa</td><td>15–45 mg/dL · 50–80 (&gt;60% glucemia)</td></tr>
+            <tr><td>Bacteriana</td><td>PMN↑↑, glucosa↓↓, proteínas↑↑, lactato &gt;3,5</td></tr>
+            <tr><td>Viral</td><td>LØ, glucosa normal, proteínas N o ↑ leve</td></tr>
+          </table>
+          <div class="grd-lab-h">Otros</div>
+          <table>
+            <tr><td>PCR / VSG</td><td>&lt;5 mg/L · H &lt;15 M &lt;20 mm/h</td></tr>
+            <tr><td>Procalcitonina</td><td>&lt;0,5 ng/mL</td></tr>
+            <tr><td>TSH / T4L</td><td>0,4–4,0 µUI/mL · 0,8–1,8 ng/dL</td></tr>
+            <tr><td>Ferritina</td><td>H 30–300 · M 15–200 ng/mL (sat. transferrina 20–50%)</td></tr>
+            <tr><td>B12 / Folato</td><td>200–900 pg/mL · &gt;4 ng/mL</td></tr>
+            <tr><td>Amilasa / Lipasa</td><td>30–110 · 10–140 U/L</td></tr>
+            <tr><td>Amonio</td><td>15–45 µmol/L</td></tr>
+            <tr><td>Glucemia / HbA1c</td><td>70–100 mg/dL · &lt;5,7%</td></tr>
+          </table>
+        </div>
+      </details>
+
+      <details class="grd"><summary class="grd-h">🧮 Scores y fórmulas</summary>
+        <div class="grd-body">
+          <div class="grd-lab-h">Fórmulas</div>
+          <table>
+            <tr><td>Anion gap</td><td>Na − (Cl + HCO₃). Corregido = AG + 2,5×(4 − albúmina)</td></tr>
+            <tr><td>Na corregido</td><td>Na + 1,6 × [(glucemia − 100)/100]</td></tr>
+            <tr><td>Osm calculada</td><td>2×Na + glucemia/18 + urea/6. GAP osm &gt;10 → tóxicos (metanol, etilenglicol)</td></tr>
+            <tr><td>Clearance (C-G)</td><td>[(140 − edad) × peso × (0,85 si M)] / (72 × creatinina)</td></tr>
+            <tr><td>Déficit agua libre</td><td>0,6 × peso × [(Na/140) − 1]</td></tr>
+            <tr><td>Ca corregido</td><td>Ca + 0,8 × (4 − albúmina)</td></tr>
+            <tr><td>Gradiente A-a</td><td>[FiO₂×(760−47) − PaCO₂/0,8] − PaO₂. Normal ≈ edad/4 + 4</td></tr>
+            <tr><td>Déficit HCO₃⁻</td><td>0,4 × peso × (HCO₃ deseado − actual)</td></tr>
+          </table>
+          <div class="grd-lab-h">Scores</div>
+          <div class="grd-cond"><div class="grd-sub">CURB-65 (NAC)</div><p>Confusión · Urea &gt;44 mg/dL (BUN &gt;19) · FR ≥30 · TA &lt;90/60 · ≥65 a. <b>0–1</b> ambulatorio · <b>2</b> observar/internar · <b>≥3</b> grave (valorar UTI).</p></div>
+          <div class="grd-cond"><div class="grd-sub">qSOFA</div><p>FR ≥22 · TAS ≤100 · alteración conciencia. <b>≥2</b> → alto riesgo, buscar sepsis.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Wells TEP</div><p>TVP clínica 3 · TEP dx más probable 3 · FC &gt;100 1,5 · inmoviliz/cirugía 1,5 · TEP/TVP previa 1,5 · hemoptisis 1 · cáncer 1. <b>≤4</b> improbable → dímero D · <b>&gt;4</b> probable → AngioTAC.</p></div>
+          <div class="grd-cond"><div class="grd-sub">CHA₂DS₂-VASc (FA)</div><p>IC 1 · HTA 1 · ≥75 a 2 · DBT 1 · ACV/AIT/embolia 2 · enf. vascular 1 · 65–74 a 1 · sexo femenino 1. Anticoagular si <b>≥2 (H)</b> / <b>≥3 (M)</b>.</p></div>
+          <div class="grd-cond"><div class="grd-sub">HAS-BLED (sangrado)</div><p>HTA · función renal/hepática · ACV · sangrado previo · RIN lábil · &gt;65 a · drogas/alcohol. <b>≥3</b> alto riesgo (vigilar, no contraindica).</p></div>
+          <div class="grd-cond"><div class="grd-sub">Glasgow (coma)</div><p>Ocular /4 · Verbal /5 · Motor /6. <b>≤8</b> → proteger vía aérea.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Child-Pugh</div><p>Bilirrubina, albúmina, RIN, ascitis, encefalopatía. A 5–6 · B 7–9 · C 10–15.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Otros</div><p>Glasgow-Blatchford (HDA), BISAP/Ranson (pancreatitis), GRACE/TIMI/HEART (SCA), NIHSS (ACV), CIWA-Ar (abstinencia OH), MASCC (neutropenia febril).</p></div>
+        </div>
+      </details>
+
+      <details class="grd"><summary class="grd-h">🫁 Respiratorio</summary>
+        <div class="grd-body">
+          <div class="grd-cond"><div class="grd-sub">EPOC reagudizado</div>
+            <p><span class="grd-tag dx">Dx</span> ↑ disnea / expectoración / purulencia (Anthonisen). Rx (descartar NAC, NTX, IC), EAB, hemograma. Buscar desencadenante (infección, TEP, ICC, fármacos).</p>
+            <p><span class="grd-tag tto">Tto</span> O₂ objetivo Sat 88–92% · salbutamol + ipratropio NBZ · corticoide (prednisona 40 mg VO 5 d o hidrocortisona) · ATB si ≥2 criterios Anthonisen o purulencia (amoxi-clav / macrólido; Pseudomonas → piptazo/cefepime + cipro) · VNI si pH &lt;7,35 y PaCO₂ &gt;45.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Crisis asmática</div>
+            <p><span class="grd-tag dx">Dx</span> gravedad por clínica + PEF/FEV1 + SatO₂ + habla. <b>Alarma:</b> silencio auscultatorio, bradicardia, confusión, PaCO₂ normal/alta → valorar IOT.</p>
+            <p><span class="grd-tag tto">Tto</span> O₂ · salbutamol NBZ c/20 min ×3 (o continuo) · ipratropio si grave · corticoide sistémico precoz (hidrocortisona 200 mg o prednisona 40–60) · sulfato de Mg IV 2 g si grave sin respuesta.</p></div>
+          <div class="grd-cond"><div class="grd-sub">NAC</div>
+            <p><span class="grd-tag dx">Dx</span> Rx tórax + CURB-65. Grave: hemocultivos, antígenos urinarios (neumococo, Legionella).</p>
+            <p><span class="grd-tag tto">Tto</span> ambulatorio: amoxicilina alta dosis o amoxi-clav ± macrólido (o levofloxacina) · internado: ampi-sulbactam/ceftriaxona + macrólido (o quinolona sola) · UTI: β-lactámico + macrólido/quinolona; cubrir SAMR/Pseudomonas si factores de riesgo.</p></div>
+          <div class="grd-cond"><div class="grd-sub">TEP</div>
+            <p><span class="grd-tag dx">Dx</span> Wells → dímero D o AngioTAC. Gravedad: hipotensión, disfunción VD (eco/TAC), troponina/BNP↑.</p>
+            <p><span class="grd-tag tto">Tto</span> masivo (shock/PCR) → trombolisis (alteplasa) · submasivo → HBPM/HNF + monitoreo · estable → anticoagular (HBPM→DOAC, o apixabán/rivaroxabán directo).</p></div>
+          <div class="grd-cond"><div class="grd-sub">Neumotórax</div>
+            <p><span class="grd-tag dx">Dx</span> Rx/eco. <b>A tensión:</b> hipotensión, ingurgitación yugular, desviación traqueal, timpanismo.</p>
+            <p><span class="grd-tag tto">Tto</span> pequeño y estable → O₂ + observación · grande/sintomático → punción-aspiración o tubo pleural · a tensión → descompresión inmediata con aguja (2° EIC LMC o 5° EIC LAA) y luego tubo.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Derrame pleural</div>
+            <p><span class="grd-tag dx">Dx</span> toracocentesis. <b>Light</b> (exudado si ≥1): prot P/S &gt;0,5 · LDH P/S &gt;0,6 · LDH P &gt;2/3 LSN sérico. Pedir citofisicoquímico, ADA (TBC &gt;40), citológico, cultivo, pH.</p>
+            <p><span class="grd-tag tto">Tto</span> tratar la causa · pH &lt;7,2 o pus → drenar (empiema).</p></div>
+          <div class="grd-cond"><div class="grd-sub">EAP cardiogénico</div>
+            <p><span class="grd-tag tto">Tto</span> sentar · O₂ / VNI (CPAP) · nitroglicerina SL/IV si TAS &gt;110 · furosemida IV 40–80 mg (o 2,5× dosis habitual) · buscar causa (SCA, crisis HTA, arritmia, transgresión). Si hipotensión/shock → inotrópicos/vasopresores, evitar diuresis agresiva.</p></div>
+        </div>
+      </details>
+
+      <details class="grd"><summary class="grd-h">❤️ Cardiovascular</summary>
+        <div class="grd-body">
+          <div class="grd-cond"><div class="grd-sub">SCA</div>
+            <p><span class="grd-tag dx">Dx</span> ECG en &lt;10 min. <b>SCACEST:</b> supra ST ≥1 mm en ≥2 contiguas (V2-V3: ≥2 mm H / ≥1,5 M) o BCRI nuevo. <b>SCASEST:</b> infra ST / T negativa + troponina (estratificar GRACE).</p>
+            <p><span class="grd-tag tto">Tto</span> SCACEST → reperfusión: ATC primaria &lt;120 min o trombolisis &lt;30 min. Común: AAS 300 + 2° antiagregante (ticagrelor 180 / clopidogrel 300–600) + anticoagulación + estatina alta + β-bloqueante (si no IC/shock/bradi) + nitratos si dolor/HTA (NO si VD, hipotensión, sildenafil).</p></div>
+          <div class="grd-cond"><div class="grd-sub">IC descompensada</div>
+            <p><span class="grd-tag dx">Dx</span> perfiles: húmedo-caliente (congestión + buena perfusión), húmedo-frío, seco-frío. Buscar desencadenante (FA, isquemia, HTA, infección, transgresión, anemia, TEP).</p>
+            <p><span class="grd-tag tto">Tto</span> húmedo-caliente → diuréticos IV + vasodilatadores · húmedo-frío → inotrópicos ± vasopresor, diurético al mejorar perfusión · O₂/VNI si EAP.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Fibrilación auricular</div>
+            <p><span class="grd-tag dx">Dx</span> inestable = angina, EAP, hipotensión, alteración conciencia. Buscar causa (hipertiroidismo, OH, TEP, sepsis, IAM).</p>
+            <p><span class="grd-tag tto">Tto</span> inestable → CVE sincronizada · estable → control FC (β-bloqueante o diltiazem/verapamilo si FEy conservada; digoxina/amiodarona si IC) · control ritmo si &lt;48 h o anticoagulado 3 sem / eco TE · anticoagular según CHA₂DS₂-VASc.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Crisis hipertensiva</div>
+            <p><span class="grd-tag dx">Dx</span> <b>emergencia</b> = daño de órgano blanco (encefalopatía, ACV, EAP, SCA, disección, eclampsia, IRA). <b>Urgencia</b> = TA muy alta sin daño agudo.</p>
+            <p><span class="grd-tag tto">Tto</span> emergencia → IV, bajar 10–20% la 1ª hora, luego 5–15% en 23 h (disección: TAS &lt;120 rápido; ACV isquémico: solo si &gt;220/120 o trombolisis). Drogas: labetalol, NTG (EAP/SCA), nitroprusiato, esmolol · urgencia → VO, bajar en 24–48 h.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Bradiarritmia</div>
+            <p><span class="grd-tag tto">Tto</span> inestable → atropina 0,5 mg IV c/3–5 min (máx 3 mg); si no responde → marcapasos transcutáneo, dopamina/adrenalina en infusión. Causas: fármacos, hiperK, IAM inferior, hipotiroidismo, hipotermia.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Taquiarritmia</div>
+            <p><span class="grd-tag tto">Tto</span> inestable (cualquier ritmo) → CVE (si TV sin pulso → desfibrilar + RCP). QRS angosto regular estable → vagales + adenosina 6→12→12 mg · QRS ancho monomorfo estable → amiodarona 150 mg IV en 10 min.</p></div>
+          <div class="grd-cond"><div class="grd-sub">TVP</div>
+            <p><span class="grd-tag dx">Dx</span> Wells + dímero D / eco doppler venoso. Descartar TEP.</p>
+            <p><span class="grd-tag tto">Tto</span> anticoagular (HBPM → DOAC). Flegmasia / proximal masiva → valorar trombólisis.</p></div>
+        </div>
+      </details>
+
+      <details class="grd"><summary class="grd-h">🧠 Neurológico</summary>
+        <div class="grd-body">
+          <div class="grd-cond"><div class="grd-sub">ACV isquémico</div>
+            <p><span class="grd-tag dx">Dx</span> TAC sin contraste (descartar hemorragia) + NIHSS. Glucemia, hora de inicio.</p>
+            <p><span class="grd-tag tto">Tto</span> trombolisis (rtPA) hasta 4,5 h · trombectomía hasta 6–24 h en oclusión de gran vaso seleccionada · TA: no bajar salvo &gt;185/110 (si trombolisis) o &gt;220/120 · AAS a las 24–48 h (inmediato si no trombolisis) · manejo de glucemia, temperatura y deglución.</p></div>
+          <div class="grd-cond"><div class="grd-sub">ACV hemorrágico</div>
+            <p><span class="grd-tag tto">Tto</span> TAC · control TA (objetivo TAS ~140, no &lt;130) · revertir anticoagulación · neurocirugía según localización/volumen/GCS · HTE: cabecera 30°, salino hipertónico/manitol si herniación.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Estado epiléptico</div>
+            <p><span class="grd-tag dx">Dx</span> crisis &gt;5 min o repetidas sin recuperar conciencia. ABC, glucemia, tiamina.</p>
+            <p><span class="grd-tag tto">Tto</span> 1º BZD: lorazepam 4 mg IV (o diazepam 10 mg, o midazolam 10 mg IM) · 2ª línea: levetiracetam 60 mg/kg / valproato 40 mg/kg / fenitoína 20 mg/kg · refractario → IOT + midazolam/propofol en infusión · buscar causa.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Cefalea — banderas rojas</div>
+            <p><span class="grd-tag tip">Alarma</span> inicio en trueno (súbito máx &lt;1 min → HSA) · fiebre + rigidez · foco neurológico · edema de papila · ≥50 a nueva · inmunosupresión/cáncer · empeora con Valsalva o decúbito · cambio de patrón · embarazo/puerperio → TAC ± PL.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Delirium (síndrome confusional agudo)</div>
+            <p><span class="grd-tag tto">Tto</span> buscar causa (infección, fármacos, metabólico, dolor, retención urinaria, hipoxia, abstinencia) · medidas no farmacológicas · haloperidol dosis baja si agitación peligrosa (quetiapina en Parkinson/QT largo) · BZD solo si abstinencia OH/BZD.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Coma</div>
+            <p><span class="grd-tag tto">Tto</span> GCS, pupilas, patrón respiratorio, reflejos de tronco · "DONT": Dextrosa, O₂, Naloxona, Tiamina · TAC · descartar meningitis, intoxicación, metabólico.</p></div>
+        </div>
+      </details>
+
+      <details class="grd"><summary class="grd-h">🩸 Metabólico y medio interno</summary>
+        <div class="grd-body">
+          <div class="grd-cond"><div class="grd-sub">Cetoacidosis diabética</div>
+            <p><span class="grd-tag dx">Dx</span> glucemia &gt;250 · pH &lt;7,3 · HCO₃ &lt;18 · cetonemia/cetonuria. Buscar desencadenante (infección, mala adherencia, IAM, debut).</p>
+            <p><span class="grd-tag tto">Tto</span> <b>Fluidos</b> SF 15–20 ml/kg/h 1ª h, luego según Na corregido · <b>K</b>: &lt;3,3 → reponer ANTES de insulina; 3,3–5,3 → agregar 20–30 mEq/L; &gt;5,3 → esperar · <b>Insulina</b> regular 0,1 U/kg/h IV (sin bolo si K bajo) · agregar dextrosa cuando glucemia &lt;200–250 · mantener insulina hasta cerrar anion gap.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Estado hiperosmolar</div>
+            <p><span class="grd-tag dx">Dx</span> glucemia &gt;600 · osm &gt;320 · pH &gt;7,3 · sin cetosis significativa · deshidratación severa + alteración conciencia.</p>
+            <p><span class="grd-tag tto">Tto</span> fluidos agresivos + K + insulina (más lenta), reponer déficit en 24–48 h.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Hipoglucemia</div>
+            <p><span class="grd-tag tto">Tto</span> &lt;70 mg/dL · consciente → 15 g HC VO · inconsciente → dextrosa 25 g IV (50 ml al 50% o 250 ml al 10%) o glucagón 1 mg IM · sulfonilureas → observar 24–48 h.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Hiperkalemia</div>
+            <p><span class="grd-tag dx">Dx</span> ECG: T picudas, PR largo, QRS ancho, onda sinusoidal.</p>
+            <p><span class="grd-tag tto">Tto</span> &gt;6,5 o cambios ECG → gluconato de Ca 1 g IV (protege, no baja K) + insulina 10 U + dextrosa 25 g + salbutamol NBZ + HCO₃ si acidosis · eliminar: furosemida, resinas, diálisis si refractaria/IRA · suspender IECA/ARA/espironolactona/AINE.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Hipokalemia</div>
+            <p><span class="grd-tag tto">Tto</span> reponer KCl (VO si leve; IV ≤10 mEq/h periférico, ≤20 central, con monitoreo) · corregir Mg (si no, refractaria) · ECG: U prominente, T plana.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Hiponatremia</div>
+            <p><span class="grd-tag tto">Tto</span> sintomática grave (convulsión, coma) → salino hipertónico 3% 100–150 ml en 10 min, repetir ×2–3. Corrección máx <b>8–10 mEq/L/24 h</b> (mielinólisis). Hipovolémica → SF · euvolémica/SIADH → restricción hídrica · hipervolémica → restricción + diurético.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Hipernatremia</div>
+            <p><span class="grd-tag tto">Tto</span> reponer agua libre (VO / SG5%), corrección máx <b>10–12 mEq/L/24 h</b> · calcular déficit de agua.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Crisis tiroidea</div>
+            <p><span class="grd-tag tto">Tto</span> propranolol + tionamida (PTU) + yodo (Lugol) 1 h DESPUÉS de la tionamida + hidrocortisona + antitérmicos (no AAS) + tratar desencadenante.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Coma mixedematoso</div>
+            <p><span class="grd-tag dx">Dx</span> hipotermia, bradicardia, hiponatremia, hipoventilación, ↓ conciencia.</p>
+            <p><span class="grd-tag tto">Tto</span> levotiroxina IV + hidrocortisona (antes de T4) + soporte.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Insuficiencia suprarrenal aguda</div>
+            <p><span class="grd-tag dx">Dx</span> hipotensión que no responde a fluidos + hiponatremia + hiperkalemia + hipoglucemia.</p>
+            <p><span class="grd-tag tto">Tto</span> hidrocortisona 100 mg IV + SF + dextrosa. No demorar por tests (tomar cortisol basal y tratar).</p></div>
+          <div class="grd-cond"><div class="grd-sub">Rabdomiólisis</div>
+            <p><span class="grd-tag dx">Dx</span> CPK &gt;5× (&gt;1000) · mialgias · orina oscura · tira + para sangre con sedimento sin GR.</p>
+            <p><span class="grd-tag tto">Tto</span> hidratación agresiva SF (diuresis 200–300 ml/h) · corregir electrolitos · valorar bicarbonato/manitol.</p></div>
+        </div>
+      </details>
+
+      <details class="grd"><summary class="grd-h">🦠 Infectología / Sepsis</summary>
+        <div class="grd-body">
+          <div class="grd-cond"><div class="grd-sub">Sepsis / shock séptico</div>
+            <p><span class="grd-tag dx">Dx</span> infección + disfunción orgánica (SOFA ↑2 · qSOFA ≥2). Shock = vasopresor para PAM ≥65 + lactato &gt;2 pese a fluidos.</p>
+            <p><span class="grd-tag tto">Tto</span> <b>bundle 1 h</b>: lactato · hemocultivos ×2 antes de ATB · ATB empírico amplio precoz · cristaloides 30 ml/kg si hipotensión o lactato ≥4 · noradrenalina si PAM &lt;65 tras fluidos · control del foco · reevaluar.</p></div>
+          <div class="grd-cond"><div class="grd-sub">ITU / pielonefritis</div>
+            <p><span class="grd-tag tto">Tto</span> cistitis no complicada → nitrofurantoína / TMS / fosfomicina · pielonefritis → urocultivo + hemocultivos + ceftriaxona / quinolona; internar si sepsis, vómitos, embarazo, comorbilidad · ecografía si no mejora en 48–72 h (obstrucción/absceso).</p></div>
+          <div class="grd-cond"><div class="grd-sub">Meningitis bacteriana</div>
+            <p><span class="grd-tag dx">Dx</span> no demorar ATB por PL/TAC. TAC previo a PL si foco, GCS bajo, papiledema, inmunosupresión, convulsión reciente.</p>
+            <p><span class="grd-tag tto">Tto</span> ceftriaxona 2 g c/12 + vancomicina + dexametasona (con o antes de la 1ª dosis) + ampicilina si &gt;50 a / inmunosupresión (Listeria) · aciclovir si sospecha encefalitis herpética.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Celulitis / erisipela</div>
+            <p><span class="grd-tag tto">Tto</span> cefalexina / amoxi-clav · SAMR (absceso, IV, previo) → TMS / clindamicina · marcar borde, elevar, buscar puerta de entrada · internar si sistémico o rápida progresión.</p>
+            <p><span class="grd-tag tip">Alarma</span> <b>fascitis necrotizante:</b> dolor desproporcionado, crepitación, bullas, toxicidad → quirúrgico urgente.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Neutropenia febril</div>
+            <p><span class="grd-tag dx">Dx</span> RAN &lt;500 (o &lt;1000 en descenso) + T ≥38,3 una vez o ≥38 sostenida.</p>
+            <p><span class="grd-tag tto">Tto</span> hemocultivos + foco · ATB antipseudomónico en &lt;1 h (piptazo / cefepime / meropenem) · agregar vancomicina si catéter, mucositis, hipotensión o piel · MASCC para bajo riesgo.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Endocarditis (sospecha)</div>
+            <p><span class="grd-tag dx">Dx</span> fiebre + soplo nuevo + fenómenos embólicos/vasculares · 3 hemocultivos separados antes de ATB + ecocardiograma · criterios de Duke.</p></div>
+        </div>
+      </details>
+
+      <details class="grd"><summary class="grd-h">🍽️ Digestivo</summary>
+        <div class="grd-body">
+          <div class="grd-cond"><div class="grd-sub">Hemorragia digestiva alta</div>
+            <p><span class="grd-tag tto">Tto</span> 2 vías + cristaloides · transfundir si Hb &lt;7 (&lt;8 si cardiópata) · <b>IBP IV</b> (bolo + infusión) · si sospecha varicial (cirrótico): octreótide/terlipresina + ceftriaxona · EDA &lt;24 h (&lt;12 h si varicial/inestable) · Glasgow-Blatchford para riesgo.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Pancreatitis aguda</div>
+            <p><span class="grd-tag dx">Dx</span> 2 de 3: dolor típico · lipasa/amilasa &gt;3× · imagen. Gravedad: BISAP, Ranson, PCR &gt;150 a 48 h. Etiología: litiásica, OH, hiperTG.</p>
+            <p><span class="grd-tag tto">Tto</span> hidratación con cristaloides (Ringer lactato 5–10 ml/kg/h, guiar por diuresis/urea/hto) · analgesia · dieta precoz si tolera · <b>no</b> ATB profiláctico · CPRE si colangitis/obstrucción · colecistectomía en el mismo ingreso si litiásica leve.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Colangitis</div>
+            <p><span class="grd-tag dx">Dx</span> Charcot (fiebre + dolor HD + ictericia); Reynolds + shock + confusión.</p>
+            <p><span class="grd-tag tto">Tto</span> hemocultivos + ATB (piptazo o ceftriaxona + metronidazol) + <b>drenaje biliar urgente</b> (CPRE), sobre todo si grave.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Descompensación cirrótica</div>
+            <p><span class="grd-tag tto">Tto</span> buscar precipitante. <b>PBE:</b> paracentesis → PMN ≥250 → cefotaxima/ceftriaxona + albúmina (1,5 g/kg día 1, 1 g/kg día 3). <b>Encefalopatía:</b> lactulosa (2–3 deposiciones/día) + rifaximina + tratar desencadenante (infección, HDA, constipación, diuréticos, sedantes, hipoK). <b>Ascitis a tensión:</b> paracentesis evacuadora + albúmina 8 g/L extraído si &gt;5 L.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Diarrea aguda</div>
+            <p><span class="grd-tag tto">Tto</span> la mayoría viral/autolimitada → hidratación. ATB solo si disentería + fiebre alta, sepsis, inmunosupresión, &gt;7 días · toxina C. difficile si ATB reciente/hospitalario · evitar antimotílicos si disentería o sospecha de SUH.</p></div>
+        </div>
+      </details>
+
+      <details class="grd"><summary class="grd-h">💉 Emergencias varias</summary>
+        <div class="grd-body">
+          <div class="grd-cond"><div class="grd-sub">Anafilaxia</div>
+            <p><span class="grd-tag tto">Tto</span> <b>adrenalina IM 0,3–0,5 mg (1:1000) en cara anterolateral del muslo</b>, repetir c/5–15 min · decúbito con piernas elevadas · O₂ + bolo de fluidos si hipotensión · adyuvantes (no reemplazan adrenalina): antihistamínico, corticoide, salbutamol si broncoespasmo · observar 6–12 h (bifásica).</p></div>
+          <div class="grd-cond"><div class="grd-sub">Intoxicaciones</div>
+            <p><b>Paracetamol:</b> nomograma Rumack-Matthew a ≥4 h → N-acetilcisteína · carbón activado si &lt;1–2 h.</p>
+            <p><b>Opioides:</b> naloxona 0,04–0,4 mg IV titulando (puede requerir infusión).</p>
+            <p><b>Benzodiacepinas:</b> soporte; flumazenil con cautela (riesgo convulsión).</p>
+            <p><b>Organofosforados:</b> síndrome colinérgico → atropina a dosis crecientes hasta secar secreciones bronquiales + pralidoxima + EPP/descontaminación.</p>
+            <p><b>Tricíclicos:</b> QRS ancho → bicarbonato de Na IV; convulsiones → BZD.</p>
+            <p><b>CO:</b> O₂ 100% alto flujo · cámara hiperbárica si embarazo, síncope, isquemia, déficit neuro, COHb &gt;25%.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Reacción transfusional</div>
+            <p><span class="grd-tag tto">Tto</span> detener transfusión, mantener vía con SF, revisar identidad · hemolítica aguda (fiebre, dolor lumbar, orina oscura, hipotensión) → hidratación + soporte + laboratorio (Coombs, LDH, haptoglobina, bili) · pensar TRALI (disnea &lt;6 h), TACO (sobrecarga), alérgica, febril no hemolítica.</p></div>
+          <div class="grd-cond"><div class="grd-sub">Paro cardiorrespiratorio</div>
+            <p><span class="grd-tag tto">Tto</span> RCP de calidad (100–120/min, 5–6 cm, mínimas interrupciones) · <b>desfibrilable</b> (FV/TVsp) → choque + adrenalina 1 mg c/3–5 min + amiodarona 300→150 · <b>no desfibrilable</b> (asistolia/AESP) → adrenalina precoz + buscar 5H/5T · post-paro: TA, oxigenación, ECG, control de temperatura, causa.</p></div>
+        </div>
+      </details>
+
+      <details class="grd"><summary class="grd-h">🧪 Drogas de emergencia — dosis de referencia</summary>
+        <div class="grd-body">
+          <div class="grd-disc" style="margin-bottom:8px">⚠️ Orientativas — confirmá dosis y dilución con el protocolo del servicio antes de indicar.</div>
+          <table>
+            <tr><td>Adrenalina</td><td>paro 1 mg IV c/3–5 min · anafilaxia 0,3–0,5 mg IM · infusión 0,05–0,5 µg/kg/min</td></tr>
+            <tr><td>Noradrenalina</td><td>0,05–0,5 µg/kg/min (1ª línea en shock séptico)</td></tr>
+            <tr><td>Dobutamina</td><td>2,5–20 µg/kg/min (bajo gasto)</td></tr>
+            <tr><td>Atropina</td><td>bradicardia 0,5–1 mg IV c/3–5 min (máx 3 mg)</td></tr>
+            <tr><td>Amiodarona</td><td>150–300 mg IV · mantenimiento 900 mg/24 h</td></tr>
+            <tr><td>Adenosina</td><td>6 mg IV rápido → 12 → 12</td></tr>
+            <tr><td>Nitroglicerina</td><td>10–20 µg/min, titular</td></tr>
+            <tr><td>Labetalol</td><td>20 mg IV, repetir/duplicar c/10 min (máx 300)</td></tr>
+            <tr><td>Furosemida</td><td>20–80 mg IV (o 2–2,5× la dosis oral crónica)</td></tr>
+            <tr><td>Hidrocortisona</td><td>100 mg IV (shock / insuf. suprarrenal); 200–300 mg/día</td></tr>
+            <tr><td>Insulina corriente</td><td>CAD 0,1 U/kg/h IV</td></tr>
+            <tr><td>Gluconato de Ca 10%</td><td>10 ml IV (hiperK, hipocalcemia sintomática)</td></tr>
+            <tr><td>Sulfato de Mg</td><td>1–2 g IV (asma grave, torsades, preeclampsia)</td></tr>
+            <tr><td>Bicarbonato de Na 1 M</td><td>según déficit · 1 mEq/kg empírico en acidosis grave / hiperK / tricíclicos</td></tr>
+            <tr><td>Naloxona</td><td>0,04–0,4 mg IV titular</td></tr>
+            <tr><td>Flumazenil</td><td>0,2 mg IV (con cautela)</td></tr>
+            <tr><td>Lorazepam / Diazepam</td><td>4 mg IV / 10 mg IV (estado epiléptico)</td></tr>
+            <tr><td>Tiamina</td><td>100–500 mg IV (antes de la glucosa en alcohólicos/desnutridos)</td></tr>
+            <tr><td>Ácido tranexámico</td><td>1 g IV (trauma con sangrado)</td></tr>
+          </table>
+        </div>
+      </details>
+
+      <div class="grd-notes-block">
+        <div class="fac-clase-head">📝 Mis anotaciones</div>
+        <textarea class="fac-notas" id="facNotasGuardias" placeholder="hospitales, contactos, teléfonos internos, tips propios, lo que quieras..."></textarea>
+        <div><button class="fac-save-btn" id="facSaveGuardias">Salvar</button><span class="fac-saved-msg" id="facSavedGuardias">salvo ✓</span></div>
+      </div>
     </section>
   </div>
 </div>

@@ -1681,30 +1681,6 @@ async function storageGetWithRetry(key){
 </div>
 
 <div class="layout" id="agendaLayout">
-  <button id="pendMobileToggle" class="pend-mobile-toggle">📋 Ver pendências</button>
-  <aside class="sidebar">
-    <button id="pendDrawerClose" class="agenda-drawer-close-m">✕ fechar</button>
-    <div class="pend-box">
-      <div class="pend-title">Pendências <button class="edit-toggle-btn" id="pendEditToggle">✎ Editar</button></div>
-      <div class="setor">
-        <div class="setor-head geral">Geral</div>
-        <div class="pend-add-row">
-          <input type="text" id="pendAddGeral" placeholder="nova pendência...">
-          <button data-setor="geral">+</button>
-        </div>
-        <ul class="pend-list" id="pendGeral"></ul>
-      </div>
-      <div class="setor">
-        <div class="setor-head faculdade">Faculdade</div>
-        <div class="pend-add-row">
-          <input type="text" id="pendAddFaculdade" placeholder="nova pendência...">
-          <button data-setor="faculdade">+</button>
-        </div>
-        <ul class="pend-list" id="pendFaculdade"></ul>
-      </div>
-    </div>
-  </aside>
-
   <main class="main-col">
     <div id="days"></div>
   </main>
@@ -1766,33 +1742,8 @@ async function storageGetWithRetry(key){
           <label>Academia/exercício</label>
           <div class="form-row"><input type="time" id="formAcademiaHora" value="18:00"><input type="text" id="formAcademia" placeholder="o que vai fazer"></div>
         </div>
-        <div>
-          <label>Pendência nova (opcional)</label>
-          <input type="text" id="formPendencia" placeholder="ex: comprar remédio">
-        </div>
         <button class="form-save-btn" id="formSaveBtn">Salvar</button>
         <div class="form-saved-msg" id="formSavedMsg">Salvo ✓</div>
-      </div>
-    </div>
-
-    <div class="pend-box">
-      <div class="pend-title">Agendar uma pendência num dia</div>
-      <div class="form-day-toggle">
-        <button class="scope-btn active" data-scope="both" data-scopegroup="sched">Mensal + Cuadri</button>
-        <button class="scope-btn" data-scope="mensal" data-scopegroup="sched">Só Mensal</button>
-      </div>
-      <div class="form-grid">
-        <div>
-          <label>Pendência</label>
-          <select id="schedPendSel"></select>
-        </div>
-        <div class="form-row">
-          <div style="flex:1"><label>Data</label><input type="date" id="schedPendDate"></div>
-          <div style="flex:1"><label>Hora</label><input type="time" id="schedPendTime"></div>
-        </div>
-        <button class="form-save-btn" id="schedPendBtn">+ colocar no cronograma</button>
-        <div style="font-size:10.5px;color:var(--muted);font-style:italic">A pendência continua na lista — isto só cria o horário no dia escolhido.</div>
-        <div class="form-saved-msg" id="schedPendMsg">No cronograma ✓</div>
       </div>
     </div>
 
@@ -3141,6 +3092,7 @@ function setupSchedPend(){
 
 function renderPendList(elId, setor){
   const el = document.getElementById(elId);
+  if(!el) return; // barra de pendências foi removida da Agenda — só existe a aba lateral global agora
   const items = pendencias.filter(p=>p.setor===setor).slice().sort((a,b)=>(a.done?1:0)-(b.done?1:0));
   if(items.length===0){
     el.innerHTML = `<li class="pend-empty">nenhuma pendência</li>`;
@@ -3167,6 +3119,7 @@ function renderPendências(){
 function setupPendAdd(inputId, setor){
   const input = document.getElementById(inputId);
   const btn = document.querySelector(`.pend-add-row button[data-setor="${setor}"]`);
+  if(!input || !btn) return;
   function add(){
     const v = input.value.trim();
     if(!v) return;
@@ -3218,15 +3171,6 @@ function saveFormFor(targetDate, scope){
     textEl.value = '';
   });
 
-  const pendEl = document.getElementById('formPendencia');
-  const pendVal = pendEl.value.trim();
-  if(pendVal){
-    pendencias.push({ ti:pendVal, prazo:null, setor:'geral' });
-    pendEl.value = '';
-    savePendencias();
-    renderPendências();
-  }
-
   saveUserEvents();
   refreshAgenda();
 
@@ -3257,6 +3201,7 @@ function setupForm(){
 
 function setupPendEditToggle(){
   const btn = document.getElementById('pendEditToggle');
+  if(!btn) return;
   btn.addEventListener('click', ()=>{
     const box = btn.closest('.pend-box');
     box.classList.toggle('edit-mode');
@@ -3453,25 +3398,14 @@ function setupAgendaDrawer(){
   const backdrop = document.getElementById('agendaDrawerBackdrop');
   const closeBtn = document.getElementById('agendaDrawerClose');
   if(!fab || !drawer) return;
-  const layout = document.getElementById('agendaLayout');
-  const pmt = document.getElementById('pendMobileToggle');
   const close = ()=>{
     drawer.classList.remove('open');
-    if(layout) layout.classList.remove('pend-open');
     backdrop.classList.remove('open');
   };
   fab.addEventListener('click', ()=>{ close(); drawer.classList.add('open'); backdrop.classList.add('open'); });
   closeBtn.addEventListener('click', close);
   backdrop.addEventListener('click', close);
-  const pdc = document.getElementById('pendDrawerClose');
-  if(pdc) pdc.addEventListener('click', close);
   document.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
-
-  if(pmt && layout) pmt.addEventListener('click', ()=>{
-    const on = !layout.classList.contains('pend-open');
-    close();
-    if(on){ layout.classList.add('pend-open'); backdrop.classList.add('open'); }
-  });
 }
 
 function setupCuadriAdd(){
@@ -3618,23 +3552,18 @@ function renderDays(){
 }
 
 loadAll().then(()=>{
-  renderPendências();
-  setupPendAdd('pendAddGeral','geral');
-  setupPendAdd('pendAddFaculdade','faculdade');
   setupForm();
   setupAgendaToggle();
   setupAgendaDrawer();
   setupCuadriAdd();
-  setupSchedPend();
   setupRoutineOverrideForm();
   renderRoutineOverrides();
-  setupPendEditToggle();
   setupCronoEditToggle();
   renderDays();
 
-  // mantém a barra da Agenda sincronizada com o painel global de pendências
-  window.refreshAgendaPend = function(){ pendencias = PEND.list; renderPendências(); };
-  PEND.on(window.refreshAgendaPend);
+  // pendências agora vivem só na aba lateral global; a Agenda só precisa manter
+  // a referência do array em dia (nada pra re-renderizar aqui)
+  window.refreshAgendaPend = function(){ pendencias = PEND.list; };
   // permite ao painel global recarregar a Agenda depois de mexer no cronograma
   window.refreshAgendaExternal = async function(){
     const e = await storageGetWithRetry('agenda_user_events');

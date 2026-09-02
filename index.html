@@ -153,6 +153,24 @@
   #pendPanel .pend-panel-empty{ font-size:12.5px; color:#8a7f78; padding:20px 4px; }
   @media(max-width:640px){ #pendTab{ top:auto; bottom:88px; transform:none; } }
 
+  #pendSchedBox{ position:fixed; inset:0; z-index:150; background:rgba(0,0,0,.45);
+    display:flex; align-items:center; justify-content:center; padding:20px; font-family:'Helvetica Neue',Arial,sans-serif; }
+  #pendSchedBox[hidden]{ display:none; }
+  #pendSchedBox .pend-sched-card{ background:#fff; border-radius:14px; padding:20px 20px 16px; width:min(320px,92vw); box-shadow:0 18px 50px rgba(0,0,0,.3); }
+  #pendSchedBox .pend-sched-title{ font-size:16px; font-weight:800; color:#7a1f2c; margin-bottom:6px; }
+  #pendSchedBox .pend-sched-item{ font-size:12.5px; color:#5a534e; line-height:1.4; margin-bottom:14px; word-break:break-word; }
+  #pendSchedBox .pend-sched-lbl{ display:block; font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:#8a7f78; margin-bottom:12px; }
+  #pendSchedBox .pend-sched-lbl span{ font-weight:500; text-transform:none; letter-spacing:0; }
+  #pendSchedBox .pend-sched-lbl input{ display:block; width:100%; margin-top:5px; padding:10px 11px; font-size:16px;
+    font-family:inherit; border:1px solid #e0d7d2; border-radius:9px; background:#faf7f5; box-sizing:border-box;
+    -webkit-appearance:none; appearance:none; min-height:42px; color:#2a2320; }
+  #pendSchedBox .pend-sched-btns{ display:flex; gap:8px; margin-top:4px; }
+  #pendSchedBox .pend-sched-btns button{ flex:1; padding:11px; border-radius:9px; font-size:13px; font-weight:800; cursor:pointer; border:none; }
+  #pendSchedBox #pendSchedCancel{ background:#efe9e6; color:#5a534e; }
+  #pendSchedBox #pendSchedGo{ background:#7a1f2c; color:#fff; }
+  #pendSchedBox .pend-sched-ok{ text-align:center; font-size:15px; font-weight:800; color:#1f8a70; padding:14px 4px; }
+  #pendSchedBox .pend-sched-ok span{ display:block; font-size:12px; font-weight:600; color:#8a7f78; margin-top:4px; }
+
   .app-view{display:none;}
   .app-view.show{display:block;}
 
@@ -1488,6 +1506,21 @@ async function storageGetWithRetry(key){
   <div class="pend-panel-body" id="pendPanelBody"></div>
   <div class="pend-panel-foot">Pra criar novas: aba <b>Agenda</b>, ou o <b>+</b> nos vídeos/clases da <b>Faculdade</b>.</div>
 </aside>
+<div id="pendSchedBox" hidden>
+  <div class="pend-sched-card">
+    <div id="pendSchedForm">
+      <div class="pend-sched-title">Agendar no cronograma</div>
+      <div class="pend-sched-item" id="pendSchedItem"></div>
+      <label class="pend-sched-lbl">Dia<input type="date" id="pendSchedDate"></label>
+      <label class="pend-sched-lbl">Hora <span>(opcional)</span><input type="time" id="pendSchedTime"></label>
+      <div class="pend-sched-btns">
+        <button type="button" id="pendSchedCancel">Cancelar</button>
+        <button type="button" id="pendSchedGo">Agendar</button>
+      </div>
+    </div>
+    <div id="pendSchedOk" class="pend-sched-ok" hidden>✓ No cronograma<br><span id="pendSchedOkTxt"></span></div>
+  </div>
+</div>
 
 <div id="home">
   <div class="home-inner">
@@ -2119,27 +2152,40 @@ function renderPendPanel(){
   });
 }
 
-async function schedPendFromPanel(id){
+let _pendSchedId = null;
+function schedPendFromPanel(id){
   const p = PEND.list.find(x=>x.id === id);
   if(!p) return;
+  _pendSchedId = id;
   const today = new Date();
   const def = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-  const d = prompt('Colocar "'+p.ti+'" no cronograma.\n\nData (AAAA-MM-DD):', def);
-  if(d === null) return;
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(d.trim())){ alert('Data inválida. Use o formato AAAA-MM-DD.'); return; }
-  const t = prompt('Hora (HH:MM) — pode deixar em branco:', '');
-  if(t === null) return;
-  const tt = t.trim();
-  if(tt && !/^\d{1,2}:\d{2}$/.test(tt)){ alert('Hora inválida.'); return; }
+  document.getElementById('pendSchedItem').textContent = p.ti;
+  document.getElementById('pendSchedDate').value = def;
+  document.getElementById('pendSchedTime').value = '';
+  document.getElementById('pendSchedForm').hidden = false;
+  document.getElementById('pendSchedOk').hidden = true;
+  document.getElementById('pendSchedBox').hidden = false;
+}
+function closePendSched(){ document.getElementById('pendSchedBox').hidden = true; _pendSchedId = null; }
+async function doPendSched(){
+  const p = PEND.list.find(x=>x.id === _pendSchedId);
+  if(!p){ closePendSched(); return; }
+  const d = document.getElementById('pendSchedDate').value;
+  const t = document.getElementById('pendSchedTime').value || '';
+  if(!d){ document.getElementById('pendSchedDate').focus(); return; }
   const r = await storageGetWithRetry('agenda_user_events');
   let evs;
   try { evs = (r && r.value !== undefined) ? JSON.parse(r.value) : []; } catch(e){ evs = []; }
   if(!Array.isArray(evs)) evs = [];
   evs.push({ id: 'ev_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-             d: d.trim(), t: tt, ti: p.ti, c: 'pessoal', scope: 'mensal', fromPend: true });
+             d: d, t: t, ti: p.ti, c: 'pessoal', scope: 'mensal', fromPend: true });
   await storageSetWithRetry('agenda_user_events', JSON.stringify(evs));
   if(typeof window.refreshAgendaExternal === 'function') window.refreshAgendaExternal();
-  alert('Adicionado ao cronograma em ' + d.trim() + (tt ? (' às ' + tt) : '') + '.\nA pendência continua na lista até você marcar como feita.');
+  const dd = d.split('-').reverse().join('/');
+  document.getElementById('pendSchedOkTxt').textContent = dd + (t ? (' · ' + t) : '');
+  document.getElementById('pendSchedForm').hidden = true;
+  document.getElementById('pendSchedOk').hidden = false;
+  setTimeout(closePendSched, 1400);
 }
 
 function openPendPanel(){
@@ -2156,6 +2202,9 @@ function initPendWidget(){
   document.getElementById('pendTab').addEventListener('click', openPendPanel);
   document.getElementById('pendPanelClose').addEventListener('click', closePendPanel);
   document.getElementById('pendPanelBackdrop').addEventListener('click', closePendPanel);
+  document.getElementById('pendSchedCancel').addEventListener('click', closePendSched);
+  document.getElementById('pendSchedGo').addEventListener('click', doPendSched);
+  document.getElementById('pendSchedBox').addEventListener('click', e=>{ if(e.target.id === 'pendSchedBox') closePendSched(); });
   PEND.on(()=>{
     renderPendTab();
     if(!document.getElementById('pendPanel').hidden) renderPendPanel();
@@ -8031,10 +8080,10 @@ window.init_faculdade = function(){
   const claseKeyOf = ci => 'fclase-' + ci;
   const inPend = fn => !!(window.PEND && fn());
 
-  function addPendBtnVid(key, name, claseLabel, u){
+  function addPendBtnVid(key, name, claseLabel, u, d){
     const has = inPend(() => PEND.byVid(key));
     return `<button class="fac-addpend${has ? ' in' : ''}" data-fac-addpend="${key}"`
-      + ` data-name="${String(name).replace(/"/g,'&quot;')}" data-clase="${claseLabel}" data-u="${u}"`
+      + ` data-name="${String(name).replace(/"/g,'&quot;')}" data-clase="${claseLabel}" data-u="${u}" data-dur="${d || ''}"`
       + ` title="${has ? 'já está nas pendências' : 'adicionar às pendências'}">${has ? '✓' : '+'}</button>`;
   }
 
@@ -8050,7 +8099,7 @@ window.init_faculdade = function(){
     return `<div class="fac-vid${isDone ? ' done' : ''}">`
       + `<input type="checkbox" data-k="${key}"${isDone ? ' checked' : ''} title="marcar como visto">`
       + `<span><a href="https://youtu.be/${it.u}" target="_blank" rel="noopener"><span class="name">${it.x}</span></a>${dur}${tag}</span>`
-      + addPendBtnVid(key, it.x, claseLabel, it.u)
+      + addPendBtnVid(key, it.x, claseLabel, it.u, it.d)
       + `</div>`;
   }
 
@@ -8091,7 +8140,8 @@ window.init_faculdade = function(){
     listEl.querySelectorAll('[data-fac-addpend]').forEach(b => {
       b.addEventListener('click', () => {
         if(b.classList.contains('in') || !window.PEND) return;
-        PEND.add({ ti: '▶ Ver: ' + b.dataset.name + ' · Farmaco ' + b.dataset.clase,
+        const dur = b.dataset.dur ? ' (' + b.dataset.dur + ')' : '';
+        PEND.add({ ti: '▶ Ver: ' + b.dataset.name + dur + ' · Farmaco ' + b.dataset.clase,
                    setor: 'faculdade', vidKey: b.dataset.facAddpend, link: 'https://youtu.be/' + b.dataset.u });
       });
     });

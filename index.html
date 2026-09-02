@@ -453,12 +453,12 @@
 #view-agenda .agenda-drawer .form-row input[type=text]{flex:1 1 150px;}
 #view-agenda .agenda-drawer .form-row input[type=time]{width:auto;flex:0 0 96px;}
 #view-agenda .form-day-toggle{display:flex;gap:6px;margin-bottom:12px;}
-#view-agenda .form-day-btn, #view-agenda .ovr-mode-btn, #view-agenda .scope-btn{
+#view-agenda .form-day-btn, #view-agenda .ovr-mode-btn, #view-agenda .scope-btn, #view-agenda .rec-mode-btn{
   flex:1;background:none;border:1px solid var(--paper-line);border-radius:16px;
   padding:6px 4px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:700;
   cursor:pointer;color:var(--muted);
 }
-#view-agenda .form-day-btn.active, #view-agenda .ovr-mode-btn.active, #view-agenda .scope-btn.active{background:#7a1f2c;color:#fff;border-color:#7a1f2c;}
+#view-agenda .form-day-btn.active, #view-agenda .ovr-mode-btn.active, #view-agenda .scope-btn.active, #view-agenda .rec-mode-btn.active{background:#7a1f2c;color:#fff;border-color:#7a1f2c;}
 #view-agenda .cuadri-wrap .month-label {
   font-family:'Helvetica Neue',Arial,sans-serif;
   font-size:15px;font-weight:700;letter-spacing:.02em;
@@ -574,14 +574,16 @@
   #view-cambio {
     --bg:#faf9f6;
     --panel:#ffffff;
-    --panel-tint:#eef6f2;
+    --panel-tint:#f6ecee;
     --line:#e6e3db;
     --line-strong:#c9c4b5;
     --ink:#1c2430;
     --ink-dim:#7a7568;
-    --green:#2f8f5b;
-    --green-dark:#23724a;
-    --green-bright:#3aa873;
+    --green:#7a1f2c;
+    --green-dark:#5f1622;
+    --green-bright:#8f2f3c;
+    --money:#23724a;
+    --money-neg:#a8394a;
     --blue:#4a6f8a;
     --blue-tint:#eaf0f3;
     --red:#a8394a;
@@ -776,7 +778,7 @@
   #view-cambio .info-item:first-child {border-left:none;}
   #view-cambio .info-item.highlight {background: var(--panel-tint);}
   #view-cambio .info-label {font-size:10px; letter-spacing:0.7px; text-transform:uppercase; font-weight:700; color:var(--ink-dim); white-space:nowrap;}
-  #view-cambio .info-value {font-family:'IBM Plex Mono', monospace; font-size:17px; font-weight:700; color:var(--green-dark);}
+  #view-cambio .info-value {font-family:'IBM Plex Mono', monospace; font-size:17px; font-weight:700; color:var(--money);}
   #view-cambio .info-value.negative {color:var(--red);}
   #view-cambio .info-item.editable input {
     font-family:'IBM Plex Mono', monospace; font-size:16px; font-weight:700;
@@ -834,7 +836,7 @@
   }
   #view-cambio .daily-item.highlight {background: var(--panel-tint); border-color: var(--green); border-width:1.5px;}
   #view-cambio .daily-label {font-size:10.5px; letter-spacing:0.8px; text-transform:uppercase; font-weight:700; color:var(--ink-dim);}
-  #view-cambio .daily-value {font-family:'IBM Plex Mono', monospace; font-size:22px; font-weight:700; color:var(--green-dark);}
+  #view-cambio .daily-value {font-family:'IBM Plex Mono', monospace; font-size:22px; font-weight:700; color:var(--money);}
   #view-cambio .daily-value.negative {color:var(--red);}
   #view-cambio .daily-sub {font-size:11.5px; color:var(--ink-dim);}
 
@@ -859,7 +861,7 @@
     background:#fbfdfb; color:var(--ink); font-family:'IBM Plex Mono', monospace; font-size:12.5px;
   }
   #view-cambio table input[type=text] {font-family:'IBM Plex Sans', sans-serif; min-width:110px;}
-  #view-cambio table td.computed {font-family:'IBM Plex Mono', monospace; font-weight:700; color: var(--green-dark);}
+  #view-cambio table td.computed {font-family:'IBM Plex Mono', monospace; font-weight:700; color: var(--money);}
   #view-cambio .period-chip {
     display:inline-block; font-size:11px; font-family:'IBM Plex Mono', monospace; font-weight:600;
     background: var(--blue-tint); color: var(--blue); border-radius: 4px; padding: 3px 6px; white-space:nowrap;
@@ -979,9 +981,9 @@
   #view-dieta #tabsDieta { display: flex; gap: 2px; margin: 22px auto 0; padding: 0 20px; border-bottom: 1px solid #E4E2D9; max-width: 720px; }
   #view-dieta .tab-btn { display: flex; align-items: center; gap: 6px; padding: 11px 14px; background: none; border: none; color: #9A9C90; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
   #view-dieta .tab-btn.active[data-tab="diet"] { color: #2F7D4F; border-bottom-color: #2F7D4F; }
-  #view-dieta .tab-btn.active[data-tab="workout"] { color: #E01B14; border-bottom-color: #E01B14; }
-  #view-dieta .tab-btn.active[data-tab="measurements"] { color: #9B5FA0; border-bottom-color: #9B5FA0; }
-  #view-dieta .tab-btn.active[data-tab="config"] { color: #2F8E82; border-bottom-color: #2F8E82; }
+  #view-dieta .tab-btn.active[data-tab="workout"] { color: #7a1f2c; border-bottom-color: #7a1f2c; }
+  #view-dieta .tab-btn.active[data-tab="measurements"] { color: #7a1f2c; border-bottom-color: #7a1f2c; }
+  #view-dieta .tab-btn.active[data-tab="config"] { color: #7a1f2c; border-bottom-color: #7a1f2c; }
   #view-dieta .tab-btn:hover:not(.active) { color: #4A4D45; }
   #view-dieta #contentDieta { padding: 22px 20px 60px; max-width: 720px; margin: 0 auto; }
   #view-dieta .card { background: #FFFFFF; border: 1px solid #E9E7DF; border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(30,33,29,0.03); }
@@ -1005,8 +1007,8 @@
   @media (max-width: 480px) { #view-dieta .field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   #view-dieta input, #view-dieta select, #view-dieta textarea { background: #F1F3F5; border: 1px solid #E3E6EA; color: #1E211D; border-radius: 9px; padding: 10px 12px; font-size: 13px; font-family: inherit; transition: border-color .15s, box-shadow .15s, background .15s; }
   #view-dieta input:focus, #view-dieta select:focus, #view-dieta textarea:focus { outline: none; background:#fff; border-color: #2F7D4F; box-shadow: 0 0 0 3px rgba(47,125,79,0.14); }
-  #view-dieta .btn { background: #2F4A3B; color: #FAFAF7; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
-  #view-dieta .btn:hover { background: #253b2f; }
+  #view-dieta .btn { background: #7a1f2c; color: #FAFAF7; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
+  #view-dieta .btn:hover { background: #5f1622; }
   #view-dieta .btn:disabled { opacity: 0.4; cursor: default; }
   #view-dieta .btn.secondary { background: #F0EFE8; color: #1E211D; }
   #view-dieta .btn.secondary:hover { background: #E6E4D9; }
@@ -1015,7 +1017,7 @@
   #view-dieta [data-del-entry], #view-dieta [data-del-food] {display:none;}
   #view-dieta .card.edit-mode [data-del-entry], #view-dieta .card.edit-mode [data-del-food] {display:inline-block;}
   #view-dieta .sec-edit-btn{background:none;border:1px solid #D9D7CD;border-radius:12px;font-size:10.5px;padding:3px 10px;cursor:pointer;color:#86897F;font-weight:600;flex:0 0 auto;}
-  #view-dieta .sec-edit-btn.active{background:#2F4A3B;color:#fff;border-color:#2F4A3B;}
+  #view-dieta .sec-edit-btn.active{background:#7a1f2c;color:#fff;border-color:#7a1f2c;}
   #view-dieta table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   #view-dieta th { text-align: left; color: #86897F; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 8px; border-bottom: 1px solid #E4E2D9; font-weight: 700; }
   #view-dieta td { padding: 8px; border-bottom: 1px solid #F0EFE8; }
@@ -1034,7 +1036,7 @@
   #view-dieta .weekday-block label { font-size: 11px; color: #86897F; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 4px; font-weight: 600; }
   #view-dieta .weekday-block textarea { width: 100%; min-height: 44px; resize: vertical; }
   #view-dieta .set-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
-  #view-dieta .last-time { font-size: 11.5px; color: #E01B14; margin-top: 8px; font-weight: 700; }
+  #view-dieta .last-time { font-size: 11.5px; color: #7a1f2c; margin-top: 8px; font-weight: 700; }
   #view-dieta .field { display: flex; flex-direction: column; gap: 4px; }
   #view-dieta .field label { font-size: 10.5px; color: #86897F; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
   #view-dieta .storage-note { font-size: 11px; color: #ABA9A0; margin-top: 4px; }
@@ -1058,23 +1060,23 @@
   #view-dieta .section-diet .card.card-meals { background: #F3FAF5; border-color: #D3EBDA; }
   #view-dieta .section-diet .card.card-stats { background: #F3FAF5; border-color: #D3EBDA; }
 
-  #view-dieta .section-workout .btn { background: #E01B14; }
-  #view-dieta .section-workout .btn:hover { background: #B8140F; }
+  #view-dieta .section-workout .btn { background: #7a1f2c; }
+  #view-dieta .section-workout .btn:hover { background: #7a1f2c; }
   #view-dieta .section-workout .card.card-plan { background: #FFF0EF; border-color: #F7B3AE; }
-  #view-dieta .section-workout .card.card-log { background: #FFF5F4; border-color: #FAC5C1; }
-  #view-dieta .section-workout input:focus, #view-dieta .section-workout select:focus, #view-dieta .section-workout textarea:focus { border-color: #E01B14; box-shadow: 0 0 0 3px rgba(224,27,20,0.15); }
-  #view-dieta .section-workout .btn.secondary { background: #FFD9D6; color: #A3130C; font-weight: 800; }
+  #view-dieta .section-workout .card.card-log { background: #FFF5F4; border-color: #e3c7cb; }
+  #view-dieta .section-workout input:focus, #view-dieta .section-workout select:focus, #view-dieta .section-workout textarea:focus { border-color: #7a1f2c; box-shadow: 0 0 0 3px rgba(122,31,44,0.15); }
+  #view-dieta .section-workout .btn.secondary { background: #FFD9D6; color: #7a1f2c; font-weight: 800; }
   #view-dieta .section-workout .btn.secondary:hover { background: #FFC2BD; }
 
-  #view-dieta .section-measurements .btn { background: #9B5FA0; }
+  #view-dieta .section-measurements .btn { background: #7a1f2c; }
   #view-dieta .section-measurements .btn:hover { background: #824C87; }
-  #view-dieta .section-measurements .card.card-form { background: #FBF3FC; border-color: #EDD9F0; }
-  #view-dieta .section-measurements input:focus { border-color: #9B5FA0; box-shadow: 0 0 0 3px rgba(155,95,160,0.12); }
+  #view-dieta .section-measurements .card.card-form { background: #f8eef0; border-color: #e7d5d8; }
+  #view-dieta .section-measurements input:focus { border-color: #7a1f2c; box-shadow: 0 0 0 3px rgba(122,31,44,0.12); }
 
-  #view-dieta .section-config .btn { background: #2F8E82; }
+  #view-dieta .section-config .btn { background: #7a1f2c; }
   #view-dieta .section-config .btn:hover { background: #25736A; }
-  #view-dieta .section-config .card.card-form { background: #EEFAF8; border-color: #CDEAE6; }
-  #view-dieta .section-config input:focus { border-color: #2F8E82; box-shadow: 0 0 0 3px rgba(47,142,130,0.12); }
+  #view-dieta .section-config .card.card-form { background: #f8eef0; border-color: #e7d5d8; }
+  #view-dieta .section-config input:focus { border-color: #7a1f2c; box-shadow: 0 0 0 3px rgba(122,31,44,0.12); }
 
 
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;#view-treino 500;600;700&family=Sora:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap');
@@ -1087,9 +1089,9 @@
   #view-treino #tabsTreino { display: flex; gap: 2px; margin: 22px auto 0; padding: 0 20px; border-bottom: 1px solid #E4E2D9; max-width: 720px; }
   #view-treino .tab-btn { display: flex; align-items: center; gap: 6px; padding: 11px 14px; background: none; border: none; color: #9A9C90; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
   #view-treino .tab-btn.active[data-tab="diet"] { color: #2F7D4F; border-bottom-color: #2F7D4F; }
-  #view-treino .tab-btn.active[data-tab="workout"] { color: #E01B14; border-bottom-color: #E01B14; }
-  #view-treino .tab-btn.active[data-tab="measurements"] { color: #9B5FA0; border-bottom-color: #9B5FA0; }
-  #view-treino .tab-btn.active[data-tab="config"] { color: #2F8E82; border-bottom-color: #2F8E82; }
+  #view-treino .tab-btn.active[data-tab="workout"] { color: #7a1f2c; border-bottom-color: #7a1f2c; }
+  #view-treino .tab-btn.active[data-tab="measurements"] { color: #7a1f2c; border-bottom-color: #7a1f2c; }
+  #view-treino .tab-btn.active[data-tab="config"] { color: #7a1f2c; border-bottom-color: #7a1f2c; }
   #view-treino .tab-btn:hover:not(.active) { color: #4A4D45; }
   #view-treino #contentTreino { padding: 22px 20px 60px; max-width: 720px; margin: 0 auto; }
   #view-treino .card { background: #FFFFFF; border: 1px solid #E9E7DF; border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(30,33,29,0.03); }
@@ -1112,9 +1114,9 @@
   #view-treino .field-grid .field input { width: 100%; }
   @media (max-width: 480px) { #view-treino .field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   #view-treino input, #view-treino select, #view-treino textarea { background: #F1F3F5; border: 1px solid #E3E6EA; color: #1E211D; border-radius: 9px; padding: 10px 12px; font-size: 13px; font-family: inherit; transition: border-color .15s, box-shadow .15s, background .15s; }
-  #view-treino input:focus, #view-treino select:focus, #view-treino textarea:focus { outline: none; background:#fff; border-color: #E01B14; box-shadow: 0 0 0 3px rgba(224,27,20,0.14); }
-  #view-treino .btn { background: #2F4A3B; color: #FAFAF7; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
-  #view-treino .btn:hover { background: #253b2f; }
+  #view-treino input:focus, #view-treino select:focus, #view-treino textarea:focus { outline: none; background:#fff; border-color: #7a1f2c; box-shadow: 0 0 0 3px rgba(122,31,44,0.14); }
+  #view-treino .btn { background: #7a1f2c; color: #FAFAF7; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
+  #view-treino .btn:hover { background: #5f1622; }
   #view-treino .btn:disabled { opacity: 0.4; cursor: default; }
   #view-treino .btn.secondary { background: #F0EFE8; color: #1E211D; }
   #view-treino .btn.secondary:hover { background: #E6E4D9; }
@@ -1123,7 +1125,7 @@
   #view-treino [data-del-workout], #view-treino [data-del-measure] {display:none;}
   #view-treino .card.edit-mode [data-del-workout], #view-treino .card.edit-mode [data-del-measure] {display:inline-block;}
   #view-treino .sec-edit-btn{background:none;border:1px solid #D9D7CD;border-radius:12px;font-size:10.5px;padding:3px 10px;cursor:pointer;color:#86897F;font-weight:600;flex:0 0 auto;}
-  #view-treino .sec-edit-btn.active{background:#2F4A3B;color:#fff;border-color:#2F4A3B;}
+  #view-treino .sec-edit-btn.active{background:#7a1f2c;color:#fff;border-color:#7a1f2c;}
   #view-treino table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   #view-treino th { text-align: left; color: #86897F; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 8px; border-bottom: 1px solid #E4E2D9; font-weight: 700; }
   #view-treino td { padding: 8px; border-bottom: 1px solid #F0EFE8; }
@@ -1142,7 +1144,7 @@
   #view-treino .weekday-block label { font-size: 11px; color: #86897F; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 4px; font-weight: 600; }
   #view-treino .weekday-block textarea { width: 100%; min-height: 44px; resize: vertical; }
   #view-treino .set-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
-  #view-treino .last-time { font-size: 11.5px; color: #E01B14; margin-top: 8px; font-weight: 700; }
+  #view-treino .last-time { font-size: 11.5px; color: #7a1f2c; margin-top: 8px; font-weight: 700; }
   #view-treino .field { display: flex; flex-direction: column; gap: 4px; }
   #view-treino .field label { font-size: 10.5px; color: #86897F; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
   #view-treino .storage-note { font-size: 11px; color: #ABA9A0; margin-top: 4px; }
@@ -1166,36 +1168,36 @@
   #view-treino .section-diet .card.card-meals { background: #F3FAF5; border-color: #D3EBDA; }
   #view-treino .section-diet .card.card-stats { background: #F3FAF5; border-color: #D3EBDA; }
 
-  #view-treino .section-workout .btn { background: #E01B14; }
-  #view-treino .section-workout .btn:hover { background: #B8140F; }
+  #view-treino .section-workout .btn { background: #7a1f2c; }
+  #view-treino .section-workout .btn:hover { background: #7a1f2c; }
   #view-treino .section-workout .card.card-plan { background: #FFF0EF; border-color: #F7B3AE; }
-  #view-treino .section-workout .card.card-log { background: #FFF5F4; border-color: #FAC5C1; }
-  #view-treino .section-workout input:focus, #view-treino .section-workout select:focus, #view-treino .section-workout textarea:focus { border-color: #E01B14; box-shadow: 0 0 0 3px rgba(224,27,20,0.15); }
-  #view-treino .section-workout .btn.secondary { background: #FFD9D6; color: #A3130C; font-weight: 800; }
+  #view-treino .section-workout .card.card-log { background: #FFF5F4; border-color: #e3c7cb; }
+  #view-treino .section-workout input:focus, #view-treino .section-workout select:focus, #view-treino .section-workout textarea:focus { border-color: #7a1f2c; box-shadow: 0 0 0 3px rgba(122,31,44,0.15); }
+  #view-treino .section-workout .btn.secondary { background: #FFD9D6; color: #7a1f2c; font-weight: 800; }
   #view-treino .section-workout .btn.secondary:hover { background: #FFC2BD; }
 
-  #view-treino .section-measurements .btn { background: #9B5FA0; }
+  #view-treino .section-measurements .btn { background: #7a1f2c; }
   #view-treino .section-measurements .btn:hover { background: #824C87; }
-  #view-treino .section-measurements .card.card-form { background: #FBF3FC; border-color: #EDD9F0; }
-  #view-treino .section-measurements input:focus { border-color: #9B5FA0; box-shadow: 0 0 0 3px rgba(155,95,160,0.12); }
+  #view-treino .section-measurements .card.card-form { background: #f8eef0; border-color: #e7d5d8; }
+  #view-treino .section-measurements input:focus { border-color: #7a1f2c; box-shadow: 0 0 0 3px rgba(122,31,44,0.12); }
 
-  #view-treino .section-config .btn { background: #2F8E82; }
+  #view-treino .section-config .btn { background: #7a1f2c; }
   #view-treino .section-config .btn:hover { background: #25736A; }
-  #view-treino .section-config .card.card-form { background: #EEFAF8; border-color: #CDEAE6; }
-  #view-treino .section-config input:focus { border-color: #2F8E82; box-shadow: 0 0 0 3px rgba(47,142,130,0.12); }
+  #view-treino .section-config .card.card-form { background: #f8eef0; border-color: #e7d5d8; }
+  #view-treino .section-config input:focus { border-color: #7a1f2c; box-shadow: 0 0 0 3px rgba(122,31,44,0.12); }
 
   /* ---- Treino: plano fixo do PDF ---- */
   #view-treino .workout-day-tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:16px; }
   #view-treino .wday-btn { display:flex; flex-direction:column; gap:2px; align-items:center; padding:8px 4px; border:1px solid #E4E2D9; border-radius:8px; background:#fff; cursor:pointer; font-family:inherit; color:#4A4D45; text-align:center; }
   #view-treino .wday-btn b { font-size:12px; font-weight:800; }
   #view-treino .wday-btn span { font-size:8.5px; font-weight:600; color:#9A9C90; line-height:1.15; }
-  #view-treino .wday-btn.active { background:#E01B14; border-color:#E01B14; color:#fff; }
-  #view-treino .wday-btn.active span { color:#ffd9d6; }
+  #view-treino .wday-btn.active { background:#7a1f2c; border-color:#7a1f2c; color:#fff; }
+  #view-treino .wday-btn.active span { color:#eccfd3; }
   #view-treino .wgroup { margin-bottom:8px; }
   #view-treino .wgroup.solo { border:1px solid #E9E7DF; background:#fff; border-radius:8px; padding:2px 12px; }
   #view-treino .wgroup.solo .wex { border-bottom:none; }
   #view-treino .wgroup.combined { border:1px solid #F3B7B2; background:#FFF7F6; border-radius:8px; padding:8px 12px 2px; }
-  #view-treino .wgroup-tag { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#B8140F; margin-bottom:4px; }
+  #view-treino .wgroup-tag { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#7a1f2c; margin-bottom:4px; }
   #view-treino .wex { display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px solid #F0EFE8; }
   #view-treino .wgroup:last-child .wex:last-child { border-bottom:none; }
   #view-treino .wex-imgwrap { position:relative; flex:0 0 54px; }
@@ -1212,12 +1214,12 @@
   #view-treino .wex-meta { font-size:11px; color:#86897F; margin:2px 0 6px; }
   #view-treino .wex-carga { display:flex; align-items:center; gap:8px; }
   #view-treino .wex-carga-label { font-size:9px; text-transform:uppercase; letter-spacing:.05em; font-weight:800; color:#9A9C90; }
-  #view-treino .wex-carga-val { background:#FFE7E5; color:#A3130C; border:1px solid #FAC5C1; border-radius:6px; padding:3px 10px; font-size:13px; font-weight:800; cursor:pointer; font-family:inherit; }
-  #view-treino .wex-carga-input { width:120px; padding:3px 8px; border:1px solid #E01B14; border-radius:6px; font-size:13px; font-weight:700; font-family:inherit; }
+  #view-treino .wex-carga-val { background:#f4e4e6; color:#7a1f2c; border:1px solid #e3c7cb; border-radius:6px; padding:3px 10px; font-size:13px; font-weight:800; cursor:pointer; font-family:inherit; }
+  #view-treino .wex-carga-input { width:120px; padding:3px 8px; border:1px solid #7a1f2c; border-radius:6px; font-size:13px; font-weight:700; font-family:inherit; }
   #view-treino .prog-ex-list { display:flex; flex-wrap:wrap; gap:6px; }
   #view-treino .prog-ex-btn { border:1px solid #E4E2D9; background:#fff; border-radius:8px; padding:7px 11px; font-size:12px; font-weight:600; color:#4A4D45; cursor:pointer; font-family:inherit; }
-  #view-treino .prog-ex-btn:hover { border-color:#E01B14; }
-  #view-treino .prog-ex-btn.active { background:#E01B14; border-color:#E01B14; color:#fff; }
+  #view-treino .prog-ex-btn:hover { border-color:#7a1f2c; }
+  #view-treino .prog-ex-btn.active { background:#7a1f2c; border-color:#7a1f2c; color:#fff; }
 
   .toast{
     position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
@@ -1722,10 +1724,6 @@ async function storageGetWithRetry(key){
         <button class="form-day-btn active" data-target="hoje">Hoje</button>
         <button class="form-day-btn" data-target="amanha">Amanhã</button>
       </div>
-      <div class="form-day-toggle">
-        <button class="scope-btn active" data-scope="both" data-scopegroup="form">Mensal + Cuadri</button>
-        <button class="scope-btn" data-scope="mensal" data-scopegroup="form">Só Mensal</button>
-      </div>
       <div class="form-grid">
         <div>
           <label>Manhã</label>
@@ -1758,6 +1756,40 @@ async function storageGetWithRetry(key){
         <input type="text" id="cuadriAddTitle" placeholder="novo evento — aparece na Mensal também">
         <button class="form-save-btn" id="cuadriAddBtn">+ adicionar</button>
       </div>
+    </div>
+
+    <div class="pend-box">
+      <div class="pend-title">Compromisso recorrente</div>
+      <div class="form-day-toggle">
+        <button class="rec-mode-btn active" data-recmode="weekly">Toda semana</button>
+        <button class="rec-mode-btn" data-recmode="everyN">A cada N dias</button>
+      </div>
+      <div class="form-grid">
+        <div id="recWeeklyRow">
+          <label>Dia da semana</label>
+          <select id="recWeekday">
+            <option value="0">Todo domingo</option>
+            <option value="1">Toda segunda</option>
+            <option value="2">Toda terça</option>
+            <option value="3">Toda quarta</option>
+            <option value="4" selected>Toda quinta</option>
+            <option value="5">Toda sexta</option>
+            <option value="6">Todo sábado</option>
+          </select>
+        </div>
+        <div id="recEveryNRow" style="display:none">
+          <div class="form-row">
+            <div style="flex:1"><label>A cada (dias)</label><input type="number" id="recEveryN" min="1" value="15"></div>
+            <div style="flex:1"><label>A partir de</label><input type="date" id="recAnchor"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div style="flex:1"><label>Hora</label><input type="time" id="recTime"></div>
+          <div style="flex:2"><label>O quê</label><input type="text" id="recTitle" placeholder="ex: Guardia"></div>
+        </div>
+        <button class="form-save-btn" id="recSaveBtn">Salvar recorrência</button>
+      </div>
+      <ul class="pend-list" id="recList" style="margin-top:12px"></ul>
     </div>
 
     <div class="pend-box">
@@ -2222,7 +2254,7 @@ document.getElementById('backBtn').addEventListener('click', showHome);
 document.getElementById('refreshBtn').addEventListener('click', ()=>location.reload());
 
 const BACKUP_KEYS = [
-  'agenda_pendencias', 'agenda_user_events', 'agenda_routine_overrides',
+  'agenda_pendencias', 'agenda_user_events', 'agenda_routine_overrides', 'agenda_recurring',
   'livro_cambio_v2',
   'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog',
   'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog', 'treino_gymLog', 'treino_gymMinutes',
@@ -2963,6 +2995,7 @@ const seedPendencias = [
 let pendencias = [];
 let userEvents = [];
 let routineOverrides = [];
+let recurringEvents = [];
 
 const weekdayNames = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 const monthNames = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
@@ -2982,10 +3015,13 @@ async function loadAll(){
   userEvents = (e && e.value !== undefined) ? JSON.parse(e.value) : [];
   const ro = await storageGetWithRetry('agenda_routine_overrides');
   routineOverrides = (ro && ro.value !== undefined) ? JSON.parse(ro.value) : [];
+  const rc = await storageGetWithRetry('agenda_recurring');
+  recurringEvents = (rc && rc.value !== undefined) ? JSON.parse(rc.value) : [];
 }
 function savePendencias(){ PEND.list = pendencias; PEND.save(); }
 function saveUserEvents(){ storageSetWithRetry('agenda_user_events', JSON.stringify(userEvents)); }
 function saveRoutineOverrides(){ storageSetWithRetry('agenda_routine_overrides', JSON.stringify(routineOverrides)); }
+function saveRecurring(){ storageSetWithRetry('agenda_recurring', JSON.stringify(recurringEvents)); }
 function activeOverrideFor(dateStr){
   // período (intervalo de datas) tem prioridade — é o mais específico
   const range = routineOverrides.find(o => (o.kind||'range')==='range' && o.start && o.end && dateStr >= o.start && dateStr <= o.end);
@@ -3055,6 +3091,61 @@ function setupRoutineOverrideForm(){
     ['ovrStart','ovrEnd','ovrManha','ovrAlmoco','ovrTarde','ovrJantar'].forEach(id=>{ document.getElementById(id).value=''; });
     saveRoutineOverrides();
     renderRoutineOverrides();
+    refreshAgenda();
+  });
+}
+
+function renderRecurringList(){
+  const el = document.getElementById('recList');
+  if(!el) return;
+  if(!recurringEvents.length){ el.innerHTML = '<li class="pend-empty">nenhum compromisso recorrente seu</li>'; return; }
+  const wd = ['Todo domingo','Toda segunda','Toda terça','Toda quarta','Toda quinta','Toda sexta','Todo sábado'];
+  el.innerHTML = recurringEvents.slice().map(rc=>{
+    const quando = rc.kind==='weekly' ? wd[Number(rc.weekday)] : ('A cada '+rc.everyN+' dias');
+    return `<li class="pend-item"><span class="pend-text">${rc.ti}<span class="prazo"> — ${quando}${rc.t?(' · '+rc.t):''}</span></span><button class="pend-remove" data-id="${rc.id}" style="display:inline-block">✕</button></li>`;
+  }).join('');
+  el.querySelectorAll('.pend-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      recurringEvents = recurringEvents.filter(r=>r.id !== btn.dataset.id);
+      saveRecurring();
+      renderRecurringList();
+      refreshAgenda();
+    });
+  });
+}
+
+function setupRecurringForm(){
+  const btn = document.getElementById('recSaveBtn');
+  if(!btn) return;
+  let mode = 'weekly';
+  const wRow = document.getElementById('recWeeklyRow');
+  const nRow = document.getElementById('recEveryNRow');
+  document.querySelectorAll('.rec-mode-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('.rec-mode-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      mode = b.dataset.recmode;
+      wRow.style.display = mode==='weekly' ? '' : 'none';
+      nRow.style.display = mode==='everyN' ? '' : 'none';
+    });
+  });
+  btn.addEventListener('click', ()=>{
+    const ti = document.getElementById('recTitle').value.trim();
+    if(!ti){ alert('Escreva o que é (ex: Guardia).'); return; }
+    const t = document.getElementById('recTime').value || '';
+    if(mode==='weekly'){
+      recurringEvents.push({ id: uid(), kind:'weekly', weekday: Number(document.getElementById('recWeekday').value), t, ti, c:'pessoal' });
+    } else {
+      const everyN = Number(document.getElementById('recEveryN').value);
+      const anchor = document.getElementById('recAnchor').value;
+      if(!everyN || everyN < 1){ alert('O intervalo de dias tem que ser 1 ou mais.'); return; }
+      if(!anchor){ alert('Escolha a data "a partir de".'); return; }
+      recurringEvents.push({ id: uid(), kind:'everyN', everyN, anchor, t, ti, c:'pessoal' });
+    }
+    document.getElementById('recTitle').value = '';
+    document.getElementById('recTime').value = '';
+    saveRecurring();
+    renderRecurringList();
     refreshAgenda();
   });
 }
@@ -3189,13 +3280,12 @@ function setupForm(){
       formTarget = btn.dataset.target;
     });
   });
-  const getScope = setupScopeToggle('form');
   document.getElementById('formSaveBtn').addEventListener('click', ()=>{
     if(formTarget === 'amanha'){
       const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
-      saveFormFor(tomorrow, getScope());
+      saveFormFor(tomorrow, 'mensal');
     } else {
-      saveFormFor(today, getScope());
+      saveFormFor(today, 'mensal');
     }
   });
 }
@@ -3468,6 +3558,19 @@ function renderDays(){
       routine.push({t:"14:00",ti:"Psicólogo",c:"pessoal"});
     }
 
+    // compromissos recorrentes do usuário (chave agenda_recurring)
+    recurringEvents.forEach(rc=>{
+      let hit = false;
+      if(rc.kind==='weekly'){
+        hit = d.getDay() === Number(rc.weekday);
+      } else if(rc.kind==='everyN' && rc.anchor && Number(rc.everyN) > 0){
+        const an = new Date(rc.anchor+'T00:00:00');
+        const dd = Math.round((d - an) / 86400000);
+        hit = dd >= 0 && dd % Number(rc.everyN) === 0;
+      }
+      if(hit) routine.push({ t: rc.t || "", ti: rc.ti, c: rc.c || "pessoal" });
+    });
+
     const dayEvents = allEvents.filter(e=>e.d===dateStr);
     const all = [...routine, ...dayEvents].sort((a,b)=> sortVal(a)-sortVal(b));
 
@@ -3559,6 +3662,8 @@ loadAll().then(()=>{
   setupCuadriAdd();
   setupRoutineOverrideForm();
   renderRoutineOverrides();
+  setupRecurringForm();
+  renderRecurringList();
   setupCronoEditToggle();
   renderDays();
 
@@ -5316,7 +5421,7 @@ function gymPresenceCardHtml() {
   const t = todayStr();
   const went = gymWentOn(t);
   const e = gymEntryFor(t);
-  return `<div class="card" id="gymPresenceCard" style="background:#FFF5F4;border-color:#FAC5C1">
+  return `<div class="card" id="gymPresenceCard" style="background:#FFF5F4;border-color:#e3c7cb">
     <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
       <button class="btn${went ? '' : ' secondary'}" id="gymTodayBtn">${went ? '✓ Treinei hoje' : '💪 Marcar que treinei hoje'}</button>
       ${went ? `<span style="font-size:12px;color:#86897F">${e.minutes} min · ≈ <b>${gymKcal(e)} kcal</b>${e.kcal != null && e.kcal !== '' ? '' : ' (estimado)'}</span>` : ''}
@@ -5470,7 +5575,7 @@ function measurementChartBodyHtml() {
   }
   const data = list.sort((a, b) => (a.date > b.date ? 1 : -1)).map(m => ({ label: fmtShortDate(m.date), value: Number(m[key]) }));
   if (data.length < 2) return `<div class="empty">Registre "${label}" em pelo menos 2 datas diferentes (no período escolhido) pra ver o gráfico aqui.</div>`;
-  return buildLineChartSVG(data, { color: '#9B5FA0', unit: ` ${unit}` });
+  return buildLineChartSVG(data, { color: '#7a1f2c', unit: ` ${unit}` });
 }
 
 function measurementsHtml() {
@@ -5512,11 +5617,11 @@ function measurementsHtml() {
         <button class="btn secondary" id="measureRangeApplyBtn">Aplicar</button>
         <button class="btn secondary" id="measureRangeWeekBtn">Última semana</button>
         <button class="btn secondary" id="measureRangeMonthBtn">Último mês</button>
-        <button class="btn secondary" id="measureRangeResetBtn"${ui.measureRange.all ? ' style="background:#9B5FA0;color:#fff"' : ''}>Geral</button>
+        <button class="btn secondary" id="measureRangeResetBtn"${ui.measureRange.all ? ' style="background:#7a1f2c;color:#fff"' : ''}>Geral</button>
       </div>
       ${measurementChartBodyHtml()}
       <div style="text-align:center;margin-top:8px">
-        ${MEASURE_FIELDS.map((_, i) => `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;margin:0 3px;background:${i === ui.measureChartIndex ? '#9B5FA0' : '#EDD9F0'}"></span>`).join('')}
+        ${MEASURE_FIELDS.map((_, i) => `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;margin:0 3px;background:${i === ui.measureChartIndex ? '#7a1f2c' : '#e7d5d8'}"></span>`).join('')}
       </div>
     </div>
 
@@ -5675,7 +5780,7 @@ function buildFreqChartSVG(weeks) {
     const cy = gy - ch;
     const total = w.gym + w.cardio;
     let s = '';
-    if (gh > 0) s += `<rect x="${x.toFixed(1)}" y="${gy.toFixed(1)}" width="${barW.toFixed(1)}" height="${gh.toFixed(1)}" fill="#E01B14" rx="2"><title>${esc(w.label)}: ${w.gym}x musculação</title></rect>`;
+    if (gh > 0) s += `<rect x="${x.toFixed(1)}" y="${gy.toFixed(1)}" width="${barW.toFixed(1)}" height="${gh.toFixed(1)}" fill="#7a1f2c" rx="2"><title>${esc(w.label)}: ${w.gym}x musculação</title></rect>`;
     if (ch > 0) s += `<rect x="${x.toFixed(1)}" y="${cy.toFixed(1)}" width="${barW.toFixed(1)}" height="${ch.toFixed(1)}" fill="#2F7D4F" rx="2"><title>${esc(w.label)}: ${w.cardio}x cardio</title></rect>`;
     if (total > 0) s += `<text x="${(x + barW / 2).toFixed(1)}" y="${(cy - 5).toFixed(1)}" font-size="10.5" font-weight="700" fill="#4A4D45" text-anchor="middle" font-family="Inter">${total}</text>`;
     s += `<text x="${(x + barW / 2).toFixed(1)}" y="${height - 8}" font-size="9" fill="#86897F" text-anchor="middle" font-family="Inter">${esc(w.label)}</text>`;
@@ -5694,7 +5799,7 @@ function freqCardHtml() {
   return `<div class="card" id="freqCard">
     <div class="card-title" style="margin:0 0 6px">📅 Frequência de treino — últimas 10 semanas</div>
     <div style="display:flex;gap:16px;font-size:11px;color:#86897F;margin-bottom:4px">
-      <span><span style="display:inline-block;width:9px;height:9px;background:#E01B14;border-radius:2px;vertical-align:middle"></span> Musculação</span>
+      <span><span style="display:inline-block;width:9px;height:9px;background:#7a1f2c;border-radius:2px;vertical-align:middle"></span> Musculação</span>
       <span><span style="display:inline-block;width:9px;height:9px;background:#2F7D4F;border-radius:2px;vertical-align:middle"></span> Cardio</span>
     </div>
     ${buildFreqChartSVG(weeklyFrequency(10))}
@@ -5716,7 +5821,7 @@ function progressHtml() {
   const log = ex ? (DB.cargaLog || []).filter(l => l.exId === ex.id).sort((a, b) => (a.date > b.date ? 1 : -1)) : [];
   const data = log.map(l => ({ label: fmtShortDate(l.date), value: l.weight }));
   const chart = data.length >= 2
-    ? buildLineChartSVG(data, { color: '#E01B14', unit: ' kg' })
+    ? buildLineChartSVG(data, { color: '#7a1f2c', unit: ' kg' })
     : `<div class="empty">Edite a carga desse exercício (aba Treino) em 2+ datas diferentes pra ver a evolução.${data.length === 1 ? ` Já tem 1 registro: ${data[0].value} kg em ${data[0].label}.` : ''}</div>`;
   return `
     <div class="section-workout">
@@ -5825,7 +5930,7 @@ function cardioHtml() {
   const metricLabel = (CARDIO_METRICS.find(m => m[0] === metric) || [])[1] || '';
   const unit = metric === 'pace' ? ' min/km' : metric === 'speed' ? ' km/h' : metric === 'dist' ? ' km' : metric === 'kcal' ? ' kcal' : ' min';
   const chart = data.length >= 2
-    ? buildLineChartSVG(data, { color: '#E01B14', unit })
+    ? buildLineChartSVG(data, { color: '#7a1f2c', unit })
     : `<div class="empty">Registre 2+ sessões de ${esc(type)} pra ver o gráfico de ${metricLabel.toLowerCase()}.</div>`;
   const isSport = CARDIO_SPORTS.indexOf(type) !== -1;
   const today = todayStr();
@@ -7054,7 +7159,7 @@ function gymPresenceCardHtml() {
   const t = todayStr();
   const went = gymWentOn(t);
   const e = gymEntryFor(t);
-  return `<div class="card" id="gymPresenceCard" style="background:#FFF5F4;border-color:#FAC5C1">
+  return `<div class="card" id="gymPresenceCard" style="background:#FFF5F4;border-color:#e3c7cb">
     <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
       <button class="btn${went ? '' : ' secondary'}" id="gymTodayBtn">${went ? '✓ Treinei hoje' : '💪 Marcar que treinei hoje'}</button>
       ${went ? `<span style="font-size:12px;color:#86897F">${e.minutes} min · ≈ <b>${gymKcal(e)} kcal</b>${e.kcal != null && e.kcal !== '' ? '' : ' (estimado)'}</span>` : ''}
@@ -7208,7 +7313,7 @@ function measurementChartBodyHtml() {
   }
   const data = list.sort((a, b) => (a.date > b.date ? 1 : -1)).map(m => ({ label: fmtShortDate(m.date), value: Number(m[key]) }));
   if (data.length < 2) return `<div class="empty">Registre "${label}" em pelo menos 2 datas diferentes (no período escolhido) pra ver o gráfico aqui.</div>`;
-  return buildLineChartSVG(data, { color: '#9B5FA0', unit: ` ${unit}` });
+  return buildLineChartSVG(data, { color: '#7a1f2c', unit: ` ${unit}` });
 }
 
 function measurementsHtml() {
@@ -7250,11 +7355,11 @@ function measurementsHtml() {
         <button class="btn secondary" id="measureRangeApplyBtn">Aplicar</button>
         <button class="btn secondary" id="measureRangeWeekBtn">Última semana</button>
         <button class="btn secondary" id="measureRangeMonthBtn">Último mês</button>
-        <button class="btn secondary" id="measureRangeResetBtn"${ui.measureRange.all ? ' style="background:#9B5FA0;color:#fff"' : ''}>Geral</button>
+        <button class="btn secondary" id="measureRangeResetBtn"${ui.measureRange.all ? ' style="background:#7a1f2c;color:#fff"' : ''}>Geral</button>
       </div>
       ${measurementChartBodyHtml()}
       <div style="text-align:center;margin-top:8px">
-        ${MEASURE_FIELDS.map((_, i) => `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;margin:0 3px;background:${i === ui.measureChartIndex ? '#9B5FA0' : '#EDD9F0'}"></span>`).join('')}
+        ${MEASURE_FIELDS.map((_, i) => `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;margin:0 3px;background:${i === ui.measureChartIndex ? '#7a1f2c' : '#e7d5d8'}"></span>`).join('')}
       </div>
     </div>
 
@@ -7413,7 +7518,7 @@ function buildFreqChartSVG(weeks) {
     const cy = gy - ch;
     const total = w.gym + w.cardio;
     let s = '';
-    if (gh > 0) s += `<rect x="${x.toFixed(1)}" y="${gy.toFixed(1)}" width="${barW.toFixed(1)}" height="${gh.toFixed(1)}" fill="#E01B14" rx="2"><title>${esc(w.label)}: ${w.gym}x musculação</title></rect>`;
+    if (gh > 0) s += `<rect x="${x.toFixed(1)}" y="${gy.toFixed(1)}" width="${barW.toFixed(1)}" height="${gh.toFixed(1)}" fill="#7a1f2c" rx="2"><title>${esc(w.label)}: ${w.gym}x musculação</title></rect>`;
     if (ch > 0) s += `<rect x="${x.toFixed(1)}" y="${cy.toFixed(1)}" width="${barW.toFixed(1)}" height="${ch.toFixed(1)}" fill="#2F7D4F" rx="2"><title>${esc(w.label)}: ${w.cardio}x cardio</title></rect>`;
     if (total > 0) s += `<text x="${(x + barW / 2).toFixed(1)}" y="${(cy - 5).toFixed(1)}" font-size="10.5" font-weight="700" fill="#4A4D45" text-anchor="middle" font-family="Inter">${total}</text>`;
     s += `<text x="${(x + barW / 2).toFixed(1)}" y="${height - 8}" font-size="9" fill="#86897F" text-anchor="middle" font-family="Inter">${esc(w.label)}</text>`;
@@ -7432,7 +7537,7 @@ function freqCardHtml() {
   return `<div class="card" id="freqCard">
     <div class="card-title" style="margin:0 0 6px">📅 Frequência de treino — últimas 10 semanas</div>
     <div style="display:flex;gap:16px;font-size:11px;color:#86897F;margin-bottom:4px">
-      <span><span style="display:inline-block;width:9px;height:9px;background:#E01B14;border-radius:2px;vertical-align:middle"></span> Musculação</span>
+      <span><span style="display:inline-block;width:9px;height:9px;background:#7a1f2c;border-radius:2px;vertical-align:middle"></span> Musculação</span>
       <span><span style="display:inline-block;width:9px;height:9px;background:#2F7D4F;border-radius:2px;vertical-align:middle"></span> Cardio</span>
     </div>
     ${buildFreqChartSVG(weeklyFrequency(10))}
@@ -7454,7 +7559,7 @@ function progressHtml() {
   const log = ex ? (DB.cargaLog || []).filter(l => l.exId === ex.id).sort((a, b) => (a.date > b.date ? 1 : -1)) : [];
   const data = log.map(l => ({ label: fmtShortDate(l.date), value: l.weight }));
   const chart = data.length >= 2
-    ? buildLineChartSVG(data, { color: '#E01B14', unit: ' kg' })
+    ? buildLineChartSVG(data, { color: '#7a1f2c', unit: ' kg' })
     : `<div class="empty">Edite a carga desse exercício (aba Treino) em 2+ datas diferentes pra ver a evolução.${data.length === 1 ? ` Já tem 1 registro: ${data[0].value} kg em ${data[0].label}.` : ''}</div>`;
   return `
     <div class="section-workout">
@@ -7563,7 +7668,7 @@ function cardioHtml() {
   const metricLabel = (CARDIO_METRICS.find(m => m[0] === metric) || [])[1] || '';
   const unit = metric === 'pace' ? ' min/km' : metric === 'speed' ? ' km/h' : metric === 'dist' ? ' km' : metric === 'kcal' ? ' kcal' : ' min';
   const chart = data.length >= 2
-    ? buildLineChartSVG(data, { color: '#E01B14', unit })
+    ? buildLineChartSVG(data, { color: '#7a1f2c', unit })
     : `<div class="empty">Registre 2+ sessões de ${esc(type)} pra ver o gráfico de ${metricLabel.toLowerCase()}.</div>`;
   const isSport = CARDIO_SPORTS.indexOf(type) !== -1;
   const today = todayStr();

@@ -213,7 +213,7 @@
   #view-agenda .wrap {max-width:1080px;margin:0 auto;}
   #view-agenda header {margin-bottom:24px;padding-bottom:14px;text-align:center;}
   #view-agenda h1 {margin:0 0 16px;font-size:28px;font-weight:700;letter-spacing:-.01em;}
-  #view-agenda .mensal-subheader{text-align:center;margin-bottom:28px;}
+  #view-agenda .mensal-subheader{text-align:center;margin-bottom:28px;max-width:640px;margin-left:auto;margin-right:auto;}
   #view-agenda .range {font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--muted);margin-bottom:12px;}
   #view-agenda .legend {display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;}
   #view-agenda .legend span {display:inline-flex;align-items:center;gap:6px;color:var(--muted);}
@@ -344,7 +344,7 @@
     font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;color:var(--muted);line-height:1.6;
   }
 
-  #view-agenda .layout {display:flex;gap:24px;align-items:flex-start;}
+  #view-agenda .layout {display:flex;gap:24px;align-items:flex-start;max-width:760px;margin:0 auto;}
   #view-agenda .sidebar {
     width:300px;flex-shrink:0;
     position:sticky;top:20px;
@@ -973,14 +973,14 @@
 
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;#view-dieta 500;600;700&family=Sora:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap');
   * { box-sizing: border-box; }
-  #view-dieta { font-family: 'Inter', sans-serif; background: linear-gradient(180deg, #F3F8F5 0%, #FAFAF7 260px); color: #1E211D; margin: 0; min-height: 100vh; }
+  #view-dieta { font-family: 'Inter', sans-serif; background: linear-gradient(180deg, #f8f2f3 0%, #FAFAF7 260px); color: #1E211D; margin: 0; min-height: 100vh; }
   #view-dieta .scoreboard { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
   #view-dieta .display { font-family: 'Sora', sans-serif; letter-spacing: -0.01em; }
   #view-dieta .app-header { padding: 28px 20px 0; max-width: 720px; margin: 0 auto; text-align: center; }
   #view-dieta .app-title { font-size: 26px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 0.02em; }
   #view-dieta #tabsDieta { display: flex; gap: 2px; margin: 22px auto 0; padding: 0 20px; border-bottom: 1px solid #E4E2D9; max-width: 720px; }
   #view-dieta .tab-btn { display: flex; align-items: center; gap: 6px; padding: 11px 14px; background: none; border: none; color: #9A9C90; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
-  #view-dieta .tab-btn.active[data-tab="diet"] { color: #2F7D4F; border-bottom-color: #2F7D4F; }
+  #view-dieta .tab-btn.active[data-tab="diet"] { color: #7a1f2c; border-bottom-color: #7a1f2c; }
   #view-dieta .tab-btn.active[data-tab="workout"] { color: #7a1f2c; border-bottom-color: #7a1f2c; }
   #view-dieta .tab-btn.active[data-tab="measurements"] { color: #7a1f2c; border-bottom-color: #7a1f2c; }
   #view-dieta .tab-btn.active[data-tab="config"] { color: #7a1f2c; border-bottom-color: #7a1f2c; }
@@ -988,8 +988,8 @@
   #view-dieta #contentDieta { padding: 22px 20px 60px; max-width: 720px; margin: 0 auto; }
   #view-dieta .card { background: #FFFFFF; border: 1px solid #E9E7DF; border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(30,33,29,0.03); }
   #view-dieta .card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #86897F; margin: 0 0 12px; }
-  #view-dieta .nutri-box { border: 2px solid #1E5631; border-radius: 6px; padding: 0; overflow: hidden; background: #F3FAF5; }
-  #view-dieta .nutri-head { padding: 10px 14px; border-bottom: 6px solid #1E5631; background: #E3F3E7; }
+  #view-dieta .nutri-box { border: 2px solid #7a1f2c; border-radius: 6px; padding: 0; overflow: hidden; background: #faf4f5; }
+  #view-dieta .nutri-head { padding: 10px 14px; border-bottom: 6px solid #7a1f2c; background: #f4e6e8; }
   #view-dieta .nutri-head .h1 { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 15px; }
   #view-dieta .nutri-head .h2 { font-size: 11px; color: #86897F; margin-top: 2px; }
   #view-dieta .nutri-row { padding: 10px 14px; border-bottom: 1px solid #E4E2D9; }
@@ -1006,7 +1006,7 @@
   #view-dieta .field-grid .field input { width: 100%; }
   @media (max-width: 480px) { #view-dieta .field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   #view-dieta input, #view-dieta select, #view-dieta textarea { background: #F1F3F5; border: 1px solid #E3E6EA; color: #1E211D; border-radius: 9px; padding: 10px 12px; font-size: 13px; font-family: inherit; transition: border-color .15s, box-shadow .15s, background .15s; }
-  #view-dieta input:focus, #view-dieta select:focus, #view-dieta textarea:focus { outline: none; background:#fff; border-color: #2F7D4F; box-shadow: 0 0 0 3px rgba(47,125,79,0.14); }
+  #view-dieta input:focus, #view-dieta select:focus, #view-dieta textarea:focus { outline: none; background:#fff; border-color: #7a1f2c; box-shadow: 0 0 0 3px rgba(122,31,44,0.14); }
   #view-dieta .btn { background: #7a1f2c; color: #FAFAF7; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
   #view-dieta .btn:hover { background: #5f1622; }
   #view-dieta .btn:disabled { opacity: 0.4; cursor: default; }
@@ -1028,8 +1028,8 @@
   #view-dieta .food-result-item { padding: 8px 10px; font-size: 12.5px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
   #view-dieta .food-result-item > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   #view-dieta .food-result-item > span:last-child { flex-shrink: 0; font-size: 10.5px; }
-  #view-dieta .food-result-item:hover { background: #EAF3EC; }
-  #view-dieta .result-section-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: #2F7D4F; padding: 7px 10px 3px; }
+  #view-dieta .food-result-item:hover { background: #f5edee; }
+  #view-dieta .result-section-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: #7a1f2c; padding: 7px 10px 3px; }
   #view-dieta .result-section-label.warn { color: #C4573F; border-top: 1px solid #F0EFE8; }
   #view-dieta .result-section-label.mine { color: #3B7EC4; border-top: 1px solid #F0EFE8; }
   #view-dieta .weekday-block { margin-bottom: 10px; }
@@ -1048,17 +1048,17 @@
 
   /* ---- cores por seção ---- */
   #view-dieta .section-diet .card-title, #view-dieta .section-diet .btn { }
-  #view-dieta .section-diet .btn { background: #2F7D4F; }
-  #view-dieta .section-diet .btn:hover { background: #256640; }
-  #view-dieta .section-diet .btn.secondary { background: #DCEEE1; color: #1E5631; }
-  #view-dieta .section-diet .btn.secondary:hover { background: #C9E5D1; }
+  #view-dieta .section-diet .btn { background: #7a1f2c; }
+  #view-dieta .section-diet .btn:hover { background: #5f1622; }
+  #view-dieta .section-diet .btn.secondary { background: #f0e2e4; color: #7a1f2c; }
+  #view-dieta .section-diet .btn.secondary:hover { background: #e6d2d5; }
   #view-dieta .section-diet .card.card-water { background: #EAF6FB; border-color: #BFE2EF; }
   #view-dieta .section-diet .card.card-water .card-title { color: #1E7595; }
   #view-dieta .section-diet .card.card-water .btn.secondary { background: #D5EEF6; color: #14607D; }
   #view-dieta .section-diet .card.card-water .btn.secondary:hover { background: #C2E5F1; }
-  #view-dieta .section-diet .card.card-add { background: #F3FAF5; border-color: #D3EBDA; }
-  #view-dieta .section-diet .card.card-meals { background: #F3FAF5; border-color: #D3EBDA; }
-  #view-dieta .section-diet .card.card-stats { background: #F3FAF5; border-color: #D3EBDA; }
+  #view-dieta .section-diet .card.card-add { background: #faf4f5; border-color: #ecdcde; }
+  #view-dieta .section-diet .card.card-meals { background: #faf4f5; border-color: #ecdcde; }
+  #view-dieta .section-diet .card.card-stats { background: #faf4f5; border-color: #ecdcde; }
 
   #view-dieta .section-workout .btn { background: #7a1f2c; }
   #view-dieta .section-workout .btn:hover { background: #7a1f2c; }
@@ -4969,7 +4969,7 @@ function dietHtml() {
     <div class="nutri-box" style="margin-bottom:16px">
       <div class="nutri-head"><div class="h1">Informação nutricional do dia</div><div class="h2">${fmtDateLabel(ui.dietDate)} · consumido / meta</div></div>
       ${remainingKcalBannerHtml(totals.kcal, DB.goals.kcal, exBurn)}
-      ${goalBarHtml('Calorias ingeridas', totals.kcal, DB.goals.kcal, ' kcal', '#2F7D4F')}
+      ${goalBarHtml('Calorias ingeridas', totals.kcal, DB.goals.kcal, ' kcal', '#7a1f2c')}
       ${exBurn > 0 ? `<div class="nutri-row">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <span class="label"><span class="dot" style="background:#C0392B"></span>Gasto em exercício</span>
@@ -6729,7 +6729,7 @@ function dietHtml() {
     <div class="nutri-box" style="margin-bottom:16px">
       <div class="nutri-head"><div class="h1">Informação nutricional do dia</div><div class="h2">${fmtDateLabel(ui.dietDate)} · consumido / meta</div></div>
       ${remainingKcalBannerHtml(totals.kcal, DB.goals.kcal, exBurn)}
-      ${goalBarHtml('Calorias ingeridas', totals.kcal, DB.goals.kcal, ' kcal', '#2F7D4F')}
+      ${goalBarHtml('Calorias ingeridas', totals.kcal, DB.goals.kcal, ' kcal', '#7a1f2c')}
       ${exBurn > 0 ? `<div class="nutri-row">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <span class="label"><span class="dot" style="background:#C0392B"></span>Gasto em exercício</span>

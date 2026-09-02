@@ -290,9 +290,9 @@
   #view-agenda .entry .time {font-size:11px;font-weight:700;min-width:42px;flex-shrink:0;padding-top:1px;}
   #view-agenda .entry .body .title {font-size:13px;line-height:1.35;}
   #view-agenda .entry .body .who {font-size:11px;color:var(--muted);font-style:italic;}
-  /* no cartão de HOJE, o que já passou fica apagado e riscado */
-  #view-agenda .day-card.today .entry.past {opacity:.4;}
-  #view-agenda .day-card.today .entry.past .title {text-decoration:line-through;}
+  /* no cartão de HOJE, o que já passou fica apagado e em itálico (sem risco) */
+  #view-agenda .day-card.today .entry.past {opacity:.5;}
+  #view-agenda .day-card.today .entry.past .title {font-style:italic;}
 
   #view-agenda .entry.medb {border-color:var(--medb);background:var(--medb-bg);}
   #view-agenda .entry.medb .time {color:var(--medb);}
@@ -2077,6 +2077,10 @@ const PEND = {
       if(typeof window.__facSetVisto === 'function') window.__facSetVisto(p.vidKey, nv);
       else syncFacVistoStorage(p.vidKey, nv); // Faculdade não está aberta: grava direto
     }
+    if(p.claseKey && /^medint-\d+-\d+$/.test(p.claseKey)){
+      if(typeof window.__facMedintSetDone === 'function') window.__facMedintSetDone(p.claseKey, nv);
+      else syncMedintStatusStorage(p.claseKey.replace(/^medint-/, ''), nv);
+    }
   },
   remove(id){ this.list = this.list.filter(x=>x.id !== id); this.save(); },
 };
@@ -2090,6 +2094,14 @@ async function syncFacVistoStorage(key, val){
   if(!s || typeof s !== 'object') s = {};
   if(val) s[key] = true; else delete s[key];
   storageSetWithRetry('faculdade_farmaco_status', JSON.stringify(s));
+}
+async function syncMedintStatusStorage(mk, val){
+  const r = await storageGetWithRetry('faculdade_medint_status');
+  let s;
+  try { s = (r && r.value !== undefined) ? JSON.parse(r.value) : {}; } catch(e){ s = {}; }
+  if(!s || typeof s !== 'object') s = {};
+  if(val) s[mk] = true; else delete s[mk];
+  storageSetWithRetry('faculdade_medint_status', JSON.stringify(s));
 }
 
 // Reflete no painel da Agenda (se aberto) mudanças feitas por fora
@@ -2265,7 +2277,7 @@ const BACKUP_KEYS = [
   'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog',
   'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog', 'treino_gymLog', 'treino_gymMinutes',
   'ideias_itens',
-  'faculdade_farmaco_status', 'faculdade_notas_medint', 'faculdade_notas_guardias',
+  'faculdade_farmaco_status', 'faculdade_medint_status', 'faculdade_notas_medint', 'faculdade_notas_guardias',
 ];
 
 async function doGlobalExport(){
@@ -8273,6 +8285,8 @@ window.init_faculdade = function(){
   ];
 
   const medintListEl = document.getElementById('facMedintList');
+  let medintSeen = {};
+  let _medintSyncing = false;
 
   function renderMedint(){
     if(!medintListEl) return;
@@ -8288,8 +8302,9 @@ window.init_faculdade = function(){
         rows = m.clases.map((c, ci) => {
           const key = 'medint-' + mi + '-' + ci;
           const has = inPend(() => PEND.byClase(key));
-          return `<div class="fac-vid">`
-            + `<span class="fac-spacer"></span>`
+          const done = !!medintSeen[mi + '-' + ci];
+          return `<div class="fac-vid${done ? ' done' : ''}">`
+            + `<input type="checkbox" data-mk="${mi}-${ci}"${done ? ' checked' : ''} title="marcar como estudada">`
             + `<span><span class="name">${c.x}</span>${c.w ? ` <span class="dur">· ${c.w}</span>` : ''}</span>`
             + `<button class="fac-addpend${has ? ' in' : ''}" data-medint-addclase="${mi}-${ci}"`
             + ` title="${has ? 'já está nas pendências' : 'adicionar às pendências'}">${has ? '✓' : '+'}</button>`
@@ -8302,6 +8317,9 @@ window.init_faculdade = function(){
       </div>`;
     }).join('');
 
+    medintListEl.querySelectorAll('input[data-mk]').forEach(cb => {
+      cb.addEventListener('change', () => setMedintDone(cb.dataset.mk, cb.checked, false));
+    });
     medintListEl.querySelectorAll('[data-medint-addclase]').forEach(b => {
       b.addEventListener('click', () => {
         if(b.classList.contains('in') || !window.PEND) return;
@@ -8319,6 +8337,25 @@ window.init_faculdade = function(){
     });
   }
   function m_name(mi){ return MEDINT[mi] ? MEDINT[mi].mod : ('' + (mi + 1)); }
+
+  // marca/desmarca aula de Med Interna como estudada; sincroniza com a pendência da clase (se houver)
+  function setMedintDone(mk, val, fromPend){
+    if(val) medintSeen[mk] = true; else delete medintSeen[mk];
+    const cb = medintListEl.querySelector('input[data-mk="' + mk + '"]');
+    if(cb){ cb.checked = !!val; cb.closest('.fac-vid').classList.toggle('done', !!val); }
+    storageSetWithRetry('faculdade_medint_status', JSON.stringify(medintSeen));
+    if(!fromPend && !_medintSyncing && window.PEND){
+      const p = PEND.byClase('medint-' + mk);
+      if(p && p.done !== !!val){ _medintSyncing = true; PEND.setDone(p.id, !!val); _medintSyncing = false; }
+    }
+  }
+  window.__facMedintSetDone = function(claseKey, val){
+    if(_medintSyncing) return;
+    const mk = claseKey.replace(/^medint-/, '');
+    _medintSyncing = true;
+    setMedintDone(mk, val, true);
+    _medintSyncing = false;
+  };
 
   // marca/desmarca "visto", persiste, e sincroniza com a pendência do vídeo (se houver)
   function setVisto(key, val, fromPend){
@@ -8362,6 +8399,10 @@ window.init_faculdade = function(){
   }
   wireNotas('faculdade_notas_guardias', 'facNotasGuardias', 'facSaveGuardias', 'facSavedGuardias');
 
+  storageGetWithRetry('faculdade_medint_status').then(r => {
+    if(r && r.value !== undefined){ try { medintSeen = JSON.parse(r.value) || {}; } catch(e){ medintSeen = {}; } }
+    if(_facLoaded) renderMedint();
+  });
   storageGetWithRetry('faculdade_farmaco_status').then(r => {
     if(r && r.value !== undefined){ try { seen = JSON.parse(r.value) || {}; } catch(e){ seen = {}; } }
     _facLoaded = true;

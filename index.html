@@ -4822,7 +4822,7 @@ function remainingKcalBannerHtml(consumed, goal, burned) {
   const sub = burned > 0
     ? `<div style="color:#9a988c;font-size:12px;margin-top:2px">${round1(consumed)} ingeridas − ${Math.round(burned)} de exercício = <b>${round1(net)} kcal líquidas</b></div>`
     : '';
-  return `<div class="nutri-row" style="background:#EFF8F1">
+  return `<div class="nutri-row" style="background:${over ? '#FBEAE6' : '#E7F5EC'}">
     <div style="text-align:center;padding:2px 0">
       <span class="scoreboard" style="font-size:20px;font-weight:700;color:${over ? '#C4573F' : '#1E5631'}">${bigText}</span>
       ${sub}
@@ -6582,7 +6582,7 @@ function remainingKcalBannerHtml(consumed, goal, burned) {
   const sub = burned > 0
     ? `<div style="color:#9a988c;font-size:12px;margin-top:2px">${round1(consumed)} ingeridas − ${Math.round(burned)} de exercício = <b>${round1(net)} kcal líquidas</b></div>`
     : '';
-  return `<div class="nutri-row" style="background:#EFF8F1">
+  return `<div class="nutri-row" style="background:${over ? '#FBEAE6' : '#E7F5EC'}">
     <div style="text-align:center;padding:2px 0">
       <span class="scoreboard" style="font-size:20px;font-weight:700;color:${over ? '#C4573F' : '#1E5631'}">${bigText}</span>
       ${sub}
@@ -8283,7 +8283,7 @@ window.init_faculdade = function(){
         + ` title="${modHas ? 'módulo já está nas pendências' : 'adicionar módulo inteiro às pendências'}">${modHas ? '✓ pendência' : '+ pendência'}</button>`;
       let rows;
       if(!m.clases.length){
-        rows = `<div class="fac-vid miss"><span class="fac-spacer"></span><span class="note" style="font-style:italic">— aulas ainda não carregadas — me manda a lista</span></div>`;
+        rows = `<div class="fac-vid miss"><span class="fac-spacer"></span><span class="note" style="font-style:italic">— a cátedra ainda não disponibilizou as aulas deste módulo</span></div>`;
       } else {
         rows = m.clases.map((c, ci) => {
           const key = 'medint-' + mi + '-' + ci;

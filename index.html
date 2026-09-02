@@ -150,6 +150,8 @@
   #pendPanel .pend-row input[type=checkbox]{ margin-top:1px; width:16px; height:16px; flex-shrink:0; accent-color:#7a1f2c; cursor:pointer; }
   #pendPanel .pend-row-txt{ flex:1; font-size:13px; line-height:1.4; word-break:break-word; }
   #pendPanel .pend-row.done .pend-row-txt{ text-decoration:line-through; color:#a89e97; }
+  #pendPanel .pend-row[data-subj="farmaco"]{ border-left:3px solid #3b5fa8; padding-left:7px; }
+  #pendPanel .pend-row[data-subj="medint"]{ border-left:3px solid #a8394a; padding-left:7px; }
   #pendPanel .pend-row-link{ display:inline-block; font-size:11px; color:#7a1f2c; font-weight:700; text-decoration:none; margin-top:3px; }
   #pendPanel .pend-row-link:hover{ text-decoration:underline; }
   #pendPanel .pend-row-acts{ display:flex; gap:0; flex-shrink:0; }
@@ -288,6 +290,9 @@
   #view-agenda .entry .time {font-size:11px;font-weight:700;min-width:42px;flex-shrink:0;padding-top:1px;}
   #view-agenda .entry .body .title {font-size:13px;line-height:1.35;}
   #view-agenda .entry .body .who {font-size:11px;color:var(--muted);font-style:italic;}
+  /* no cartão de HOJE, o que já passou fica apagado e riscado */
+  #view-agenda .day-card.today .entry.past {opacity:.4;}
+  #view-agenda .day-card.today .entry.past .title {text-decoration:line-through;}
 
   #view-agenda .entry.medb {border-color:var(--medb);background:var(--medb-bg);}
   #view-agenda .entry.medb .time {color:var(--medb);}
@@ -1644,9 +1649,8 @@ async function storageGetWithRetry(key){
     </section>
 
     <section class="fac-sec" id="facSecMedint" style="display:none">
-      <p class="fac-intro">Anotações de <b>Medicina Interna B</b> — cronograma, temas, professores, o que precisar. Clica em <b>Salvar</b> pra guardar.</p>
-      <textarea class="fac-notas" id="facNotasMedint" placeholder="cole ou escreva aqui..."></textarea>
-      <div><button class="fac-save-btn" id="facSaveMedint">Salvar</button><span class="fac-saved-msg" id="facSavedMedint">salvo ✓</span></div>
+      <p class="fac-intro">Aulas de <b>Medicina Interna B</b> por módulo. O <b>+</b> joga a aula (ou o módulo inteiro) nas pendências; ao agendar no cronograma ela entra com a cor de Medicina Interna.</p>
+      <div class="fac-farmaco-list" id="facMedintList"></div>
     </section>
 
     <section class="fac-sec" id="facSecGuardias" style="display:none">
@@ -2120,7 +2124,7 @@ function renderPendPanel(){
       + `</div>`;
     if(!items.length){ html += `<div class="pend-grp-empty">nenhuma</div>`; }
     items.forEach(p=>{
-      html += `<div class="pend-row${p.done?' done':''}">`
+      html += `<div class="pend-row${p.done?' done':''}"${p.subj?` data-subj="${p.subj}"`:''}>`
         + `<input type="checkbox" data-pd-done="${p.id}"${p.done?' checked':''}>`
         + `<div class="pend-row-txt">${esc(p.ti)}`
         + (p.link ? `<a class="pend-row-link" href="${esc(p.link)}" target="_blank" rel="noopener">▶ abrir vídeo</a>` : '')
@@ -2189,8 +2193,10 @@ async function doPendSched(){
   let evs;
   try { evs = (r && r.value !== undefined) ? JSON.parse(r.value) : []; } catch(e){ evs = []; }
   if(!Array.isArray(evs)) evs = [];
+  // pendência de matéria vai pro calendário com a cor da matéria (farmaco = azul, medint = medb/vermelho)
+  const subjCls = p.subj === 'farmaco' ? 'farmaco' : (p.subj === 'medint' ? 'medb' : 'pessoal');
   evs.push({ id: 'ev_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-             d: d, t: t, ti: p.ti, c: 'pessoal', scope: 'mensal', fromPend: true });
+             d: d, t: t, ti: p.ti, c: subjCls, scope: 'mensal', fromPend: true });
   await storageSetWithRetry('agenda_user_events', JSON.stringify(evs));
   if(typeof window.refreshAgendaExternal === 'function') window.refreshAgendaExternal();
   const dd = d.split('-').reverse().join('/');
@@ -3530,6 +3536,8 @@ function renderDays(){
     `${today.getDate()} de ${monthNames[today.getMonth()]} — ${endDate.getDate()} de ${monthNames[endDate.getMonth()]} de ${endDate.getFullYear()}`;
 
   const allEvents = academicEvents.concat(userEvents);
+  const _now = new Date();
+  const nowVal = _now.getHours() * 100 + _now.getMinutes(); // pra comparar com timeVal("HH:MM")
   const daysContainer = document.getElementById("days");
   let html = "";
   for(let i=0;i<30;i++){
@@ -3583,10 +3591,11 @@ function renderDays(){
     all.forEach(e=>{
       const editable = e.id !== undefined;
       const editBtns = editable ? `<span class="entry-actions"><button class="entry-edit" data-id="${e.id}" title="editar">✎</button><button class="entry-del" data-id="${e.id}" title="excluir">✕</button></span>` : "";
+      const past = (isToday && e.t && timeVal(e.t) < nowVal) ? ' past' : '';
       if(e.c==="saopaulo"){
-        html += `<div class="entry saopaulo"><span class="time">⭐${e.t?" "+e.t:""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
+        html += `<div class="entry saopaulo${past}"><span class="time">⭐${e.t?" "+e.t:""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
       } else {
-        html += `<div class="entry ${e.c}"><span class="time">${e.t||""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
+        html += `<div class="entry ${e.c}${past}"><span class="time">${e.t||""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
       }
     });
 
@@ -8205,17 +8214,111 @@ window.init_faculdade = function(){
         if(b.classList.contains('in') || !window.PEND) return;
         const dur = b.dataset.dur ? ' (' + b.dataset.dur + ')' : '';
         PEND.add({ ti: '▶ Ver: ' + b.dataset.name + dur + ' · Farmaco ' + b.dataset.clase,
-                   setor: 'faculdade', vidKey: b.dataset.facAddpend, link: 'https://youtu.be/' + b.dataset.u });
+                   setor: 'faculdade', subj: 'farmaco', vidKey: b.dataset.facAddpend, link: 'https://youtu.be/' + b.dataset.u });
       });
     });
     listEl.querySelectorAll('[data-fac-addclase]').forEach(b => {
       b.addEventListener('click', () => {
         if(b.classList.contains('in') || !window.PEND) return;
         const c = FARMACO[Number(b.dataset.facAddclase)];
-        PEND.add({ ti: 'Estudar Farmaco ' + c.n + ' — ' + c.t, setor: 'faculdade', claseKey: claseKeyOf(Number(b.dataset.facAddclase)) });
+        PEND.add({ ti: 'Estudar Farmaco ' + c.n + ' — ' + c.t, setor: 'faculdade', subj: 'farmaco', claseKey: claseKeyOf(Number(b.dataset.facAddclase)) });
       });
     });
   }
+
+  // ===== Medicina Interna B — aulas por módulo (sem vídeo, só título + prof) =====
+  const MEDINT = [
+    { mod: 'Respiratorio', clases: [
+      { x:'Insuficiencia respiratoria aguda y crónica', w:'Dra. Viviana Falasco' },
+      { x:'Neumonías extra/intrahospitalarias', w:'Dr. Luis Lopez' },
+      { x:'Sarcoidosis pulmonar', w:'Dr. Miguel Falasco' },
+      { x:'Abscesos pulmonares. Micosis pulmonares', w:'Dra. Marina Bernat' },
+      { x:'Patología pleural', w:'Dra. Silvia Falasco' },
+      { x:'Tuberculosis', w:'Dr. David Stokhamer' },
+      { x:'Tumores de pulmón. Tabaquismo. Cáncer de pulmón', w:'Dra. Eliana Quevedo' },
+      { x:'Hipertensión pulmonar', w:'Dra. Viviana Falasco' },
+      { x:'Vasculitis pulmonares', w:'Dr. Gonzalo Rodriguez' },
+      { x:'Enfermedad intersticial pulmonar', w:'Dra. Viviana Falasco' },
+      { x:'Pruebas funcionales respiratorias. Espirometría', w:'Dra. Martinez Cortizas' },
+      { x:'EPOC. Bronquitis crónica. Enfisema', w:'Dr. Lautaro Ancona' },
+      { x:'Asma', w:'Dr. Juan Daroqui' },
+      { x:'Distress respiratorio', w:'Dra. Julieta Gonzalez' },
+      { x:'SAOS', w:'Dr. Fabio Leone' },
+      { x:'TVP y TEP', w:'Dra. Carolina de Llano' },
+      { x:'Rx. Imágenes', w:'Dr. Miguel Falasco' },
+    ]},
+    { mod: 'Cardiovascular', clases: [
+      { x:'Insuficiencia Cardíaca. Diagnóstico y Tratamiento — 1° parte', w:'Dra. Viviana Falasco' },
+      { x:'Síndrome coronario — 1° parte. Definiciones. SC agudo/crónico. ECG. IAM c/supra y s/supra ST', w:'Dr. Alejandro Ordóñez' },
+      { x:'Síndrome coronario — 2° parte. Tratamiento del SC agudo y crónico', w:'Dr. Alejandro Ordóñez' },
+      { x:'Insuficiencia Cardíaca. Diagnóstico y Tratamiento — 2° parte', w:'Dra. Viviana Falasco' },
+      { x:'Hipertensión arterial. Diagnóstico y Tratamiento. Factores de riesgo', w:'Dra. Eliana Quevedo' },
+      { x:'Enfermedades del pericardio', w:'Dr. Miguel Falasco' },
+      { x:'Valvulopatías izquierda y M. Valvulopatías derechas', w:'Dr. Tomás Busquets' },
+      { x:'Endocarditis', w:'Dra. Elizabeth Pais' },
+      { x:'Taller de ECG — 1°', w:'Dra. Viviana Falasco' },
+      { x:'Síndrome coronario — 3° parte. Sind. coronarios no oclusivos: Minoca / Inoca / Anoca', w:'Dra. Viviana Falasco' },
+      { x:'Síncope', w:'Dra. Silvia Falasco' },
+      { x:'Miocardiopatías', w:'Dra. Graciela Fernandez' },
+      { x:'Shock y Shock cardiogénico. Paro cardiorrespiratorio', w:'Dr. Aníbal Aristizabal' },
+      { x:'Enfermedad de la aorta. Disección, aneurisma y síndrome de Marfan', w:'Dra. Julieta Gonzalez' },
+      { x:'Taller de ECG — 2°', w:'Dra. Viviana Falasco' },
+      { x:'Arritmias. Clasificación. Fibrilación auricular. Tratamiento', w:'Dr. Lautaro Ancona' },
+      { x:'Fiebre reumática', w:'Dr. Gonzalo Rodriguez' },
+      { x:'Síndrome cardio-reno-metabólico', w:'Dra. Viviana Falasco' },
+    ]},
+    { mod: 'Digestivo', clases: [] },
+    { mod: 'Renal, Endocrino y Metabolismo', clases: [] },
+    { mod: 'Sangre y Colagenopatías', clases: [] },
+  ];
+
+  const medintListEl = document.getElementById('facMedintList');
+
+  function renderMedint(){
+    if(!medintListEl) return;
+    medintListEl.innerHTML = MEDINT.map((m, mi) => {
+      const modKey = 'medint-mod-' + mi;
+      const modHas = inPend(() => PEND.byClase(modKey));
+      const modBtn = `<button class="fac-addpend fac-addpend-clase${modHas ? ' in' : ''}" data-medint-addmod="${mi}"`
+        + ` title="${modHas ? 'módulo já está nas pendências' : 'adicionar módulo inteiro às pendências'}">${modHas ? '✓ pendência' : '+ pendência'}</button>`;
+      let rows;
+      if(!m.clases.length){
+        rows = `<div class="fac-vid miss"><span class="fac-spacer"></span><span class="note" style="font-style:italic">— aulas ainda não carregadas — me manda a lista</span></div>`;
+      } else {
+        rows = m.clases.map((c, ci) => {
+          const key = 'medint-' + mi + '-' + ci;
+          const has = inPend(() => PEND.byClase(key));
+          return `<div class="fac-vid">`
+            + `<span class="fac-spacer"></span>`
+            + `<span><span class="name">${c.x}</span>${c.w ? ` <span class="dur">· ${c.w}</span>` : ''}</span>`
+            + `<button class="fac-addpend${has ? ' in' : ''}" data-medint-addclase="${mi}-${ci}"`
+            + ` title="${has ? 'já está nas pendências' : 'adicionar às pendências'}">${has ? '✓' : '+'}</button>`
+            + `</div>`;
+        }).join('');
+      }
+      return `<div class="fac-clase">
+        <div class="fac-clase-head"><span class="fac-clase-title">Módulo ${mi + 1} <span class="fac-clase-sub">— ${m.mod}</span></span>${modBtn}</div>
+        <div style="padding:10px 14px">${rows}</div>
+      </div>`;
+    }).join('');
+
+    medintListEl.querySelectorAll('[data-medint-addclase]').forEach(b => {
+      b.addEventListener('click', () => {
+        if(b.classList.contains('in') || !window.PEND) return;
+        const [mi, ci] = b.dataset.medintAddclase.split('-').map(Number);
+        const m = MEDINT[mi];
+        PEND.add({ ti: '📖 Estudar: ' + m.clases[ci].x + ' · Interna ' + m.mod, setor: 'faculdade', subj: 'medint', claseKey: 'medint-' + mi + '-' + ci });
+      });
+    });
+    medintListEl.querySelectorAll('[data-medint-addmod]').forEach(b => {
+      b.addEventListener('click', () => {
+        if(b.classList.contains('in') || !window.PEND) return;
+        const mi = Number(b.dataset.medintAddmod);
+        PEND.add({ ti: '📖 Estudar Interna — Módulo ' + m_name(mi), setor: 'faculdade', subj: 'medint', claseKey: 'medint-mod-' + mi });
+      });
+    });
+  }
+  function m_name(mi){ return MEDINT[mi] ? MEDINT[mi].mod : ('' + (mi + 1)); }
 
   // marca/desmarca "visto", persiste, e sincroniza com a pendência do vídeo (se houver)
   function setVisto(key, val, fromPend){
@@ -8234,7 +8337,7 @@ window.init_faculdade = function(){
     setVisto(key, val, true);
     _facSyncing = false;
   };
-  if(window.PEND) PEND.on(() => { if(_facLoaded) render(); });
+  if(window.PEND) PEND.on(() => { if(_facLoaded){ render(); renderMedint(); } });
 
   document.querySelectorAll('#view-faculdade .fac-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -8257,13 +8360,13 @@ window.init_faculdade = function(){
       setTimeout(() => { m.style.display = 'none'; }, 1600);
     });
   }
-  wireNotas('faculdade_notas_medint', 'facNotasMedint', 'facSaveMedint', 'facSavedMedint');
   wireNotas('faculdade_notas_guardias', 'facNotasGuardias', 'facSaveGuardias', 'facSavedGuardias');
 
   storageGetWithRetry('faculdade_farmaco_status').then(r => {
     if(r && r.value !== undefined){ try { seen = JSON.parse(r.value) || {}; } catch(e){ seen = {}; } }
     _facLoaded = true;
     render();
+    renderMedint();
   });
 };
 

@@ -138,8 +138,14 @@
   #pendPanel .pend-panel-head button{ background:none; border:none; font-size:18px; cursor:pointer; color:#8a7f78; }
   #pendPanel .pend-panel-body{ flex:1; overflow-y:auto; padding:10px 16px 22px; }
   #pendPanel .pend-grp-t{ font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
-    color:#8a7f78; margin:16px 0 4px; }
+    color:#8a7f78; margin:16px 0 6px; }
   #pendPanel .pend-grp-t:first-child{ margin-top:2px; }
+  #pendPanel .pend-add-row-p{ display:flex; gap:6px; margin-bottom:8px; }
+  #pendPanel .pend-add-inp{ flex:1; min-width:0; padding:8px 10px; font-size:13px; font-family:inherit;
+    border:1px solid #e0d7d2; border-radius:8px; background:#fff; box-sizing:border-box; }
+  #pendPanel .pend-add-btn{ flex-shrink:0; width:34px; border:none; border-radius:8px; background:#7a1f2c; color:#fff;
+    font-size:17px; font-weight:800; line-height:1; cursor:pointer; }
+  #pendPanel .pend-grp-empty{ font-size:11.5px; color:#a89e97; font-style:italic; padding:0 2px 4px; }
   #pendPanel .pend-row{ display:flex; align-items:flex-start; gap:9px; padding:9px 0; border-top:1px solid #f0e8e4; }
   #pendPanel .pend-row input[type=checkbox]{ margin-top:1px; width:16px; height:16px; flex-shrink:0; accent-color:#7a1f2c; cursor:pointer; }
   #pendPanel .pend-row-txt{ flex:1; font-size:13px; line-height:1.4; word-break:break-word; }
@@ -1504,7 +1510,7 @@ async function storageGetWithRetry(key){
 <aside id="pendPanel" hidden>
   <div class="pend-panel-head"><span>Pendências</span><button id="pendPanelClose" aria-label="fechar">✕</button></div>
   <div class="pend-panel-body" id="pendPanelBody"></div>
-  <div class="pend-panel-foot">Pra criar novas: aba <b>Agenda</b>, ou o <b>+</b> nos vídeos/clases da <b>Faculdade</b>.</div>
+  <div class="pend-panel-foot">Também dá pra adicionar pelo <b>+</b> nos vídeos/clases da <b>Faculdade</b>.</div>
 </aside>
 <div id="pendSchedBox" hidden>
   <div class="pend-sched-card">
@@ -2115,15 +2121,20 @@ function renderPendTab(){
 function renderPendPanel(){
   const body = document.getElementById('pendPanelBody');
   if(!body) return;
+  // preserva texto sendo digitado nos campos de "adicionar" ao re-renderizar
+  const draft = {};
+  body.querySelectorAll('.pend-add-inp').forEach(i=>{ if(i.value) draft[i.dataset.setor] = i.value; });
   const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const groups = [['faculdade','Faculdade'], ['geral','Geral']];
   let html = '';
   groups.forEach(([k, label])=>{
-    const items = PEND.list.filter(p=>p.setor === k);
-    if(!items.length) return;
-    // não-feitas primeiro, feitas por último
-    items.sort((a,b)=> (a.done?1:0) - (b.done?1:0));
+    const items = PEND.list.filter(p=>p.setor === k).sort((a,b)=> (a.done?1:0) - (b.done?1:0));
     html += `<div class="pend-grp-t">${label}</div>`;
+    html += `<div class="pend-add-row-p">`
+      + `<input type="text" class="pend-add-inp" data-setor="${k}" placeholder="nova pendência…" autocomplete="off">`
+      + `<button class="pend-add-btn" data-setor="${k}" title="adicionar">+</button>`
+      + `</div>`;
+    if(!items.length){ html += `<div class="pend-grp-empty">nenhuma</div>`; }
     items.forEach(p=>{
       html += `<div class="pend-row${p.done?' done':''}">`
         + `<input type="checkbox" data-pd-done="${p.id}"${p.done?' checked':''}>`
@@ -2136,7 +2147,8 @@ function renderPendPanel(){
         + `</div></div>`;
     });
   });
-  body.innerHTML = html || '<div class="pend-panel-empty">Nenhuma pendência. Adicione pela aba Agenda ou pelo + na Faculdade.</div>';
+  body.innerHTML = html;
+  body.querySelectorAll('.pend-add-inp').forEach(i=>{ if(draft[i.dataset.setor]) i.value = draft[i.dataset.setor]; });
 
   body.querySelectorAll('[data-pd-done]').forEach(cb=>{
     cb.addEventListener('change', ()=> PEND.setDone(cb.dataset.pdDone, cb.checked));
@@ -2150,6 +2162,22 @@ function renderPendPanel(){
   body.querySelectorAll('[data-pd-sched]').forEach(b=>{
     b.addEventListener('click', ()=> schedPendFromPanel(b.dataset.pdSched));
   });
+  body.querySelectorAll('.pend-add-btn').forEach(b=>{
+    b.addEventListener('click', ()=> addPendFromPanel(b.dataset.setor));
+  });
+  body.querySelectorAll('.pend-add-inp').forEach(inp=>{
+    inp.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); addPendFromPanel(inp.dataset.setor); } });
+  });
+}
+
+function addPendFromPanel(setor){
+  const inp = document.querySelector('#pendPanelBody .pend-add-inp[data-setor="' + setor + '"]');
+  if(!inp) return;
+  const v = inp.value.trim();
+  if(!v) return;
+  inp.value = ''; // limpa antes do re-render pra não ser restaurado como rascunho
+  PEND.add({ ti: v, setor: setor });
+  setTimeout(()=>{ const ni = document.querySelector('#pendPanelBody .pend-add-inp[data-setor="' + setor + '"]'); if(ni) ni.focus(); }, 0);
 }
 
 let _pendSchedId = null;

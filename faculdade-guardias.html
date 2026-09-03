@@ -145,13 +145,28 @@
             </table>
             <p><b>0–1</b> ambulatorio · <b>2</b> internar / vigilar · <b>≥3</b> grave (valorar UTI). Sin laboratorio: CRB-65.</p>
           </div>
-          <div class="grd-cond"><div class="grd-sub">qSOFA / SOFA — sepsis</div>
+          <div class="grd-cond"><div class="grd-sub">qSOFA — cabecera, sin laboratorio</div>
             <table>
               <tr><td>FR ≥22</td><td>1</td></tr>
               <tr><td>TAS ≤100</td><td>1</td></tr>
-              <tr><td>Sensorio alterado</td><td>1</td></tr>
+              <tr><td>Sensorio alterado (Glasgow &lt;15)</td><td>1</td></tr>
             </table>
-            <p><b>qSOFA ≥2</b> → alarma, buscá sepsis. <b>SOFA</b> (con laboratorio) ≥2 sobre el basal = disfunción orgánica.</p>
+            <p><b>≥2</b> → alarma: buscá sepsis y disfunción de órganos. No es criterio diagnóstico ni reemplaza al SOFA.</p>
+          </div>
+          <div class="grd-cond"><div class="grd-sub">SOFA completo — con laboratorio</div>
+            <p>Sepsis = infección + aumento del SOFA <b>≥2 puntos</b> sobre el basal (se asume basal 0 si no hay disfunción previa conocida).</p>
+            <div style="overflow-x:auto">
+            <table>
+              <tr><td>Sistema</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td></tr>
+              <tr><td>Respiratorio<br>PaO₂/FiO₂ (mmHg)</td><td>≥400</td><td>&lt;400</td><td>&lt;300</td><td>&lt;200 + soporte ventilatorio</td><td>&lt;100 + soporte ventilatorio</td></tr>
+              <tr><td>Coagulación<br>Plaquetas (×10³/µL)</td><td>≥150</td><td>&lt;150</td><td>&lt;100</td><td>&lt;50</td><td>&lt;20</td></tr>
+              <tr><td>Hígado<br>Bilirrubina (mg/dL)</td><td>&lt;1,2</td><td>1,2–1,9</td><td>2,0–5,9</td><td>6,0–11,9</td><td>≥12,0</td></tr>
+              <tr><td>Cardiovascular<br>(vasopresores en µg/kg/min ≥1 h)</td><td>PAM ≥70</td><td>PAM &lt;70</td><td>Dopamina &lt;5 o dobutamina (cualquier dosis)</td><td>Dopamina 5,1–15 o adrenalina ≤0,1 o noradrenalina ≤0,1</td><td>Dopamina &gt;15 o adrenalina &gt;0,1 o noradrenalina &gt;0,1</td></tr>
+              <tr><td>SNC<br>Glasgow</td><td>15</td><td>13–14</td><td>10–12</td><td>6–9</td><td>&lt;6</td></tr>
+              <tr><td>Renal<br>Creatinina (mg/dL) o diuresis</td><td>&lt;1,2</td><td>1,2–1,9</td><td>2,0–3,4</td><td>3,5–4,9 o &lt;500 mL/día</td><td>≥5,0 o &lt;200 mL/día</td></tr>
+            </table>
+            </div>
+            <p>Sumá el peor valor de cada sistema en las últimas 24 h (rango 0–24). Mortalidad sube con el puntaje; ≥11 ≈ &gt;80%.</p>
           </div>
           <div class="grd-cond"><div class="grd-sub">Wells — TEP</div>
             <table>
@@ -646,101 +661,195 @@
         </div>
       </div>
 
-      <div class="grd-pane" data-gpane="cardio" hidden>
+<div class="grd-pane" data-gpane="cardio" hidden>
         <div class="grd-body">
           <details class="grd"><summary class="grd-h">Síndrome coronario agudo (SCA)</summary><div class="grd-body">
-<p><span class="grd-tag think">Pensalo si</span> dolor/opresión retroesternal &gt;20 min, irradiado a brazo/mandíbula, con síntomas neurovegetativos. Atípico en diabéticos, mujeres y ancianos (disnea, epigastralgia, síncope).</p>
-            <p><span class="grd-tag dx">Dx</span> <b>ECG en &lt;10 min</b> + repetir a los 15–30 min y ante cambios. Troponina hs al ingreso y a 1–3 h (mirá el <b>delta</b>).
-              <ul>
-                <li><b>SCACEST:</b> supra ST persistente ≥1 mm en ≥2 contiguas (V2-V3: ≥2 mm H / ≥1,5 M) o BCRI nuevo. Equivalentes: infra ST difuso + supra en aVR (tronco/3 vasos); IAM posterior (infra V1-V3 + supra V7-V9).</li>
-                <li><b>SCASEST:</b> infra ST, T negativas o ECG normal + troponina dinámica. Estratificar con GRACE.</li>
-              </ul>
-            </p>
-            <p><span class="grd-tag tto">Tto</span>
-              <ol>
-                <li><b>AAS</b> 162–325 mg masticable + <b>2º antiagregante</b> (ticagrelor 180 mg; clopidogrel 300–600 si van a trombolisar o alto riesgo de sangrado; prasugrel) + <b>anticoagulación</b> (enoxaparina/HNF; fondaparinux en SEST) + <b>estatina alta</b> (atorvastatina 80) + <b>nitroglicerina</b> SL/IV si dolor/HTA (NO en infarto de VD, hipotensión, sildenafil &lt;24–48 h) + <b>betabloqueante</b> VO en 24 h si no hay IC/shock/bradi/broncoespasmo. O₂ solo si Sat &lt;90%. Morfina 2–4 mg IV si dolor refractario.</li>
-                <li><b>SCACEST → reperfusión urgente:</b> angioplastia primaria si &lt;120 min desde el primer contacto; si no → <b>trombolisis</b> (tenecteplasa según peso) en &lt;30 min y derivar.</li>
-                <li><b>SCASEST:</b> cinecoronariografía inmediata (&lt;2 h) si inestabilidad/dolor refractario/arritmia; precoz (&lt;24 h) si GRACE &gt;140 o troponina dinámica.</li>
-              </ol>
-            </p>
-            <p><span class="grd-tag tip">Perlas</span> siempre derivaciones derechas (V3R-V4R) en el IAM inferior: si hay compromiso de VD NO des nitratos ni diuréticos (precarga-dependiente → dale volumen). “Tiempo es músculo”.</p>
+            <p><span class="grd-tag think">Pensalo si</span> dolor/opresión retroesternal &gt;20 min, irradiado a brazo/mandíbula, con síntomas neurovegetativos. Atípico en diabéticos, mujeres y ancianos (disnea, epigastralgia, síncope).</p>
+            <p><span class="grd-tag dx">Dx</span></p>
+            <ul>
+              <li><b>ECG en &lt;10 min</b> + repetir a los 15–30 min y ante cambios.</li>
+              <li>Troponina hs al ingreso y a 1–3 h — mirá el <b>delta</b> (cambio), no un valor aislado.</li>
+            </ul>
+            <table>
+              <tr><td>SCACEST</td><td>supra ST persistente ≥1 mm en ≥2 contiguas (V2-V3: ≥2 mm en H / ≥1,5 en M) o BCRI nuevo. Equivalentes: infra ST difuso + supra en aVR (tronco / 3 vasos) · IAM posterior (infra V1-V3 + supra V7-V9).</td></tr>
+              <tr><td>SCASEST</td><td>infra ST, T negativas o ECG normal + troponina dinámica. Estratificar con GRACE.</td></tr>
+            </table>
+            <p><span class="grd-tag tto">Tto</span> — base para todos:</p>
+            <ul>
+              <li><b>AAS</b> 162–325 mg masticable.</li>
+              <li><b>2º antiagregante:</b> ticagrelor 180 mg (clopidogrel 300–600 si van a trombolisar o alto riesgo de sangrado; prasugrel).</li>
+              <li><b>Anticoagulación:</b> enoxaparina o HNF (fondaparinux en SCASEST).</li>
+              <li><b>Estatina de alta intensidad</b> (atorvastatina 80).</li>
+              <li><b>Nitroglicerina</b> SL/IV si dolor o HTA — NO en infarto de VD, hipotensión, sildenafil &lt;24–48 h.</li>
+              <li><b>Betabloqueante</b> VO en las primeras 24 h si no hay IC/shock/bradicardia/broncoespasmo.</li>
+              <li>O₂ solo si SatO₂ &lt;90%. Morfina 2–4 mg IV si dolor refractario.</li>
+            </ul>
+            <table>
+              <tr><td>SCACEST</td><td>Reperfusión URGENTE: angioplastia primaria si &lt;120 min desde el primer contacto médico; si no → <b>trombolisis</b> (tenecteplasa según peso) en &lt;30 min y derivar.</td></tr>
+              <tr><td>SCASEST</td><td>Cinecoronariografía inmediata (&lt;2 h) si inestabilidad, dolor refractario o arritmia maligna · precoz (&lt;24 h) si GRACE &gt;140 o troponina dinámica.</td></tr>
+            </table>
+            <p><span class="grd-tag tip">Perlas</span></p>
+            <ul>
+              <li>Siempre derivaciones derechas (V3R-V4R) en el IAM inferior: si hay compromiso de VD, NO des nitratos ni diuréticos (precarga-dependiente → dale volumen).</li>
+              <li>“Tiempo es músculo”.</li>
+            </ul>
             <p class="grd-src">Fuente: <b>ESC 2023</b> SCA-SEST · ESC 2017 STEMI · Consenso SCA de la SAC.</p>
-</div></details>
+          </div></details>
           <details class="grd"><summary class="grd-h">Insuficiencia cardíaca descompensada — mini-resumen</summary><div class="grd-body">
-<p><span class="grd-tag think">Pensalo si</span> disnea progresiva, ortopnea, disnea paroxística nocturna, edemas, aumento de peso, ingurgitación yugular, rales, R3, reflujo hepatoyugular.</p>
-            <p><span class="grd-tag dx">Dx</span> clínica + Rx (redistribución, líneas B, cardiomegalia, derrame) + <b>BNP/NT-proBNP</b> (valor bajo la descarta) + ECG + ecocardiograma (FEy: reducida ≤40 · levemente reducida 41–49 · preservada ≥50). Laboratorio (función renal, ionograma, troponina, hepatograma, TSH, hemograma). Desencadenante — “FAILURE”: <b>F</b>orgot meds, <b>A</b>rritmia (FA), <b>I</b>schemia/Infection, <b>L</b>ifestyle (sal/agua), <b>U</b>pregulation (embarazo, tirotoxicosis, anemia), <b>R</b>enal failure, <b>E</b>mbolism (TEP) + AINE/corticoides.</p>
-            <p><span class="grd-tag tto">Tto agudo — perfiles de Stevenson</span> (¿congestión? húmedo/seco; ¿hipoperfusión? frío/caliente):
+            <p><span class="grd-tag think">Pensalo si</span> disnea progresiva · ortopnea · disnea paroxística nocturna · edemas · aumento de peso · ingurgitación yugular · rales · R3 · reflujo hepatoyugular.</p>
+            <p><span class="grd-tag dx">Dx</span></p>
+            <ul>
+              <li>Clínica + Rx (redistribución, líneas B de Kerley, cardiomegalia, derrame).</li>
+              <li><b>BNP / NT-proBNP</b> — un valor bajo la descarta.</li>
+              <li>ECG + ecocardiograma (FEy: reducida ≤40 · levemente reducida 41–49 · preservada ≥50).</li>
+              <li>Laboratorio: función renal · ionograma · troponina · hepatograma · TSH · hemograma (anemia).</li>
+            </ul>
+            <p><b class="hl">Buscá el desencadenante — “FAILURE”:</b></p>
+            <table>
+              <tr><td>F</td><td>Forgot meds (mala adherencia)</td></tr>
+              <tr><td>A</td><td>Arritmia (FA)</td></tr>
+              <tr><td>I</td><td>Isquemia / Infección</td></tr>
+              <tr><td>L</td><td>Lifestyle (transgresión de sal / agua)</td></tr>
+              <tr><td>U</td><td>Upregulation (embarazo, tirotoxicosis, anemia)</td></tr>
+              <tr><td>R</td><td>Renal failure</td></tr>
+              <tr><td>E</td><td>Embolism (TEP) · + AINE / corticoides</td></tr>
+            </table>
+            <p><span class="grd-tag tto">Tto agudo — perfiles de Stevenson</span> (¿congestión? húmedo/seco · ¿hipoperfusión? frío/caliente):</p>
+            <table>
+              <tr><td>Húmedo y caliente<br>(lo más común)</td><td><b>Diurético de asa IV</b> — furosemida 1–2,5× la dosis oral habitual (naïve: 20–40 mg IV); reevaluar a las 2 h y duplicar si respuesta pobre. + <b>vasodilatador</b> (NTG) si TAS &gt;110. Restricción hidrosalina. O₂/VNI si EAP.</td></tr>
+              <tr><td>Húmedo y frío<br>(bajo gasto)</td><td>Si TAS &lt;90 → <b>inotrópico</b> (dobutamina 2,5–10 µg/kg/min) ± noradrenalina; diurético cuando mejore la perfusión. UTI.</td></tr>
+              <tr><td>Seco y frío</td><td>Volumen con cautela ± inotrópico.</td></tr>
+              <tr><td>Seco y caliente</td><td>Optimizar el tratamiento oral; buscar otra causa de la disnea.</td></tr>
+            </table>
+            <div class="grd-key"><b>Tratamiento de fondo de la ICFEr — los “4 fantásticos”</b> (iniciar / optimizar antes del alta):
               <ol>
-                <li><b>Húmedo y caliente</b> (lo más común): <b>diurético de asa IV</b> — furosemida 1–2,5× la dosis oral habitual (naïve: 20–40 mg IV), reevaluar a las 2 h y duplicar si respuesta pobre; + <b>vasodilatador</b> (NTG) si TAS &gt;110. Restricción hidrosalina. O₂/VNI si EAP.</li>
-                <li><b>Húmedo y frío</b> (bajo gasto): si TAS &lt;90 → <b>inotrópico</b> (dobutamina 2,5–10 µg/kg/min) ± noradrenalina; diurético al mejorar la perfusión. UTI.</li>
-                <li><b>Seco y frío:</b> volumen con cautela ± inotrópico. <b>Seco y caliente:</b> optimizar el tratamiento oral, buscar otra causa de la disnea.</li>
+                <li>IECA/ARA II, o mejor <b>ARNI</b> (sacubitrilo-valsartán)</li>
+                <li><b>Betabloqueante</b> (bisoprolol, carvedilol, nebivolol)</li>
+                <li><b>Antagonista de mineralocorticoides</b> (espironolactona / eplerenona)</li>
+                <li><b>iSGLT2</b> (dapa / empagliflozina — sirven aunque no sea diabético, y también en FEy preservada)</li>
               </ol>
-            </p>
-            <div class="grd-key"><b>Tratamiento de fondo de la ICFEr (los “4 fantásticos”, iniciar/optimizar antes del alta):</b> 1) IECA/ARA II o mejor <b>ARNI</b> (sacubitrilo-valsartán), 2) <b>betabloqueante</b> (bisoprolol, carvedilol, nebivolol), 3) <b>antagonista de mineralocorticoides</b> (espironolactona/eplerenona), 4) <b>iSGLT2</b> (dapa/empagliflozina — sirven aunque no sea diabético y también en FEy preservada). Más: diurético según congestión, hierro EV si ferropenia. Controlar K y función renal al iniciar/titular.</div>
-            <p><span class="grd-tag tip">Perlas</span> en el añoso con disnea, pensá IC. Hiponatremia e hipotensión = peor pronóstico. En ICFEp el manejo agudo es igual (diuréticos + control de HTA/FA) y ahora los iSGLT2 tienen evidencia.</p>
+              Más: diurético según congestión · hierro EV si ferropenia. Controlar K y función renal al iniciar/titular.
+            </div>
+            <p><span class="grd-tag tip">Perlas</span></p>
+            <ul>
+              <li>En el añoso con disnea, pensá IC.</li>
+              <li>Hiponatremia e hipotensión = peor pronóstico.</li>
+              <li>En ICFEp el manejo agudo es igual (diuréticos + control de HTA/FA); los iSGLT2 ya tienen evidencia.</li>
+            </ul>
             <p class="grd-src">Fuente: <b>ESC 2021</b> + <b>focused update 2023</b> (iSGLT2 en toda FEy); Consenso de IC de la SAC.</p>
-</div></details>
+          </div></details>
           <details class="grd"><summary class="grd-h">Fibrilación auricular con respuesta ventricular rápida</summary><div class="grd-body">
-<p><span class="grd-tag dx">Dx</span> ECG: RR irregularmente irregular, sin P (ondas “f”). Definí: ¿inestable? (angina, EAP, hipotensión, sensorio alterado por la arritmia); ¿&lt;48 h o &gt;48 h/desconocido?; CHA₂DS₂-VASc y HAS-BLED. Pedí ionograma, Mg, TSH, hemograma, troponina si dolor, Rx. Desencadenante: hipertiroidismo, alcohol (“holiday heart”), TEP, sepsis, IC, isquemia, posoperatorio, hipoK/hipoMg.</p>
-            <p><span class="grd-tag tto">Tto</span>
-              <ol>
-                <li><b>Inestable</b> → <b>cardioversión eléctrica sincronizada</b> (120–200 J bifásico) con sedación.</li>
-                <li><b>Estable — control de frecuencia</b> (objetivo &lt;110 en reposo): betabloqueante IV/VO (metoprolol, bisoprolol) o bloqueante cálcico no dihidropiridínico (diltiazem, verapamilo) si FEy conservada; si IC/FEy baja → digoxina o amiodarona. Corregí K y Mg.</li>
-                <li><b>Control de ritmo</b> (si &lt;48 h, o &gt;48 h con anticoagulación ≥3 sem o eco TE sin trombo): cardioversión eléctrica o farmacológica (amiodarona; propafenona/flecainida solo sin cardiopatía estructural).</li>
-                <li><b>Anticoagulación</b> según CHA₂DS₂-VASc: DOAC de preferencia, salvo válvula mecánica o estenosis mitral moderada-severa → warfarina (RIN 2–3). Si cardiovertiste una FA &gt;48 h, anticoagular ≥4 semanas igual.</li>
-              </ol>
-            </p>
-            <p><span class="grd-tag tip">Perlas</span> no cardiovirtir una FA &gt;48 h sin anticoagular o sin eco TE (riesgo de ACV embólico al recuperar la sístole auricular). Descartá hipertiroidismo en toda FA nueva.</p>
+            <p><span class="grd-tag dx">Dx</span></p>
+            <ul>
+              <li>ECG: RR irregularmente irregular, sin ondas P (ondas “f”).</li>
+              <li>¿<b>Inestable</b>? (angina, EAP, hipotensión, sensorio alterado por la arritmia).</li>
+              <li>¿Tiempo de evolución &lt;48 h, o &gt;48 h / desconocido?</li>
+              <li>Riesgo embólico (CHA₂DS₂-VASc) y de sangrado (HAS-BLED).</li>
+              <li>Pedí ionograma · Mg · TSH · hemograma · troponina si dolor · Rx.</li>
+              <li>Desencadenante: hipertiroidismo · alcohol (“holiday heart”) · TEP · sepsis · IC · isquemia · posoperatorio · hipoK/hipoMg.</li>
+            </ul>
+            <p><span class="grd-tag tto">Tto</span></p>
+            <table>
+              <tr><td>Inestable</td><td><b>Cardioversión eléctrica sincronizada</b> (120–200 J bifásico) con sedación.</td></tr>
+              <tr><td>Estable —<br>control de frecuencia<br>(objetivo &lt;110 en reposo)</td><td>Betabloqueante IV/VO (metoprolol, bisoprolol) o bloqueante cálcico no dihidropiridínico (diltiazem, verapamilo) si FEy conservada. Si IC / FEy baja → digoxina o amiodarona. Corregí K y Mg.</td></tr>
+              <tr><td>Control de ritmo<br>(si &lt;48 h, o &gt;48 h con anticoagulación ≥3 sem o eco TE sin trombo)</td><td>Cardioversión eléctrica o farmacológica (amiodarona; propafenona/flecainida solo sin cardiopatía estructural).</td></tr>
+              <tr><td>Anticoagulación</td><td>Según CHA₂DS₂-VASc: DOAC de preferencia; válvula mecánica o estenosis mitral moderada-severa → warfarina (RIN 2–3). Si cardiovertiste una FA &gt;48 h → anticoagular ≥4 semanas igual.</td></tr>
+            </table>
+            <p><span class="grd-tag tip">Perlas</span></p>
+            <ul>
+              <li>No cardiovirtir una FA &gt;48 h sin anticoagular o sin eco TE (riesgo de ACV embólico al recuperar la sístole auricular).</li>
+              <li>Descartá hipertiroidismo en toda FA nueva.</li>
+            </ul>
             <p class="grd-src">Fuente: <b>ESC 2024</b> FA · AHA/ACC/HRS 2023 · Consenso de la SAC.</p>
-</div></details>
+          </div></details>
           <details class="grd"><summary class="grd-h">Crisis hipertensiva</summary><div class="grd-body">
-<p><span class="grd-tag dx">Dx</span> TA &gt;180/120. Lo que importa es el <b>daño agudo de órgano blanco</b>: <b>emergencia</b> (encefalopatía, ACV, hemorragia intracraneal, EAP, SCA, disección aórtica, eclampsia, IRA, retinopatía III-IV, microangiopatía trombótica) vs <b>urgencia</b> (sin daño agudo). Pedí según sospecha: ECG, troponina, función renal + orina, fondo de ojo, TAC cerebro, angio-TAC de aorta, β-hCG.</p>
-            <p><span class="grd-tag tto">Tto de la emergencia</span>
-              <ol>
-                <li>Bajar la <b>PAM 10–20% la primera hora</b>, luego 5–15% más en las 23 h. NO normalizar de golpe.</li>
-                <li>Excepciones: <b>disección aórtica</b> → TAS &lt;120 y FC &lt;60 rápido (betabloqueante — labetalol/esmolol — PRIMERO, luego vasodilatador). <b>ACV isquémico</b> → tratar solo si &gt;220/120 (o &gt;185/110 si va a trombolisis). <b>Hemorragia intracerebral</b> → TAS ~140. <b>Eclampsia</b> → labetalol o hidralazina + sulfato de magnesio.</li>
-                <li>Drogas IV: labetalol, nitroglicerina (EAP/SCA), nitroprusiato, esmolol, clevidipina.</li>
-                <li><b>Urgencia:</b> VO, descenso en 24–48 h, reanudar/ajustar medicación, seguimiento ambulatorio.</li>
-              </ol>
-            </p>
+            <p><span class="grd-tag dx">Dx</span> TA &gt;180/120. Lo que importa es si hay <b>daño agudo de órgano blanco</b>:</p>
+            <table>
+              <tr><td>Emergencia<br>(con daño)</td><td>encefalopatía · ACV · hemorragia intracraneal · EAP · SCA · disección aórtica · eclampsia · IRA · retinopatía III-IV · microangiopatía trombótica → tratamiento IV, internación/UTI</td></tr>
+              <tr><td>Urgencia<br>(sin daño agudo)</td><td>tratamiento VO, descenso en 24–48 h, seguimiento ambulatorio</td></tr>
+            </table>
+            <p><b class="hl">Pedí según sospecha:</b> ECG · troponina · función renal + orina · fondo de ojo · TAC cerebro · angio-TAC de aorta · β-hCG.</p>
+            <p><span class="grd-tag tto">Tto de la emergencia</span></p>
+            <ol>
+              <li>Bajar la <b>PAM 10–20% en la primera hora</b>, luego 5–15% más en las 23 h. NO normalizar de golpe.</li>
+              <li>Drogas IV: labetalol · nitroglicerina (EAP/SCA) · nitroprusiato · esmolol · clevidipina.</li>
+            </ol>
+            <p><b class="hl">Excepciones:</b></p>
+            <table>
+              <tr><td>Disección aórtica</td><td>TAS &lt;120 y FC &lt;60 rápido — betabloqueante (labetalol/esmolol) PRIMERO, luego vasodilatador</td></tr>
+              <tr><td>ACV isquémico</td><td>tratar solo si &gt;220/120 (o &gt;185/110 si va a trombolisis)</td></tr>
+              <tr><td>Hemorragia intracerebral</td><td>TAS objetivo ~140</td></tr>
+              <tr><td>Eclampsia</td><td>labetalol o hidralazina + sulfato de magnesio</td></tr>
+            </table>
             <p class="grd-src">Fuente: <b>ESC/ESH 2023</b>; consenso argentino de HTA (SAHA).</p>
-</div></details>
+          </div></details>
           <details class="grd"><summary class="grd-h">Bradiarritmias</summary><div class="grd-body">
-<p><span class="grd-tag dx">Dx</span> FC &lt;60 sintomática. ECG: bradicardia sinusal, pausa, bloqueo AV (1º, Mobitz I, Mobitz II, completo). Causas: fármacos (betabloqueante, cálcico, digoxina, amiodarona), hiperkalemia, IAM inferior, hipotiroidismo, hipotermia, hipertonía vagal.</p>
-            <p><span class="grd-tag tto">Tto</span> si inestable (hipotensión, sensorio alterado, angina, IC):
-              <ol>
-                <li><b>Atropina</b> 0,5–1 mg IV c/3–5 min (máx 3 mg). Poco útil en el bloqueo infranodal (Mobitz II / completo con QRS ancho).</li>
-                <li>No responde → <b>marcapasos transcutáneo</b> (con analgesia/sedación) y/o infusión de <b>dopamina</b> 5–20 µg/kg/min o <b>adrenalina</b> 2–10 µg/min.</li>
-                <li>Marcapasos transvenoso transitorio + electrofisiología. Tratar la causa reversible.</li>
-              </ol>
-            </p>
+            <p><span class="grd-tag dx">Dx</span> FC &lt;60 sintomática.</p>
+            <ul>
+              <li>ECG: bradicardia sinusal · pausa sinusal · bloqueo AV (1º, Mobitz I, Mobitz II, completo).</li>
+              <li>Causas: fármacos (betabloqueante, cálcico, digoxina, amiodarona) · hiperkalemia · IAM inferior · hipotiroidismo · hipotermia · hipertonía vagal.</li>
+            </ul>
+            <p><span class="grd-tag tto">Tto</span> si hay inestabilidad (hipotensión, sensorio alterado, angina, IC):</p>
+            <ol>
+              <li><b>Atropina</b> 0,5–1 mg IV cada 3–5 min (máx 3 mg). Poco útil en el bloqueo infranodal (Mobitz II / completo con QRS ancho).</li>
+              <li>No responde → <b>marcapasos transcutáneo</b> (con analgesia/sedación) y/o infusión de <b>dopamina</b> 5–20 µg/kg/min o <b>adrenalina</b> 2–10 µg/min.</li>
+              <li>Marcapasos transvenoso transitorio + electrofisiología. Tratar la causa reversible.</li>
+            </ol>
             <p class="grd-src">Fuente: <b>ACLS / AHA 2020</b>; Consejo Argentino de Resucitación.</p>
-</div></details>
+          </div></details>
           <details class="grd"><summary class="grd-h">Taquiarritmias</summary><div class="grd-body">
-<p><span class="grd-tag tto">Tto</span>
-              <ul>
-                <li><b>Inestable, cualquier ritmo</b> → cardioversión eléctrica sincronizada (TV sin pulso o FV → desfibrilación + RCP).</li>
-                <li><b>QRS angosto regular</b> estable (TPSV): maniobras vagales (Valsalva modificada) → <b>adenosina</b> 6 → 12 → 12 mg IV en bolo rápido con lavado. Si no cede/recurre: betabloqueante o diltiazem.</li>
-                <li><b>QRS angosto irregular</b> → FA/aleteo con conducción variable (manejo como FA).</li>
-                <li><b>QRS ancho regular</b> estable: asumí <b>TV</b> → amiodarona 150 mg IV en 10 min, luego infusión.</li>
-                <li><b>QRS ancho irregular</b> → FA preexcitada (WPW): NO bloqueantes del nodo (adenosina, verapamilo, digoxina, betabloqueante) → cardioversión eléctrica o amiodarona/procainamida.</li>
-              </ul>
-            </p>
-</div></details>
+            <p><span class="grd-tag tto">Tto</span> según QRS y estabilidad:</p>
+            <table>
+              <tr><td>Inestable<br>(cualquier ritmo)</td><td>Cardioversión eléctrica sincronizada (si TV sin pulso o FV → desfibrilación + RCP).</td></tr>
+              <tr><td>QRS angosto regular<br>estable (TPSV)</td><td>Maniobras vagales (Valsalva modificada) → <b>adenosina</b> 6 → 12 → 12 mg IV en bolo rápido con lavado. Si no cede/recurre → betabloqueante o diltiazem.</td></tr>
+              <tr><td>QRS angosto irregular</td><td>FA / aleteo con conducción variable → manejar como FA.</td></tr>
+              <tr><td>QRS ancho regular<br>estable</td><td>Asumí <b>TV</b> hasta demostrar lo contrario → amiodarona 150 mg IV en 10 min, luego infusión.</td></tr>
+              <tr><td>QRS ancho irregular</td><td>FA preexcitada (WPW): <b>NO</b> uses bloqueantes del nodo (adenosina, verapamilo, digoxina, betabloqueante) → cardioversión eléctrica o amiodarona/procainamida.</td></tr>
+            </table>
+          </div></details>
           <details class="grd"><summary class="grd-h">Pericarditis aguda</summary><div class="grd-body">
-<p><span class="grd-tag think">Pensalo si</span> dolor torácico pleurítico que mejora sentado e inclinado hacia adelante y empeora en decúbito, a veces post-viral.</p>
-            <p><span class="grd-tag dx">Dx</span> ≥2 de: dolor típico · frote pericárdico · <b>supra ST cóncavo difuso + infra PR</b> (sin especular) · derrame nuevo. ECG, ecocardiograma, troponina (↑ = miopericarditis), PCR, VSG, función renal, Rx.</p>
-            <p><span class="grd-tag tto">Tto</span> AINE (ibuprofeno 600 mg c/8 h o AAS 750–1000 mg c/8 h) × 1–2 sem con descenso + <b>colchicina</b> 0,5 mg/día (o c/12 h si &gt;70 kg) × 3 meses + protección gástrica. Internar si fiebre &gt;38, subagudo, derrame grande/taponamiento, inmunosupresión, anticoagulado, falta de respuesta a AINE en 7 días o miopericarditis.</p>
-            <p><span class="grd-tag tip">Perlas</span> <b>taponamiento</b> = clínico (tríada de Beck: hipotensión, ingurgitación yugular, ruidos apagados) + pulso paradójico → ecocardiograma urgente + pericardiocentesis.</p>
-</div></details>
+            <p><span class="grd-tag think">Pensalo si</span> dolor torácico pleurítico que mejora sentado e inclinado hacia adelante y empeora en decúbito, a veces post-viral.</p>
+            <p><span class="grd-tag dx">Dx</span> ≥2 de estos:</p>
+            <ul>
+              <li>Dolor típico</li>
+              <li>Frote pericárdico</li>
+              <li><b>Supra ST cóncavo difuso + infra PR</b> (sin imagen especular)</li>
+              <li>Derrame pericárdico nuevo</li>
+            </ul>
+            <p><b class="hl">Pedí:</b> ECG · ecocardiograma · troponina (↑ = miopericarditis) · PCR · VSG · función renal · Rx.</p>
+            <p><span class="grd-tag tto">Tto</span></p>
+            <ul>
+              <li><b>AINE:</b> ibuprofeno 600 mg c/8 h, o AAS 750–1000 mg c/8 h × 1–2 semanas con descenso.</li>
+              <li><b>Colchicina</b> 0,5 mg/día (o c/12 h si &gt;70 kg) × 3 meses — reduce recurrencias.</li>
+              <li>Protección gástrica. Restricción de ejercicio.</li>
+              <li><b>Internar si:</b> fiebre &gt;38 · subagudo · derrame grande / taponamiento · inmunosupresión · anticoagulado · sin respuesta a AINE en 7 días · miopericarditis.</li>
+            </ul>
+            <p><span class="grd-tag tip">Perlas</span> el <b>taponamiento cardíaco</b> es clínico (tríada de Beck: hipotensión + ingurgitación yugular + ruidos cardíacos apagados) + pulso paradójico → ecocardiograma urgente + pericardiocentesis.</p>
+          </div></details>
           <details class="grd"><summary class="grd-h">Síncope</summary><div class="grd-body">
-<p><span class="grd-tag dx">Dx</span> pérdida transitoria del conocimiento por hipoperfusión cerebral global con recuperación espontánea completa. Esencial: <b>descartar causa cardíaca</b>. <b>ECG a todos</b>, glucemia, hematocrito; ecocardiograma/Holter/monitoreo según sospecha. Alarma: síncope de esfuerzo o en decúbito, sin pródromos, con palpitaciones previas, cardiopatía o muerte súbita familiar, ECG anormal.</p>
-            <p><span class="grd-tag tto">Tto</span> reflejo/vasovagal → educación, maniobras de contrapresión, hidratación/sal. Ortostático → revisar fármacos, volemia. <b>Cardíaco o alto riesgo → internar y monitorizar.</b></p>
-</div></details>
+            <p><span class="grd-tag dx">Dx</span> pérdida transitoria del conocimiento por hipoperfusión cerebral global, con recuperación espontánea completa. Lo esencial: <b>descartar causa cardíaca</b>.</p>
+            <ul>
+              <li><b>ECG a todos</b> · glucemia · hematocrito.</li>
+              <li>Ecocardiograma / Holter / monitoreo según sospecha.</li>
+            </ul>
+            <p><b class="hl">Datos de alarma (alto riesgo):</b> síncope de esfuerzo o en decúbito · sin pródromos · con palpitaciones previas · cardiopatía o muerte súbita familiar · ECG anormal.</p>
+            <p><span class="grd-tag tto">Tto</span></p>
+            <ul>
+              <li>Reflejo / vasovagal → educación · maniobras físicas de contrapresión · hidratación + sal.</li>
+              <li>Ortostático → revisar fármacos · volemia.</li>
+              <li><b>Cardíaco o alto riesgo → internar y monitorizar.</b></li>
+            </ul>
+          </div></details>
           <details class="grd"><summary class="grd-h">Trombosis venosa profunda (TVP)</summary><div class="grd-body">
-<p><span class="grd-tag dx">Dx</span> dolor, edema unilateral, empastamiento, aumento de temperatura. <b>Wells TVP</b> → probable → eco doppler venoso; improbable → dímero D. Buscá TEP si hay síntomas respiratorios.</p>
-            <p><span class="grd-tag tto">Tto</span> anticoagulación: enoxaparina 1 mg/kg SC c/12 h → DOAC, o DOAC directo (con fase de carga). Mínimo 3 meses (indefinida si no provocada recurrente, trombofilia mayor o cáncer). Deambulación precoz + medias de compresión. TVP iliofemoral extensa/flegmasía en joven → trombólisis dirigida por catéter.</p>
-</div></details>
+            <p><span class="grd-tag dx">Dx</span> dolor · edema unilateral · empastamiento · aumento de temperatura. <b>Wells TVP</b> → probable → eco doppler venoso; improbable → dímero D (si negativo se descarta). Buscá TEP concomitante si hay síntomas respiratorios.</p>
+            <p><span class="grd-tag tto">Tto</span></p>
+            <ul>
+              <li>Anticoagulación: enoxaparina 1 mg/kg SC c/12 h → DOAC, o DOAC directo (con fase de carga).</li>
+              <li>Duración mínima 3 meses (indefinida si no provocada recurrente, trombofilia mayor o cáncer).</li>
+              <li>Deambulación precoz + medias de compresión.</li>
+              <li>TVP iliofemoral extensa o flegmasía en paciente joven → trombólisis dirigida por catéter.</li>
+            </ul>
+          </div></details>
         </div>
       </div>
 

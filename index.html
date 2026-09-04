@@ -5646,6 +5646,7 @@ function measurementChartBodyHtml() {
 
 function measurementsHtml() {
   const sorted = [...DB.measurements].sort((a, b) => (a.date < b.date ? 1 : -1));
+  const existing = DB.measurements.find(m => m.date === ui.measureDate) || {};
   return `
     <div class="section-measurements">
     <div class="card card-form" id="measureFormCard">
@@ -5662,7 +5663,7 @@ function measurementsHtml() {
         </div>
       </div>
       <div class="field-grid">
-        ${MEASURE_FIELDS.map(([k, l]) => `<div class="field"><label>${l}</label><input type="number" min="0" id="measure_${k}"></div>`).join('')}
+        ${MEASURE_FIELDS.map(([k, l]) => `<div class="field"><label>${l}</label><input type="number" min="0" id="measure_${k}" value="${existing[k] != null ? existing[k] : ''}"></div>`).join('')}
       </div>
       <button class="btn" style="margin-top:14px" id="saveMeasureBtn">Salvar medidas</button>
     </div>
@@ -5739,8 +5740,13 @@ function attachMeasurementsHandlers() {
   btn.addEventListener('click', () => {
     const date = ui.measureDate;
     if (!date) return;
-    const entry = { id: uid(), date };
-    MEASURE_FIELDS.forEach(([k]) => { entry[k] = document.getElementById('measure_' + k).value; });
+    const prev = DB.measurements.find(m => m.date === date) || {};
+    const entry = { ...prev, id: prev.id || uid(), date };
+    // Campo vazio no form NÃO apaga um valor já salvo nesse dia — só sobrescreve o que foi digitado.
+    MEASURE_FIELDS.forEach(([k]) => {
+      const v = document.getElementById('measure_' + k).value;
+      entry[k] = v !== '' ? v : (prev[k] != null ? prev[k] : '');
+    });
     DB.measurements = [...DB.measurements.filter(m => m.date !== date), entry];
     persist(); renderAll();
   });
@@ -7384,6 +7390,7 @@ function measurementChartBodyHtml() {
 
 function measurementsHtml() {
   const sorted = [...DB.measurements].sort((a, b) => (a.date < b.date ? 1 : -1));
+  const existing = DB.measurements.find(m => m.date === ui.measureDate) || {};
   return `
     <div class="section-measurements">
     <div class="card card-form" id="measureFormCard">
@@ -7400,7 +7407,7 @@ function measurementsHtml() {
         </div>
       </div>
       <div class="field-grid">
-        ${MEASURE_FIELDS.map(([k, l]) => `<div class="field"><label>${l}</label><input type="number" min="0" id="measure_${k}"></div>`).join('')}
+        ${MEASURE_FIELDS.map(([k, l]) => `<div class="field"><label>${l}</label><input type="number" min="0" id="measure_${k}" value="${existing[k] != null ? existing[k] : ''}"></div>`).join('')}
       </div>
       <button class="btn" style="margin-top:14px" id="saveMeasureBtn">Salvar medidas</button>
     </div>
@@ -7477,8 +7484,13 @@ function attachMeasurementsHandlers() {
   btn.addEventListener('click', () => {
     const date = ui.measureDate;
     if (!date) return;
-    const entry = { id: uid(), date };
-    MEASURE_FIELDS.forEach(([k]) => { entry[k] = document.getElementById('measure_' + k).value; });
+    const prev = DB.measurements.find(m => m.date === date) || {};
+    const entry = { ...prev, id: prev.id || uid(), date };
+    // Campo vazio no form NÃO apaga um valor já salvo nesse dia — só sobrescreve o que foi digitado.
+    MEASURE_FIELDS.forEach(([k]) => {
+      const v = document.getElementById('measure_' + k).value;
+      entry[k] = v !== '' ? v : (prev[k] != null ? prev[k] : '');
+    });
     DB.measurements = [...DB.measurements.filter(m => m.date !== date), entry];
     persist(); renderAll();
   });

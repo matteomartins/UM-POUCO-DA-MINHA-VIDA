@@ -5502,6 +5502,13 @@ function gymPresenceCardHtml() {
       Marcar outro dia: <input type="date" id="gymOtherDate" style="font-size:12px;padding:4px 6px">
       <button class="btn secondary" id="gymOtherToggleBtn" style="padding:5px 10px">marcar / desmarcar</button>
     </div>
+    ${(DB.gymLog && DB.gymLog.length) ? `<div style="margin-top:10px;border-top:1px solid #e3c7cb;padding-top:8px">
+      <div style="font-size:11px;color:#86897F;margin-bottom:4px">Dias marcados (${DB.gymLog.length}) — toque no 🗑 pra apagar</div>
+      ${[...DB.gymLog].sort((a, b) => (a.date < b.date ? 1 : -1)).map(s => `<div class="row" style="justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
+        <span>${s.date} · ${s.minutes || 60} min · ≈ ${gymKcal(s)} kcal</span>
+        <button class="icon-btn" data-del-gym="${s.id}" title="Apagar este dia">🗑</button>
+      </div>`).join('')}
+    </div>` : ''}
   </div>`;
 }
 
@@ -5562,6 +5569,10 @@ function attachWorkoutHandlers() {
     else { (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: gymMinutesDefault(), kcal: null }); showToast('Dia marcado: ' + d); }
     persist(); renderAll();
   });
+  document.querySelectorAll('[data-del-gym]').forEach(b => b.addEventListener('click', () => {
+    DB.gymLog = (DB.gymLog || []).filter(s => s.id !== b.dataset.delGym);
+    persist(); renderAll();
+  }));
 
   document.querySelectorAll('[data-ex-carga]').forEach(btn => btn.addEventListener('click', () => {
     const ex = findExercise(btn.dataset.exCarga);
@@ -7246,6 +7257,13 @@ function gymPresenceCardHtml() {
       Marcar outro dia: <input type="date" id="gymOtherDate" style="font-size:12px;padding:4px 6px">
       <button class="btn secondary" id="gymOtherToggleBtn" style="padding:5px 10px">marcar / desmarcar</button>
     </div>
+    ${(DB.gymLog && DB.gymLog.length) ? `<div style="margin-top:10px;border-top:1px solid #e3c7cb;padding-top:8px">
+      <div style="font-size:11px;color:#86897F;margin-bottom:4px">Dias marcados (${DB.gymLog.length}) — toque no 🗑 pra apagar</div>
+      ${[...DB.gymLog].sort((a, b) => (a.date < b.date ? 1 : -1)).map(s => `<div class="row" style="justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
+        <span>${s.date} · ${s.minutes || 60} min · ≈ ${gymKcal(s)} kcal</span>
+        <button class="icon-btn" data-del-gym="${s.id}" title="Apagar este dia">🗑</button>
+      </div>`).join('')}
+    </div>` : ''}
   </div>`;
 }
 
@@ -7306,6 +7324,10 @@ function attachWorkoutHandlers() {
     else { (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: gymMinutesDefault(), kcal: null }); showToast('Dia marcado: ' + d); }
     persist(); renderAll();
   });
+  document.querySelectorAll('[data-del-gym]').forEach(b => b.addEventListener('click', () => {
+    DB.gymLog = (DB.gymLog || []).filter(s => s.id !== b.dataset.delGym);
+    persist(); renderAll();
+  }));
 
   document.querySelectorAll('[data-ex-carga]').forEach(btn => btn.addEventListener('click', () => {
     const ex = findExercise(btn.dataset.exCarga);

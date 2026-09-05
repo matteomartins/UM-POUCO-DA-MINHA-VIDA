@@ -4770,6 +4770,7 @@ const DB = {
   cardioLog: [],      // só leitura — vem do app Treino (chave treino_cardioLog)
   gymLog: [],         // só leitura — idas à academia (chave treino_gymLog)
   measurements: [],   // só leitura — vem do app Treino (chave treino_measurements)
+  plan: { days: [] }, // só leitura — plano de treino (chave treino_plan), pra mostrar qual foi o treino do dia
 };
 function persist() {
   saveWS('goals', DB.goals);
@@ -4792,6 +4793,7 @@ async function loadDBFromStorage() {
   DB.cardioLog = await loadRaw('treino_cardioLog', []) || [];
   DB.gymLog = await loadRaw('treino_gymLog', []) || [];
   DB.measurements = await loadRaw('treino_measurements', []) || [];
+  DB.plan = await loadRaw('treino_plan', { days: [] }) || { days: [] };
 }
 
 const ui = {
@@ -5023,6 +5025,11 @@ function dietHtml() {
   const gymBurn = Math.round(gymKcalForDate(ui.dietDate));
   const exBurn = cardioBurn + gymBurn;
   const netKcal = round1(totals.kcal - exBurn);
+  const gEntry = gymEntryFor(ui.dietDate);
+  const gDay = gEntry ? ((DB.plan && DB.plan.days) || []).find(d => d.weekday === new Date(ui.dietDate + 'T12:00:00').getDay()) : null;
+  const exLines = [];
+  if (gEntry) exLines.push(`💪 Musculação${gDay ? ' · ' + esc(gDay.label) + (gDay.focus ? ' (' + esc(gDay.focus) + ')' : '') : ''} · ${gEntry.minutes || 60} min · ≈ ${gymBurn} kcal${gEntry.kcal != null && gEntry.kcal !== '' ? '' : ' (est.)'}`);
+  (DB.cardioLog || []).filter(s => s.date === ui.dietDate).forEach(s => exLines.push(`🏃 ${esc(s.type || 'Cardio')} · ${s.minutes || 0} min${s.distanceKm ? ' · ' + s.distanceKm + ' km' : ''} · ≈ ${cardioKcal(s)} kcal${s.kcal != null && s.kcal !== '' ? '' : ' (est.)'}`));
   return `
     <div class="section-diet">
     <div class="date-nav">
@@ -5041,8 +5048,8 @@ function dietHtml() {
           <span class="label"><span class="dot" style="background:#C0392B"></span>Gasto em exercício</span>
           <span class="val"><span style="color:#C0392B">− ${exBurn} kcal</span></span>
         </div>
-        ${cardioBurn > 0 && gymBurn > 0 ? `<div style="text-align:right;font-size:10.5px;color:#9a988c;margin-top:1px">cardio ${cardioBurn} · musculação ${gymBurn}</div>` : ''}
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px">
+        ${exLines.length ? `<div style="font-size:11px;color:#7a7d72;margin-top:3px;line-height:1.55">${exLines.map(l => `<div>${l}</div>`).join('')}</div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px">
           <span class="label" style="font-weight:700">Calorias líquidas</span>
           <span class="val"><span class="${netKcal > DB.goals.kcal ? 'over' : 'ok'}">${netKcal}</span><span style="color:#B3B1A6"> / ${DB.goals.kcal} kcal</span></span>
         </div>
@@ -5485,26 +5492,36 @@ function exerciseRowHtml(ex) {
 
 function gymPresenceCardHtml() {
   const t = todayStr();
-  const went = gymWentOn(t);
   const e = gymEntryFor(t);
+  const went = !!e;
+  const list = [...(DB.gymLog || [])].sort((a, b) => (a.date < b.date ? 1 : -1));
   return `<div class="card" id="gymPresenceCard" style="background:#faf1f2;border-color:#e3c7cb">
-    <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-      <button class="btn${went ? '' : ' secondary'}" id="gymTodayBtn">${went ? '✓ Treinei hoje' : '💪 Marcar que treinei hoje'}</button>
-      ${went ? `<span style="font-size:12px;color:#86897F">${e.minutes} min · ≈ <b>${gymKcal(e)} kcal</b>${e.kcal != null && e.kcal !== '' ? '' : ' (estimado)'}</span>` : ''}
-    </div>
-    ${went ? `<div class="row" style="gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
-      <label style="font-size:11px;color:#86897F">Duração</label>
-      <input type="number" min="0" step="5" id="gymMinInput" value="${e.minutes}" style="width:78px"><span style="font-size:11px;color:#86897F">min</span>
-      <label style="font-size:11px;color:#86897F;margin-left:6px">kcal na mão</label>
-      <input type="number" min="0" step="10" id="gymKcalInput" value="${e.kcal ?? ''}" placeholder="auto" style="width:82px">
+    <button class="btn${went ? '' : ' secondary'}" id="gymTodayBtn" style="width:100%">${went ? '✓ Treinei hoje — toque pra desmarcar' : '💪 Marcar que treinei hoje'}</button>
+    ${went ? `<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:12px;color:#4A4D45">Quanto tempo treinei?</label>
+        <input type="number" min="0" step="5" id="gymMinInput" value="${e.minutes}" style="width:72px"> <span style="font-size:12px;color:#86897F">min</span>
+      </div>
+      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:12px;color:#4A4D45">Calorias na mão</label>
+        <input type="number" min="0" step="10" id="gymKcalInput" value="${e.kcal ?? ''}" placeholder="vazio = estimar" style="width:150px">
+      </div>
+      <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap;margin-top:2px">
+        <button class="btn" id="gymSaveBtn" style="padding:6px 18px">Salvar</button>
+        <span style="font-size:12px;color:#86897F">≈ <b>${gymKcal(e)} kcal</b> gastas${e.kcal != null && e.kcal !== '' ? '' : ' (estimado)'}</span>
+      </div>
     </div>` : ''}
-    <div style="margin-top:10px;font-size:11px;color:#86897F;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-      Marcar outro dia: <input type="date" id="gymOtherDate" style="font-size:12px;padding:4px 6px">
-      <button class="btn secondary" id="gymOtherToggleBtn" style="padding:5px 10px">marcar / desmarcar</button>
+    <div style="margin-top:12px;border-top:1px solid #e3c7cb;padding-top:10px">
+      <div style="font-size:12px;color:#4A4D45;margin-bottom:6px">Marcar outro dia</div>
+      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap;font-size:12px">
+        <input type="date" id="gymOtherDate" style="font-size:12px;padding:5px 7px">
+        <input type="number" min="0" step="5" id="gymOtherMin" value="${gymMinutesDefault()}" style="width:60px"> <span style="color:#86897F">min</span>
+        <button class="btn secondary" id="gymOtherToggleBtn" style="padding:5px 12px">Marcar / desmarcar</button>
+      </div>
     </div>
-    ${(DB.gymLog && DB.gymLog.length) ? `<div style="margin-top:10px;border-top:1px solid #e3c7cb;padding-top:8px">
-      <div style="font-size:11px;color:#86897F;margin-bottom:4px">Dias marcados (${DB.gymLog.length}) — toque no 🗑 pra apagar</div>
-      ${[...DB.gymLog].sort((a, b) => (a.date < b.date ? 1 : -1)).map(s => `<div class="row" style="justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
+    ${list.length ? `<div style="margin-top:12px;border-top:1px solid #e3c7cb;padding-top:10px">
+      <div style="font-size:12px;color:#4A4D45;margin-bottom:4px">Dias marcados (${list.length})</div>
+      ${list.map(s => `<div class="row" style="justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
         <span>${s.date} · ${s.minutes || 60} min · ≈ ${gymKcal(s)} kcal</span>
         <button class="icon-btn" data-del-gym="${s.id}" title="Apagar este dia">🗑</button>
       </div>`).join('')}
@@ -5548,25 +5565,22 @@ function attachWorkoutHandlers() {
     else (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: gymMinutesDefault(), kcal: null });
     persist(); renderAll();
   });
-  const gymMinInput = document.getElementById('gymMinInput');
-  if (gymMinInput) gymMinInput.addEventListener('change', () => {
+  const gymSaveBtn = document.getElementById('gymSaveBtn');
+  if (gymSaveBtn) gymSaveBtn.addEventListener('click', () => {
     const e = gymEntryFor(todayStr()); if (!e) return;
-    const v = Math.max(0, Number(gymMinInput.value) || 0);
-    e.minutes = v; DB.gymMinutes = v || 60;
-    persist(); renderAll();
-  });
-  const gymKcalInput = document.getElementById('gymKcalInput');
-  if (gymKcalInput) gymKcalInput.addEventListener('change', () => {
-    const e = gymEntryFor(todayStr()); if (!e) return;
-    e.kcal = gymKcalInput.value === '' ? null : Math.max(0, Number(gymKcalInput.value) || 0);
-    persist(); renderAll();
+    const min = Math.max(0, Number((document.getElementById('gymMinInput') || {}).value) || 0);
+    const kc = (document.getElementById('gymKcalInput') || {}).value;
+    e.minutes = min || 60; DB.gymMinutes = min || 60;
+    e.kcal = (kc === '' || kc == null) ? null : Math.max(0, Number(kc) || 0);
+    persist(); renderAll(); showToast('Treino de hoje salvo.');
   });
   const gymOtherBtn = document.getElementById('gymOtherToggleBtn');
   if (gymOtherBtn) gymOtherBtn.addEventListener('click', () => {
     const d = (document.getElementById('gymOtherDate') || {}).value;
     if (!d) { showToast('Escolhe a data.'); return; }
+    const min = Math.max(0, Number((document.getElementById('gymOtherMin') || {}).value) || 0) || gymMinutesDefault();
     if (gymWentOn(d)) { DB.gymLog = (DB.gymLog || []).filter(s => s.date !== d); showToast('Dia desmarcado: ' + d); }
-    else { (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: gymMinutesDefault(), kcal: null }); showToast('Dia marcado: ' + d); }
+    else { (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: min, kcal: null }); showToast('Dia marcado: ' + d); }
     persist(); renderAll();
   });
   document.querySelectorAll('[data-del-gym]').forEach(b => b.addEventListener('click', () => {
@@ -6800,6 +6814,11 @@ function dietHtml() {
   const gymBurn = Math.round(gymKcalForDate(ui.dietDate));
   const exBurn = cardioBurn + gymBurn;
   const netKcal = round1(totals.kcal - exBurn);
+  const gEntry = gymEntryFor(ui.dietDate);
+  const gDay = gEntry ? ((DB.plan && DB.plan.days) || []).find(d => d.weekday === new Date(ui.dietDate + 'T12:00:00').getDay()) : null;
+  const exLines = [];
+  if (gEntry) exLines.push(`💪 Musculação${gDay ? ' · ' + esc(gDay.label) + (gDay.focus ? ' (' + esc(gDay.focus) + ')' : '') : ''} · ${gEntry.minutes || 60} min · ≈ ${gymBurn} kcal${gEntry.kcal != null && gEntry.kcal !== '' ? '' : ' (est.)'}`);
+  (DB.cardioLog || []).filter(s => s.date === ui.dietDate).forEach(s => exLines.push(`🏃 ${esc(s.type || 'Cardio')} · ${s.minutes || 0} min${s.distanceKm ? ' · ' + s.distanceKm + ' km' : ''} · ≈ ${cardioKcal(s)} kcal${s.kcal != null && s.kcal !== '' ? '' : ' (est.)'}`));
   return `
     <div class="section-diet">
     <div class="date-nav">
@@ -6818,8 +6837,8 @@ function dietHtml() {
           <span class="label"><span class="dot" style="background:#C0392B"></span>Gasto em exercício</span>
           <span class="val"><span style="color:#C0392B">− ${exBurn} kcal</span></span>
         </div>
-        ${cardioBurn > 0 && gymBurn > 0 ? `<div style="text-align:right;font-size:10.5px;color:#9a988c;margin-top:1px">cardio ${cardioBurn} · musculação ${gymBurn}</div>` : ''}
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px">
+        ${exLines.length ? `<div style="font-size:11px;color:#7a7d72;margin-top:3px;line-height:1.55">${exLines.map(l => `<div>${l}</div>`).join('')}</div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px">
           <span class="label" style="font-weight:700">Calorias líquidas</span>
           <span class="val"><span class="${netKcal > DB.goals.kcal ? 'over' : 'ok'}">${netKcal}</span><span style="color:#B3B1A6"> / ${DB.goals.kcal} kcal</span></span>
         </div>
@@ -7240,26 +7259,36 @@ function exerciseRowHtml(ex) {
 
 function gymPresenceCardHtml() {
   const t = todayStr();
-  const went = gymWentOn(t);
   const e = gymEntryFor(t);
+  const went = !!e;
+  const list = [...(DB.gymLog || [])].sort((a, b) => (a.date < b.date ? 1 : -1));
   return `<div class="card" id="gymPresenceCard" style="background:#faf1f2;border-color:#e3c7cb">
-    <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-      <button class="btn${went ? '' : ' secondary'}" id="gymTodayBtn">${went ? '✓ Treinei hoje' : '💪 Marcar que treinei hoje'}</button>
-      ${went ? `<span style="font-size:12px;color:#86897F">${e.minutes} min · ≈ <b>${gymKcal(e)} kcal</b>${e.kcal != null && e.kcal !== '' ? '' : ' (estimado)'}</span>` : ''}
-    </div>
-    ${went ? `<div class="row" style="gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
-      <label style="font-size:11px;color:#86897F">Duração</label>
-      <input type="number" min="0" step="5" id="gymMinInput" value="${e.minutes}" style="width:78px"><span style="font-size:11px;color:#86897F">min</span>
-      <label style="font-size:11px;color:#86897F;margin-left:6px">kcal na mão</label>
-      <input type="number" min="0" step="10" id="gymKcalInput" value="${e.kcal ?? ''}" placeholder="auto" style="width:82px">
+    <button class="btn${went ? '' : ' secondary'}" id="gymTodayBtn" style="width:100%">${went ? '✓ Treinei hoje — toque pra desmarcar' : '💪 Marcar que treinei hoje'}</button>
+    ${went ? `<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:12px;color:#4A4D45">Quanto tempo treinei?</label>
+        <input type="number" min="0" step="5" id="gymMinInput" value="${e.minutes}" style="width:72px"> <span style="font-size:12px;color:#86897F">min</span>
+      </div>
+      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:12px;color:#4A4D45">Calorias na mão</label>
+        <input type="number" min="0" step="10" id="gymKcalInput" value="${e.kcal ?? ''}" placeholder="vazio = estimar" style="width:150px">
+      </div>
+      <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap;margin-top:2px">
+        <button class="btn" id="gymSaveBtn" style="padding:6px 18px">Salvar</button>
+        <span style="font-size:12px;color:#86897F">≈ <b>${gymKcal(e)} kcal</b> gastas${e.kcal != null && e.kcal !== '' ? '' : ' (estimado)'}</span>
+      </div>
     </div>` : ''}
-    <div style="margin-top:10px;font-size:11px;color:#86897F;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-      Marcar outro dia: <input type="date" id="gymOtherDate" style="font-size:12px;padding:4px 6px">
-      <button class="btn secondary" id="gymOtherToggleBtn" style="padding:5px 10px">marcar / desmarcar</button>
+    <div style="margin-top:12px;border-top:1px solid #e3c7cb;padding-top:10px">
+      <div style="font-size:12px;color:#4A4D45;margin-bottom:6px">Marcar outro dia</div>
+      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap;font-size:12px">
+        <input type="date" id="gymOtherDate" style="font-size:12px;padding:5px 7px">
+        <input type="number" min="0" step="5" id="gymOtherMin" value="${gymMinutesDefault()}" style="width:60px"> <span style="color:#86897F">min</span>
+        <button class="btn secondary" id="gymOtherToggleBtn" style="padding:5px 12px">Marcar / desmarcar</button>
+      </div>
     </div>
-    ${(DB.gymLog && DB.gymLog.length) ? `<div style="margin-top:10px;border-top:1px solid #e3c7cb;padding-top:8px">
-      <div style="font-size:11px;color:#86897F;margin-bottom:4px">Dias marcados (${DB.gymLog.length}) — toque no 🗑 pra apagar</div>
-      ${[...DB.gymLog].sort((a, b) => (a.date < b.date ? 1 : -1)).map(s => `<div class="row" style="justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
+    ${list.length ? `<div style="margin-top:12px;border-top:1px solid #e3c7cb;padding-top:10px">
+      <div style="font-size:12px;color:#4A4D45;margin-bottom:4px">Dias marcados (${list.length})</div>
+      ${list.map(s => `<div class="row" style="justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
         <span>${s.date} · ${s.minutes || 60} min · ≈ ${gymKcal(s)} kcal</span>
         <button class="icon-btn" data-del-gym="${s.id}" title="Apagar este dia">🗑</button>
       </div>`).join('')}
@@ -7303,25 +7332,22 @@ function attachWorkoutHandlers() {
     else (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: gymMinutesDefault(), kcal: null });
     persist(); renderAll();
   });
-  const gymMinInput = document.getElementById('gymMinInput');
-  if (gymMinInput) gymMinInput.addEventListener('change', () => {
+  const gymSaveBtn = document.getElementById('gymSaveBtn');
+  if (gymSaveBtn) gymSaveBtn.addEventListener('click', () => {
     const e = gymEntryFor(todayStr()); if (!e) return;
-    const v = Math.max(0, Number(gymMinInput.value) || 0);
-    e.minutes = v; DB.gymMinutes = v || 60;
-    persist(); renderAll();
-  });
-  const gymKcalInput = document.getElementById('gymKcalInput');
-  if (gymKcalInput) gymKcalInput.addEventListener('change', () => {
-    const e = gymEntryFor(todayStr()); if (!e) return;
-    e.kcal = gymKcalInput.value === '' ? null : Math.max(0, Number(gymKcalInput.value) || 0);
-    persist(); renderAll();
+    const min = Math.max(0, Number((document.getElementById('gymMinInput') || {}).value) || 0);
+    const kc = (document.getElementById('gymKcalInput') || {}).value;
+    e.minutes = min || 60; DB.gymMinutes = min || 60;
+    e.kcal = (kc === '' || kc == null) ? null : Math.max(0, Number(kc) || 0);
+    persist(); renderAll(); showToast('Treino de hoje salvo.');
   });
   const gymOtherBtn = document.getElementById('gymOtherToggleBtn');
   if (gymOtherBtn) gymOtherBtn.addEventListener('click', () => {
     const d = (document.getElementById('gymOtherDate') || {}).value;
     if (!d) { showToast('Escolhe a data.'); return; }
+    const min = Math.max(0, Number((document.getElementById('gymOtherMin') || {}).value) || 0) || gymMinutesDefault();
     if (gymWentOn(d)) { DB.gymLog = (DB.gymLog || []).filter(s => s.date !== d); showToast('Dia desmarcado: ' + d); }
-    else { (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: gymMinutesDefault(), kcal: null }); showToast('Dia marcado: ' + d); }
+    else { (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: min, kcal: null }); showToast('Dia marcado: ' + d); }
     persist(); renderAll();
   });
   document.querySelectorAll('[data-del-gym]').forEach(b => b.addEventListener('click', () => {

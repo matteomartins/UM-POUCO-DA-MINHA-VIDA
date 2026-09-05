@@ -5494,7 +5494,6 @@ function gymPresenceCardHtml() {
   const t = todayStr();
   const e = gymEntryFor(t);
   const went = !!e;
-  const list = [...(DB.gymLog || [])].sort((a, b) => (a.date < b.date ? 1 : -1));
   return `<div class="card" id="gymPresenceCard" style="background:#faf1f2;border-color:#e3c7cb">
     <button class="btn${went ? '' : ' secondary'}" id="gymTodayBtn" style="width:100%">${went ? '✓ Treinei hoje — toque pra desmarcar' : '💪 Marcar que treinei hoje'}</button>
     ${went ? `<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
@@ -5518,14 +5517,8 @@ function gymPresenceCardHtml() {
         <input type="number" min="0" step="5" id="gymOtherMin" value="${gymMinutesDefault()}" style="width:60px"> <span style="color:#86897F">min</span>
         <button class="btn secondary" id="gymOtherToggleBtn" style="padding:5px 12px">Marcar / desmarcar</button>
       </div>
+      <div style="font-size:10.5px;color:#ABA9A0;margin-top:8px">O histórico de dias marcados fica na aba <b>Progresso</b>, junto do gráfico de frequência.</div>
     </div>
-    ${list.length ? `<div style="margin-top:12px;border-top:1px solid #e3c7cb;padding-top:10px">
-      <div style="font-size:12px;color:#4A4D45;margin-bottom:4px">Dias marcados (${list.length})</div>
-      ${list.map(s => `<div class="row" style="justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
-        <span>${s.date} · ${s.minutes || 60} min · ≈ ${gymKcal(s)} kcal</span>
-        <button class="icon-btn" data-del-gym="${s.id}" title="Apagar este dia">🗑</button>
-      </div>`).join('')}
-    </div>` : ''}
   </div>`;
 }
 
@@ -5583,10 +5576,6 @@ function attachWorkoutHandlers() {
     else { (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: min, kcal: null }); showToast('Dia marcado: ' + d); }
     persist(); renderAll();
   });
-  document.querySelectorAll('[data-del-gym]').forEach(b => b.addEventListener('click', () => {
-    DB.gymLog = (DB.gymLog || []).filter(s => s.id !== b.dataset.delGym);
-    persist(); renderAll();
-  }));
 
   document.querySelectorAll('[data-ex-carga]').forEach(btn => btn.addEventListener('click', () => {
     const ex = findExercise(btn.dataset.exCarga);
@@ -5904,6 +5893,37 @@ function freqCardHtml() {
   </div>`;
 }
 
+function gymHistoryCardHtml() {
+  const logs = [...(DB.gymLog || [])].sort((a, b) => (a.date < b.date ? 1 : -1));
+  if (!logs.length) return '';
+  const byWeek = new Map();
+  logs.forEach(s => {
+    const ws = weekStartOf(s.date);
+    if (!byWeek.has(ws)) byWeek.set(ws, []);
+    byWeek.get(ws).push(s);
+  });
+  const weeks = [...byWeek.entries()].sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  return `<details class="card" id="gymHistoryCard" style="padding:0">
+    <summary style="padding:14px 16px;cursor:pointer;font-weight:700;font-size:13px;color:#4A4D45">
+      🗓️ Histórico de musculação — ${logs.length} ${logs.length === 1 ? 'dia' : 'dias'} <span style="font-weight:400;color:#9A9C90;font-size:11px">(toque pra abrir)</span>
+    </summary>
+    <div style="padding:0 16px 14px">
+      ${weeks.map(([ws, items]) => {
+        const we = shiftDate(ws, 6);
+        return `<details style="margin-bottom:6px;border-bottom:1px solid #EEEDE6;padding-bottom:4px">
+          <summary style="cursor:pointer;font-size:12px;color:#7a1f2c;font-weight:600;padding:5px 0">Semana ${fmtShortDate(ws)}–${fmtShortDate(we)} · ${items.length}x</summary>
+          <div style="padding:2px 0 4px 10px">
+            ${items.map(s => `<div class="row" style="justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
+              <span>${s.date} · ${s.minutes || 60} min · ≈ ${gymKcal(s)} kcal${s.kcal != null && s.kcal !== '' ? '' : ' (est.)'}</span>
+              <button class="icon-btn" data-del-gym="${s.id}" title="Apagar este dia">🗑</button>
+            </div>`).join('')}
+          </div>
+        </details>`;
+      }).join('')}
+    </div>
+  </details>`;
+}
+
 function progressHtml() {
   const days = (DB.plan && DB.plan.days) || [];
   if (!days.length) return `<div class="section-workout"><div class="empty">Sem plano de treino.</div></div>`;
@@ -5923,6 +5943,7 @@ function progressHtml() {
   return `
     <div class="section-workout">
       ${freqCardHtml()}
+      ${gymHistoryCardHtml()}
       <div class="workout-day-tabs">
         ${days.map(d => `<button class="wday-btn${d.id === day.id ? ' active' : ''}" data-progday="${d.id}"><b>${d.label}</b><span>${esc(d.focus)}</span></button>`).join('')}
       </div>
@@ -5954,6 +5975,10 @@ function attachProgressHandlers() {
   document.querySelectorAll('[data-del-carga]').forEach(b => b.addEventListener('click', () => {
     const [exId, date] = b.dataset.delCarga.split('|');
     DB.cargaLog = (DB.cargaLog || []).filter(l => !(l.exId === exId && l.date === date));
+    persist(); renderAll();
+  }));
+  document.querySelectorAll('[data-del-gym]').forEach(b => b.addEventListener('click', () => {
+    DB.gymLog = (DB.gymLog || []).filter(s => s.id !== b.dataset.delGym);
     persist(); renderAll();
   }));
 }
@@ -7261,7 +7286,6 @@ function gymPresenceCardHtml() {
   const t = todayStr();
   const e = gymEntryFor(t);
   const went = !!e;
-  const list = [...(DB.gymLog || [])].sort((a, b) => (a.date < b.date ? 1 : -1));
   return `<div class="card" id="gymPresenceCard" style="background:#faf1f2;border-color:#e3c7cb">
     <button class="btn${went ? '' : ' secondary'}" id="gymTodayBtn" style="width:100%">${went ? '✓ Treinei hoje — toque pra desmarcar' : '💪 Marcar que treinei hoje'}</button>
     ${went ? `<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
@@ -7285,14 +7309,8 @@ function gymPresenceCardHtml() {
         <input type="number" min="0" step="5" id="gymOtherMin" value="${gymMinutesDefault()}" style="width:60px"> <span style="color:#86897F">min</span>
         <button class="btn secondary" id="gymOtherToggleBtn" style="padding:5px 12px">Marcar / desmarcar</button>
       </div>
+      <div style="font-size:10.5px;color:#ABA9A0;margin-top:8px">O histórico de dias marcados fica na aba <b>Progresso</b>, junto do gráfico de frequência.</div>
     </div>
-    ${list.length ? `<div style="margin-top:12px;border-top:1px solid #e3c7cb;padding-top:10px">
-      <div style="font-size:12px;color:#4A4D45;margin-bottom:4px">Dias marcados (${list.length})</div>
-      ${list.map(s => `<div class="row" style="justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
-        <span>${s.date} · ${s.minutes || 60} min · ≈ ${gymKcal(s)} kcal</span>
-        <button class="icon-btn" data-del-gym="${s.id}" title="Apagar este dia">🗑</button>
-      </div>`).join('')}
-    </div>` : ''}
   </div>`;
 }
 
@@ -7350,10 +7368,6 @@ function attachWorkoutHandlers() {
     else { (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: d, minutes: min, kcal: null }); showToast('Dia marcado: ' + d); }
     persist(); renderAll();
   });
-  document.querySelectorAll('[data-del-gym]').forEach(b => b.addEventListener('click', () => {
-    DB.gymLog = (DB.gymLog || []).filter(s => s.id !== b.dataset.delGym);
-    persist(); renderAll();
-  }));
 
   document.querySelectorAll('[data-ex-carga]').forEach(btn => btn.addEventListener('click', () => {
     const ex = findExercise(btn.dataset.exCarga);
@@ -7671,6 +7685,37 @@ function freqCardHtml() {
   </div>`;
 }
 
+function gymHistoryCardHtml() {
+  const logs = [...(DB.gymLog || [])].sort((a, b) => (a.date < b.date ? 1 : -1));
+  if (!logs.length) return '';
+  const byWeek = new Map();
+  logs.forEach(s => {
+    const ws = weekStartOf(s.date);
+    if (!byWeek.has(ws)) byWeek.set(ws, []);
+    byWeek.get(ws).push(s);
+  });
+  const weeks = [...byWeek.entries()].sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  return `<details class="card" id="gymHistoryCard" style="padding:0">
+    <summary style="padding:14px 16px;cursor:pointer;font-weight:700;font-size:13px;color:#4A4D45">
+      🗓️ Histórico de musculação — ${logs.length} ${logs.length === 1 ? 'dia' : 'dias'} <span style="font-weight:400;color:#9A9C90;font-size:11px">(toque pra abrir)</span>
+    </summary>
+    <div style="padding:0 16px 14px">
+      ${weeks.map(([ws, items]) => {
+        const we = shiftDate(ws, 6);
+        return `<details style="margin-bottom:6px;border-bottom:1px solid #EEEDE6;padding-bottom:4px">
+          <summary style="cursor:pointer;font-size:12px;color:#7a1f2c;font-weight:600;padding:5px 0">Semana ${fmtShortDate(ws)}–${fmtShortDate(we)} · ${items.length}x</summary>
+          <div style="padding:2px 0 4px 10px">
+            ${items.map(s => `<div class="row" style="justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
+              <span>${s.date} · ${s.minutes || 60} min · ≈ ${gymKcal(s)} kcal${s.kcal != null && s.kcal !== '' ? '' : ' (est.)'}</span>
+              <button class="icon-btn" data-del-gym="${s.id}" title="Apagar este dia">🗑</button>
+            </div>`).join('')}
+          </div>
+        </details>`;
+      }).join('')}
+    </div>
+  </details>`;
+}
+
 function progressHtml() {
   const days = (DB.plan && DB.plan.days) || [];
   if (!days.length) return `<div class="section-workout"><div class="empty">Sem plano de treino.</div></div>`;
@@ -7690,6 +7735,7 @@ function progressHtml() {
   return `
     <div class="section-workout">
       ${freqCardHtml()}
+      ${gymHistoryCardHtml()}
       <div class="workout-day-tabs">
         ${days.map(d => `<button class="wday-btn${d.id === day.id ? ' active' : ''}" data-progday="${d.id}"><b>${d.label}</b><span>${esc(d.focus)}</span></button>`).join('')}
       </div>
@@ -7721,6 +7767,10 @@ function attachProgressHandlers() {
   document.querySelectorAll('[data-del-carga]').forEach(b => b.addEventListener('click', () => {
     const [exId, date] = b.dataset.delCarga.split('|');
     DB.cargaLog = (DB.cargaLog || []).filter(l => !(l.exId === exId && l.date === date));
+    persist(); renderAll();
+  }));
+  document.querySelectorAll('[data-del-gym]').forEach(b => b.addEventListener('click', () => {
+    DB.gymLog = (DB.gymLog || []).filter(s => s.id !== b.dataset.delGym);
     persist(); renderAll();
   }));
 }

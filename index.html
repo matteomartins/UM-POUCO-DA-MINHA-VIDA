@@ -1063,12 +1063,16 @@
   #view-dieta .section-diet #metasCard .water-block { background: #EAF6FB; border: 1px solid #CDE7F0; border-radius: 13px; padding: 12px 13px; margin-bottom: 13px; }
   #view-dieta .section-diet #metasCard [data-water], #view-dieta .section-diet #metasCard #waterMlAddBtn { background: #D5EEF6; color: #14607D; border-color: #BFE2EF; }
   #view-dieta .section-diet #metasCard [data-water]:hover, #view-dieta .section-diet #metasCard #waterMlAddBtn:hover { background: #C2E5F1; }
-  #view-dieta .section-diet #metasCard .meta-row { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 12px; background: #fff; border: 1px solid #ECEAE1; margin-bottom: 7px; }
-  #view-dieta .section-diet #metasCard .meta-row.done { background: #EDF6ED; border-color: #CDE6CD; }
+  #view-dieta .section-diet #metasCard .meta-row { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 12px; background: #F7EAED; border: 1px solid #E9D6DA; margin-bottom: 7px; }
+  #view-dieta .section-diet #metasCard .meta-row.done { background: #E7F4E7; border-color: #C7E3C7; }
   #view-dieta .section-diet #metasCard .m-emoji { font-size: 18px; width: 22px; text-align: center; flex: 0 0 auto; }
-  #view-dieta .section-diet #metasCard .m-label { flex: 1; font-weight: 600; font-size: 13.5px; color: #3C3F37; }
+  #view-dieta .section-diet #metasCard .m-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  #view-dieta .section-diet #metasCard .m-label { font-weight: 600; font-size: 13.5px; color: #3C3F37; }
   #view-dieta .section-diet #metasCard .meta-row.done .m-label { color: #2F7D4F; }
+  #view-dieta .section-diet #metasCard .m-sub { font-size: 10.5px; color: #A7A99E; font-weight: 700; letter-spacing: .01em; }
+  #view-dieta .section-diet #metasCard .m-sub .st-on { color: #E8843C; }
   #view-dieta .section-diet #metasCard .m-streak { font-size: 11.5px; font-weight: 800; color: #E8843C; flex: 0 0 auto; }
+  #view-dieta .section-diet #metasCard .metas-count .hs { color: #E8843C; }
   #view-dieta .section-diet #metasCard .m-check { width: 27px; height: 27px; border-radius: 8px; border: 2px solid #C9CBC0; background: #fff; color: #fff; font-size: 15px; font-weight: 700; line-height: 1; cursor: pointer; flex: 0 0 auto; padding: 0; }
   #view-dieta .section-diet #metasCard .m-check.on { background: #2F7D4F; border-color: #2F7D4F; }
   #view-dieta .section-diet #metasCard .m-count { width: 50px; flex: 0 0 auto; text-align: center; }
@@ -5132,15 +5136,17 @@ function metaRowHtml(h) {
   const isCount = h.type === 'count';
   const v = habitVal(d, h.id);
   const done = habitDone(d, h.id, h);
-  const st = habitStreak(dd => habitDone(dd, h.id, h), d);
+  const s = habitStats(h, d);
   const tgt = Number(h.target) || 0;
   const control = isCount
     ? `<input type="number" min="0" step="1" class="m-count${done ? ' on' : ''}" data-habit-count="${h.id}" value="${v != null ? v : ''}" placeholder="0"><span class="m-unit">${tgt ? '/ ' + tgt + ' ' : ''}${esc(h.unit || '')}</span>`
     : `<button class="m-check${done ? ' on' : ''}" data-habit-toggle="${h.id}" title="marcar / desmarcar">${done ? '✓' : ''}</button>`;
   return `<div class="meta-row${done ? ' done' : ''}">
     <span class="m-emoji">${habitIcon(h)}</span>
-    <span class="m-label">${esc(h.label)}</span>
-    ${st > 1 ? `<span class="m-streak">🔥 ${st}</span>` : ''}
+    <span class="m-main">
+      <span class="m-label">${esc(h.label)}</span>
+      <span class="m-sub"><span class="${s.streak > 0 ? 'st-on' : ''}">🔥 ${s.streak}</span> · 🏆 ${s.best}</span>
+    </span>
     ${control}
     <span class="m-mini">
       <button data-habit-edit="${h.id}" title="Editar meta">✎</button>
@@ -5174,12 +5180,13 @@ function metasCardHtml() {
   const wStreak = habitStreak(dd => (DB.waterLog[dd] || 0) >= wGoal, d);
   const fmtL = ml => (ml / 1000).toFixed(2).replace('.', ',');
   const dayClosed = !!(DB.habitLog[d] && DB.habitLog[d].__closed);
+  const closedStreak = habitStreak(dd => !!(DB.habitLog[dd] && DB.habitLog[dd].__closed), d);
   const totalMetas = DB.habits.length + 1;
   const doneMetas = (wDone ? 1 : 0) + DB.habits.filter(h => habitDone(d, h.id, h)).length;
   return `<div class="card" id="metasCard">
     <div class="metas-head">
       <div class="card-title" style="margin:0">✅ Metas do dia · ${fmtDateLabel(d)}</div>
-      <span class="metas-count">${doneMetas}/${totalMetas} ✓</span>
+      <span class="metas-count">${closedStreak > 0 ? `<span class="hs">🔥 ${closedStreak}</span> · ` : ''}${doneMetas}/${totalMetas} ✓</span>
     </div>
     <div class="water-block">
       <div style="display:flex;justify-content:space-between;align-items:baseline">
@@ -5204,13 +5211,13 @@ function metasCardHtml() {
       <button class="btn" id="addHabitBtn" style="padding:6px 16px">Adicionar</button>
     </div>
     ${DB.habits.length ? `<details class="metas-hist"${ui._histOpen ? ' open' : ''}>
-      <summary>📊 Histórico e recordes</summary>
+      <summary>📊 Quantas vezes já fiz</summary>
       <div style="margin-top:6px">
         ${[{ id: '__water', label: 'Água', icon: '💧', _water: true }].concat(DB.habits).map(h => {
           const s = h._water
             ? (() => { const dts = Object.keys(DB.waterLog || {}).filter(dt => (DB.waterLog[dt] || 0) >= wGoal).sort(); let b = 0, r = 0, p = null; for (const x of dts) { r = (p && shiftDate(p, 1) === x) ? r + 1 : 1; if (r > b) b = r; p = x; } return { streak: wStreak, best: b, month: dts.filter(x => x.startsWith(d.slice(0, 7))).length, total: dts.length }; })()
             : habitStats(h, d);
-          return `<div class="hist-row"><span class="m-emoji" style="font-size:15px;width:18px">${h.icon || habitIcon(h)}</span><span class="h-name">${esc(h.label)}</span><span>🔥 ${s.streak}</span><span title="recorde de dias seguidos">🏆 ${s.best}</span><span title="feitos este mês / no total" style="color:#9A9C90">${s.month} mês · ${s.total} total</span></div>`;
+          return `<div class="hist-row"><span class="m-emoji" style="font-size:15px;width:18px">${h.icon || habitIcon(h)}</span><span class="h-name">${esc(h.label)}</span><span class="${s.streak > 0 ? '' : ''}" style="color:#E8843C;font-weight:700">🔥 ${s.streak}</span><span title="recorde de dias seguidos" style="font-weight:700">🏆 ${s.best}</span><span title="feito este mês · no total" style="color:#9A9C90">${s.month} mês · ${s.total} total</span></div>`;
         }).join('')}
       </div>
     </details>` : ''}
@@ -7202,15 +7209,17 @@ function metaRowHtml(h) {
   const isCount = h.type === 'count';
   const v = habitVal(d, h.id);
   const done = habitDone(d, h.id, h);
-  const st = habitStreak(dd => habitDone(dd, h.id, h), d);
+  const s = habitStats(h, d);
   const tgt = Number(h.target) || 0;
   const control = isCount
     ? `<input type="number" min="0" step="1" class="m-count${done ? ' on' : ''}" data-habit-count="${h.id}" value="${v != null ? v : ''}" placeholder="0"><span class="m-unit">${tgt ? '/ ' + tgt + ' ' : ''}${esc(h.unit || '')}</span>`
     : `<button class="m-check${done ? ' on' : ''}" data-habit-toggle="${h.id}" title="marcar / desmarcar">${done ? '✓' : ''}</button>`;
   return `<div class="meta-row${done ? ' done' : ''}">
     <span class="m-emoji">${habitIcon(h)}</span>
-    <span class="m-label">${esc(h.label)}</span>
-    ${st > 1 ? `<span class="m-streak">🔥 ${st}</span>` : ''}
+    <span class="m-main">
+      <span class="m-label">${esc(h.label)}</span>
+      <span class="m-sub"><span class="${s.streak > 0 ? 'st-on' : ''}">🔥 ${s.streak}</span> · 🏆 ${s.best}</span>
+    </span>
     ${control}
     <span class="m-mini">
       <button data-habit-edit="${h.id}" title="Editar meta">✎</button>
@@ -7244,12 +7253,13 @@ function metasCardHtml() {
   const wStreak = habitStreak(dd => (DB.waterLog[dd] || 0) >= wGoal, d);
   const fmtL = ml => (ml / 1000).toFixed(2).replace('.', ',');
   const dayClosed = !!(DB.habitLog[d] && DB.habitLog[d].__closed);
+  const closedStreak = habitStreak(dd => !!(DB.habitLog[dd] && DB.habitLog[dd].__closed), d);
   const totalMetas = DB.habits.length + 1;
   const doneMetas = (wDone ? 1 : 0) + DB.habits.filter(h => habitDone(d, h.id, h)).length;
   return `<div class="card" id="metasCard">
     <div class="metas-head">
       <div class="card-title" style="margin:0">✅ Metas do dia · ${fmtDateLabel(d)}</div>
-      <span class="metas-count">${doneMetas}/${totalMetas} ✓</span>
+      <span class="metas-count">${closedStreak > 0 ? `<span class="hs">🔥 ${closedStreak}</span> · ` : ''}${doneMetas}/${totalMetas} ✓</span>
     </div>
     <div class="water-block">
       <div style="display:flex;justify-content:space-between;align-items:baseline">
@@ -7274,13 +7284,13 @@ function metasCardHtml() {
       <button class="btn" id="addHabitBtn" style="padding:6px 16px">Adicionar</button>
     </div>
     ${DB.habits.length ? `<details class="metas-hist"${ui._histOpen ? ' open' : ''}>
-      <summary>📊 Histórico e recordes</summary>
+      <summary>📊 Quantas vezes já fiz</summary>
       <div style="margin-top:6px">
         ${[{ id: '__water', label: 'Água', icon: '💧', _water: true }].concat(DB.habits).map(h => {
           const s = h._water
             ? (() => { const dts = Object.keys(DB.waterLog || {}).filter(dt => (DB.waterLog[dt] || 0) >= wGoal).sort(); let b = 0, r = 0, p = null; for (const x of dts) { r = (p && shiftDate(p, 1) === x) ? r + 1 : 1; if (r > b) b = r; p = x; } return { streak: wStreak, best: b, month: dts.filter(x => x.startsWith(d.slice(0, 7))).length, total: dts.length }; })()
             : habitStats(h, d);
-          return `<div class="hist-row"><span class="m-emoji" style="font-size:15px;width:18px">${h.icon || habitIcon(h)}</span><span class="h-name">${esc(h.label)}</span><span>🔥 ${s.streak}</span><span title="recorde de dias seguidos">🏆 ${s.best}</span><span title="feitos este mês / no total" style="color:#9A9C90">${s.month} mês · ${s.total} total</span></div>`;
+          return `<div class="hist-row"><span class="m-emoji" style="font-size:15px;width:18px">${h.icon || habitIcon(h)}</span><span class="h-name">${esc(h.label)}</span><span class="${s.streak > 0 ? '' : ''}" style="color:#E8843C;font-weight:700">🔥 ${s.streak}</span><span title="recorde de dias seguidos" style="font-weight:700">🏆 ${s.best}</span><span title="feito este mês · no total" style="color:#9A9C90">${s.month} mês · ${s.total} total</span></div>`;
         }).join('')}
       </div>
     </details>` : ''}

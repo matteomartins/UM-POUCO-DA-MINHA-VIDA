@@ -5135,17 +5135,21 @@ function habitStats(habit, refDate) {
   const dates = Object.keys(DB.habitLog || {}).filter(dt => /^\d{4}-\d\d-\d\d$/.test(dt) && habitDone(dt, habit.id, habit)).sort();
   const set = new Set(dates);
   let streak = 0, cur = refDate;
-  while (set.has(cur)) { streak++; cur = shiftDate(cur, -1); if (streak > 800) break; }
-  let best = 0, run = 0, prev = null;
+  const streakDates = new Set();
+  while (set.has(cur)) { streak++; streakDates.add(cur); cur = shiftDate(cur, -1); if (streak > 800) break; }
+  let best = 0, prevBest = 0, run = 0, runP = 0, prev = null;
   for (const dt of dates) {
     run = (prev && shiftDate(prev, 1) === dt) ? run + 1 : 1;
     if (run > best) best = run;
+    // recorde "anterior" — ignora a sequência atual em curso, pra poder mostrar "NOVO RECORDE"
+    if (streakDates.has(dt)) { runP = 0; }
+    else { runP = (prev && shiftDate(prev, 1) === dt && !streakDates.has(prev)) ? runP + 1 : 1; if (runP > prevBest) prevBest = runP; }
     prev = dt;
   }
   const monthPref = refDate.slice(0, 7);
   const wkStart = weekStartOf(refDate), wkEnd = shiftDate(wkStart, 6);
   return {
-    streak, best,
+    streak, best, prevBest,
     week: dates.filter(dt => dt >= wkStart && dt <= wkEnd).length,
     month: dates.filter(dt => dt.startsWith(monthPref)).length,
     total: dates.length,
@@ -5163,9 +5167,9 @@ function metaRowHtml(h) {
   const tier = fireTier(s.streak);
   const flame = tier >= 3 ? '🔥🔥🔥' : tier >= 2 ? '🔥🔥' : '🔥';
   let badge = '';
-  if (s.best >= 2 && s.streak > s.best) badge = `<span class="m-badge rec">🏆 NOVO RECORDE</span>`;
-  else if (s.best >= 2 && s.streak === s.best) badge = `<span class="m-badge tie">🏆 empatou o recorde</span>`;
-  else if (s.best >= 3 && s.streak < s.best && s.best - s.streak <= 2) badge = `<span class="m-badge chase">⚡ falta ${s.best - s.streak} pro recorde</span>`;
+  if (s.prevBest >= 2 && s.streak > s.prevBest) badge = `<span class="m-badge rec">🏆 NOVO RECORDE!</span>`;
+  else if (s.prevBest >= 2 && s.streak === s.prevBest) badge = `<span class="m-badge tie">🏆 empatou o recorde</span>`;
+  else if (s.prevBest >= 3 && s.streak < s.prevBest && s.prevBest - s.streak <= 2) badge = `<span class="m-badge chase">⚡ falta ${s.prevBest - s.streak} pro recorde</span>`;
   const control = isCount
     ? `<input type="number" min="0" step="1" class="m-count${done ? ' on' : ''}" data-habit-count="${h.id}" value="${v != null ? v : ''}" placeholder="0"><span class="m-unit">${tgt ? '/ ' + tgt + ' ' : ''}${esc(h.unit || '')}</span>`
     : `<button class="m-check${done ? ' on' : ''}" data-habit-toggle="${h.id}" title="marcar / desmarcar">${done ? '✓' : ''}</button>`;
@@ -7255,17 +7259,21 @@ function habitStats(habit, refDate) {
   const dates = Object.keys(DB.habitLog || {}).filter(dt => /^\d{4}-\d\d-\d\d$/.test(dt) && habitDone(dt, habit.id, habit)).sort();
   const set = new Set(dates);
   let streak = 0, cur = refDate;
-  while (set.has(cur)) { streak++; cur = shiftDate(cur, -1); if (streak > 800) break; }
-  let best = 0, run = 0, prev = null;
+  const streakDates = new Set();
+  while (set.has(cur)) { streak++; streakDates.add(cur); cur = shiftDate(cur, -1); if (streak > 800) break; }
+  let best = 0, prevBest = 0, run = 0, runP = 0, prev = null;
   for (const dt of dates) {
     run = (prev && shiftDate(prev, 1) === dt) ? run + 1 : 1;
     if (run > best) best = run;
+    // recorde "anterior" — ignora a sequência atual em curso, pra poder mostrar "NOVO RECORDE"
+    if (streakDates.has(dt)) { runP = 0; }
+    else { runP = (prev && shiftDate(prev, 1) === dt && !streakDates.has(prev)) ? runP + 1 : 1; if (runP > prevBest) prevBest = runP; }
     prev = dt;
   }
   const monthPref = refDate.slice(0, 7);
   const wkStart = weekStartOf(refDate), wkEnd = shiftDate(wkStart, 6);
   return {
-    streak, best,
+    streak, best, prevBest,
     week: dates.filter(dt => dt >= wkStart && dt <= wkEnd).length,
     month: dates.filter(dt => dt.startsWith(monthPref)).length,
     total: dates.length,
@@ -7283,9 +7291,9 @@ function metaRowHtml(h) {
   const tier = fireTier(s.streak);
   const flame = tier >= 3 ? '🔥🔥🔥' : tier >= 2 ? '🔥🔥' : '🔥';
   let badge = '';
-  if (s.best >= 2 && s.streak > s.best) badge = `<span class="m-badge rec">🏆 NOVO RECORDE</span>`;
-  else if (s.best >= 2 && s.streak === s.best) badge = `<span class="m-badge tie">🏆 empatou o recorde</span>`;
-  else if (s.best >= 3 && s.streak < s.best && s.best - s.streak <= 2) badge = `<span class="m-badge chase">⚡ falta ${s.best - s.streak} pro recorde</span>`;
+  if (s.prevBest >= 2 && s.streak > s.prevBest) badge = `<span class="m-badge rec">🏆 NOVO RECORDE!</span>`;
+  else if (s.prevBest >= 2 && s.streak === s.prevBest) badge = `<span class="m-badge tie">🏆 empatou o recorde</span>`;
+  else if (s.prevBest >= 3 && s.streak < s.prevBest && s.prevBest - s.streak <= 2) badge = `<span class="m-badge chase">⚡ falta ${s.prevBest - s.streak} pro recorde</span>`;
   const control = isCount
     ? `<input type="number" min="0" step="1" class="m-count${done ? ' on' : ''}" data-habit-count="${h.id}" value="${v != null ? v : ''}" placeholder="0"><span class="m-unit">${tgt ? '/ ' + tgt + ' ' : ''}${esc(h.unit || '')}</span>`
     : `<button class="m-check${done ? ' on' : ''}" data-habit-toggle="${h.id}" title="marcar / desmarcar">${done ? '✓' : ''}</button>`;

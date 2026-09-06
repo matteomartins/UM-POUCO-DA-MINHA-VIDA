@@ -1098,10 +1098,16 @@
   #view-dieta .section-diet #metasCard .hist-head { display: flex; align-items: center; gap: 7px; font-size: 12px; margin-bottom: 6px; }
   #view-dieta .section-diet #metasCard .hist-head .h-name { flex: 1; font-weight: 700; color: #55584F; }
   #view-dieta .section-diet #metasCard .hist-head .h-nums { font-size: 10.5px; color: #9A9C90; font-weight: 700; }
-  #view-dieta .section-diet #metasCard .hist-dots { display: flex; gap: 4px; flex-wrap: wrap; }
-  #view-dieta .section-diet #metasCard .hist-dots .hd { width: 17px; height: 17px; border-radius: 5px; border: 1.5px solid #D2CFC4; background: #fff; cursor: pointer; padding: 0; }
-  #view-dieta .section-diet #metasCard .hist-dots .hd.on { background: #2F7D4F; border-color: #2F7D4F; }
+  #view-dieta .section-diet #metasCard .hist-monthnav { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 8px 0 6px; }
+  #view-dieta .section-diet #metasCard .hist-monthnav span { font-size: 12px; font-weight: 800; color: #55584F; text-transform: capitalize; min-width: 120px; text-align: center; }
+  #view-dieta .section-diet #metasCard .hist-monthnav button { background: #F1E1E4; border: none; color: #7a1f2c; font-weight: 800; border-radius: 8px; width: 26px; height: 24px; cursor: pointer; padding: 0; }
+  #view-dieta .section-diet #metasCard .hist-monthnav button:disabled { opacity: .3; cursor: default; }
+  #view-dieta .section-diet #metasCard .hist-dots { display: flex; gap: 3px; flex-wrap: wrap; }
+  #view-dieta .section-diet #metasCard .hist-dots .hd { width: 21px; height: 21px; border-radius: 5px; border: 1.5px solid #D2CFC4; background: #fff; color: #A7A99E; cursor: pointer; padding: 0; font-size: 8.5px; font-weight: 700; line-height: 1; }
+  #view-dieta .section-diet #metasCard .hist-dots .hd.on { background: #2F7D4F; border-color: #2F7D4F; color: #fff; }
   #view-dieta .section-diet #metasCard .hist-dots .hd.today { box-shadow: 0 0 0 2px #E8843C55; }
+  #view-dieta .section-diet #metasCard .hist-dots .hd.future { opacity: .35; cursor: default; }
+  #view-dieta .section-diet #metasCard .hist-trend { font-size: 10px; color: #9A9C90; font-weight: 700; margin-top: 5px; letter-spacing: .01em; }
   #view-dieta .section-diet #metasCard .day-close { width: 100%; margin-top: 12px; }
   #view-dieta .section-diet #metasCard .day-closed-banner { margin-top: 12px; background: #E7F5E7; border: 1px solid #C4E4C4; color: #2F7D4F; border-radius: 11px; padding: 10px 12px; font-weight: 700; font-size: 13px; text-align: center; }
   #view-dieta .section-diet .card.card-add { background: #faf4f5; border-color: #ecdcde; }
@@ -4871,7 +4877,8 @@ const ui = {
   measureDate: todayStr(),
   editingHabit: null,    // id da meta em edição, ou null
   _editHabitType: 'check', // 'check' | 'count' — tipo escolhido no form de edição
-  _histOpen: false,      // "Histórico e recordes" das metas expandido
+  _histOpen: false,      // "Meu progresso" das metas expandido
+  _histMonth: null,      // "YYYY-MM" que o histórico das metas está mostrando (null = mês de hoje)
   dietChartIndex: 0,
   measureChartIndex: 0,
   dietRange: { from: null, to: null, all: false }, // null/null = janela padrão do gráfico
@@ -5246,27 +5253,53 @@ function metasCardHtml() {
         <input id="newHabitTarget" type="number" min="0" placeholder="meta/dia (opcional)" style="width:130px">
       </div>
     </div>
-    ${DB.habits.length ? `<details class="metas-hist"${ui._histOpen ? ' open' : ''}>
-      <summary>📊 Meu progresso</summary>
-      <div style="margin-top:8px">
+    ${DB.habits.length ? (() => {
+      const curMonth = todayStr().slice(0, 7);
+      const todayD = todayStr();
+      const hm = ui._histMonth && ui._histMonth <= curMonth ? ui._histMonth : d.slice(0, 7);
+      const hy = Number(hm.slice(0, 4)), hmm = Number(hm.slice(5, 7));
+      const daysInMonth = new Date(hy, hmm, 0).getDate();
+      const isCurMonth = hm === curMonth;
+      const doneInMonth = (h, mk, dim) => { let c = 0; for (let day = 1; day <= dim; day++) if (habitDone(`${mk}-${String(day).padStart(2, '0')}`, h.id, h)) c++; return c; };
+      const trend = (h) => {
+        const out = [];
+        for (let i = 5; i >= 0; i--) {
+          const dd = new Date(hy, hmm - 1 - i, 1);
+          const mk = `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}`;
+          const dim = new Date(dd.getFullYear(), dd.getMonth() + 1, 0).getDate();
+          out.push(dd.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '') + ' ' + doneInMonth(h, mk, dim));
+        }
+        return out.join('  ·  ');
+      };
+      return `<details class="metas-hist"${ui._histOpen ? ' open' : ''}>
+        <summary>📊 Meu progresso</summary>
+        <div class="hist-monthnav">
+          <button data-hist-month="prev">◀</button>
+          <span>${fmtMonthLabel(hm)}</span>
+          <button data-hist-month="next"${isCurMonth ? ' disabled' : ''}>▶</button>
+        </div>
         ${DB.habits.map(h => {
           const s = habitStats(h, d);
-          const days = [];
-          for (let i = 13; i >= 0; i--) days.push(shiftDate(d, -i));
           return `<div class="hist-block">
             <div class="hist-head">
               <span class="m-emoji" style="font-size:15px;width:18px">${habitIcon(h)}</span>
               <span class="h-name">${esc(h.label)}</span>
-              <span class="h-nums">${s.week} sem · ${s.month} mês · ${s.total} total · 🏆 ${s.best}</span>
+              <span class="h-nums"><b>${doneInMonth(h, hm, daysInMonth)}×</b> no mês · ${s.total} total · 🏆 ${s.best}</span>
             </div>
             <div class="hist-dots">
-              ${days.map(dt => `<button class="hd${habitDone(dt, h.id, h) ? ' on' : ''}${dt === d ? ' today' : ''}" data-habit-day="${h.id}|${dt}" title="${dt}"></button>`).join('')}
+              ${Array.from({ length: daysInMonth }, (_, i) => {
+                const day = i + 1;
+                const dt = `${hm}-${String(day).padStart(2, '0')}`;
+                const future = isCurMonth && dt > todayD;
+                return `<button class="hd${habitDone(dt, h.id, h) ? ' on' : ''}${dt === todayD ? ' today' : ''}${future ? ' future' : ''}"${future ? ' disabled' : ` data-habit-day="${h.id}|${dt}"`} title="${dt}">${day}</button>`;
+              }).join('')}
             </div>
+            <div class="hist-trend">${trend(h)}</div>
           </div>`;
         }).join('')}
-        <div style="font-size:10px;color:#ABA9A0;margin-top:6px">Últimos 14 dias · toque num quadradinho pra corrigir um dia.</div>
-      </div>
-    </details>` : ''}
+        <div style="font-size:10px;color:#ABA9A0;margin-top:6px">Toque num dia pra marcar/corrigir. A linha de baixo é quantas vezes por mês nos últimos 6 meses.</div>
+      </details>`;
+    })() : ''}
     ${dayClosed
       ? `<div class="day-closed-banner">✓ Dia fechado — mandou bem! <button data-close-day style="background:none;border:none;color:#2F7D4F;text-decoration:underline;cursor:pointer;font-size:12px">reabrir</button></div>`
       : `<button class="btn day-close" data-close-day>✓ Fechar o dia</button>`}
@@ -5677,6 +5710,17 @@ function attachDietHandlers() {
     if (h.type === 'count') setHabitVal(dt, id, Number(cur) > 0 ? undefined : (Number(h.target) || 1));
     else setHabitVal(dt, id, cur ? undefined : true);
     persist(); renderAll();
+  }));
+  document.querySelectorAll('[data-hist-month]').forEach(b => b.addEventListener('click', () => {
+    if (b.disabled) return;
+    const curMonth = todayStr().slice(0, 7);
+    const base = (ui._histMonth && ui._histMonth <= curMonth) ? ui._histMonth : ui.dietDate.slice(0, 7);
+    const y = Number(base.slice(0, 4)), m = Number(base.slice(5, 7));
+    const nd = new Date(y, m - 1 + (b.dataset.histMonth === 'next' ? 1 : -1), 1);
+    const mk = `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}`;
+    ui._histMonth = mk > curMonth ? curMonth : mk;
+    ui._histOpen = true;
+    renderAll();
   }));
   const histEl = document.querySelector('#metasCard .metas-hist');
   if (histEl) histEl.addEventListener('toggle', () => { ui._histOpen = histEl.open; });
@@ -6993,7 +7037,8 @@ const ui = {
   measureDate: todayStr(),
   editingHabit: null,    // id da meta em edição, ou null
   _editHabitType: 'check', // 'check' | 'count' — tipo escolhido no form de edição
-  _histOpen: false,      // "Histórico e recordes" das metas expandido
+  _histOpen: false,      // "Meu progresso" das metas expandido
+  _histMonth: null,      // "YYYY-MM" que o histórico das metas está mostrando (null = mês de hoje)
   dietChartIndex: 0,
   measureChartIndex: 0,
   dietRange: { from: null, to: null, all: false }, // null/null = janela padrão do gráfico
@@ -7370,27 +7415,53 @@ function metasCardHtml() {
         <input id="newHabitTarget" type="number" min="0" placeholder="meta/dia (opcional)" style="width:130px">
       </div>
     </div>
-    ${DB.habits.length ? `<details class="metas-hist"${ui._histOpen ? ' open' : ''}>
-      <summary>📊 Meu progresso</summary>
-      <div style="margin-top:8px">
+    ${DB.habits.length ? (() => {
+      const curMonth = todayStr().slice(0, 7);
+      const todayD = todayStr();
+      const hm = ui._histMonth && ui._histMonth <= curMonth ? ui._histMonth : d.slice(0, 7);
+      const hy = Number(hm.slice(0, 4)), hmm = Number(hm.slice(5, 7));
+      const daysInMonth = new Date(hy, hmm, 0).getDate();
+      const isCurMonth = hm === curMonth;
+      const doneInMonth = (h, mk, dim) => { let c = 0; for (let day = 1; day <= dim; day++) if (habitDone(`${mk}-${String(day).padStart(2, '0')}`, h.id, h)) c++; return c; };
+      const trend = (h) => {
+        const out = [];
+        for (let i = 5; i >= 0; i--) {
+          const dd = new Date(hy, hmm - 1 - i, 1);
+          const mk = `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}`;
+          const dim = new Date(dd.getFullYear(), dd.getMonth() + 1, 0).getDate();
+          out.push(dd.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '') + ' ' + doneInMonth(h, mk, dim));
+        }
+        return out.join('  ·  ');
+      };
+      return `<details class="metas-hist"${ui._histOpen ? ' open' : ''}>
+        <summary>📊 Meu progresso</summary>
+        <div class="hist-monthnav">
+          <button data-hist-month="prev">◀</button>
+          <span>${fmtMonthLabel(hm)}</span>
+          <button data-hist-month="next"${isCurMonth ? ' disabled' : ''}>▶</button>
+        </div>
         ${DB.habits.map(h => {
           const s = habitStats(h, d);
-          const days = [];
-          for (let i = 13; i >= 0; i--) days.push(shiftDate(d, -i));
           return `<div class="hist-block">
             <div class="hist-head">
               <span class="m-emoji" style="font-size:15px;width:18px">${habitIcon(h)}</span>
               <span class="h-name">${esc(h.label)}</span>
-              <span class="h-nums">${s.week} sem · ${s.month} mês · ${s.total} total · 🏆 ${s.best}</span>
+              <span class="h-nums"><b>${doneInMonth(h, hm, daysInMonth)}×</b> no mês · ${s.total} total · 🏆 ${s.best}</span>
             </div>
             <div class="hist-dots">
-              ${days.map(dt => `<button class="hd${habitDone(dt, h.id, h) ? ' on' : ''}${dt === d ? ' today' : ''}" data-habit-day="${h.id}|${dt}" title="${dt}"></button>`).join('')}
+              ${Array.from({ length: daysInMonth }, (_, i) => {
+                const day = i + 1;
+                const dt = `${hm}-${String(day).padStart(2, '0')}`;
+                const future = isCurMonth && dt > todayD;
+                return `<button class="hd${habitDone(dt, h.id, h) ? ' on' : ''}${dt === todayD ? ' today' : ''}${future ? ' future' : ''}"${future ? ' disabled' : ` data-habit-day="${h.id}|${dt}"`} title="${dt}">${day}</button>`;
+              }).join('')}
             </div>
+            <div class="hist-trend">${trend(h)}</div>
           </div>`;
         }).join('')}
-        <div style="font-size:10px;color:#ABA9A0;margin-top:6px">Últimos 14 dias · toque num quadradinho pra corrigir um dia.</div>
-      </div>
-    </details>` : ''}
+        <div style="font-size:10px;color:#ABA9A0;margin-top:6px">Toque num dia pra marcar/corrigir. A linha de baixo é quantas vezes por mês nos últimos 6 meses.</div>
+      </details>`;
+    })() : ''}
     ${dayClosed
       ? `<div class="day-closed-banner">✓ Dia fechado — mandou bem! <button data-close-day style="background:none;border:none;color:#2F7D4F;text-decoration:underline;cursor:pointer;font-size:12px">reabrir</button></div>`
       : `<button class="btn day-close" data-close-day>✓ Fechar o dia</button>`}
@@ -7777,6 +7848,17 @@ function attachDietHandlers() {
     if (h.type === 'count') setHabitVal(dt, id, Number(cur) > 0 ? undefined : (Number(h.target) || 1));
     else setHabitVal(dt, id, cur ? undefined : true);
     persist(); renderAll();
+  }));
+  document.querySelectorAll('[data-hist-month]').forEach(b => b.addEventListener('click', () => {
+    if (b.disabled) return;
+    const curMonth = todayStr().slice(0, 7);
+    const base = (ui._histMonth && ui._histMonth <= curMonth) ? ui._histMonth : ui.dietDate.slice(0, 7);
+    const y = Number(base.slice(0, 4)), m = Number(base.slice(5, 7));
+    const nd = new Date(y, m - 1 + (b.dataset.histMonth === 'next' ? 1 : -1), 1);
+    const mk = `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}`;
+    ui._histMonth = mk > curMonth ? curMonth : mk;
+    ui._histOpen = true;
+    renderAll();
   }));
   const histEl = document.querySelector('#metasCard .metas-hist');
   if (histEl) histEl.addEventListener('toggle', () => { ui._histOpen = histEl.open; });

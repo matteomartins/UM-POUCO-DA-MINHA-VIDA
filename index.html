@@ -5017,6 +5017,16 @@ function periodSummaries(mode) {
     .sort((a, b) => (a.key < b.key ? 1 : -1));
 }
 
+// Se o nome do alimento tem uma pista de peso por unidade ("~50 g/un.", "1 un. ≈ 2,68 g",
+// "50 g por ovo"), devolve esse peso em gramas — usado pro campo "un." no formulário.
+function unitGramsOf(name) {
+  const s = String(name || '');
+  const m = s.match(/1\s*un\.?\s*[≈~=]\s*([\d]+(?:[.,]\d+)?)\s*g/i)
+    || s.match(/([\d]+(?:[.,]\d+)?)\s*g\s*\/\s*un/i)
+    || s.match(/([\d]+(?:[.,]\d+)?)\s*g\s*por\s+(?:un|ovo|unidade)/i);
+  return m ? parseFloat(m[1].replace(',', '.')) : null;
+}
+
 function dietHtml() {
   const totals = dietTotals();
   const waterToday = DB.waterLog[ui.dietDate] || 0;
@@ -5084,12 +5094,14 @@ function dietHtml() {
           <input id="foodSearchInput" placeholder="Buscar alimento (ex: ovo, arroz, roquefort...)" style="width:100%" autocomplete="off" value="${ui.selectedFood ? esc(ui.selectedFood.name) : ''}" ${!ui.selectedMealType ? 'disabled' : ''}>
           <div id="foodResults"></div>
         </div>
+        ${ui.selectedFood && unitGramsOf(ui.selectedFood.name) ? `<input id="unitsInput" type="number" min="0" step="1" placeholder="un." title="unidades — preenche os gramas" style="width:56px" ${!ui.selectedMealType ? 'disabled' : ''}>` : ''}
         <input id="gramsInput" type="number" min="0" placeholder="Gramas" style="width:100px" ${!ui.selectedMealType ? 'disabled' : ''}>
         <button class="btn" id="addFoodBtn" ${ui.selectedFood && ui.selectedMealType ? '' : 'disabled'}>+ Add</button>
       </div>
       ${!ui.selectedMealType ? '<div style="margin-top:6px;font-size:11.5px;color:#B08A3E">👆 Escolha primeiro o momento do dia (café da manhã, almoço...) pra liberar o resto.</div>' : ''}
       ${ui.selectedFood && ui.selectedFood.src === 'off_com' ? '<div style="margin-top:6px;font-size:11.5px;color:#C4573F">⚠ Open Food Facts · comunidade — não verificado. Confere com a embalagem antes de logar.</div>' : ''}
       ${ui.selectedFood && ui.selectedFood.src === 'off_prod' ? '<div style="margin-top:6px;font-size:11.5px;color:#2F7D4F">✓ Open Food Facts · dado do próprio produtor.</div>' : ''}
+      ${ui.selectedFood && unitGramsOf(ui.selectedFood.name) ? `<div style="margin-top:6px;font-size:11.5px;color:#7a7d72">1 unidade ≈ ${unitGramsOf(ui.selectedFood.name)} g — digite em "un." e os gramas se preenchem sozinhos.</div>` : ''}
       <div id="customFoodForm" style="display:${ui.showCustomForm ? 'block' : 'none'};margin-top:10px;border-top:1px solid #DCEEE1;padding-top:10px">
         <div class="card-title">Novo alimento (valores por 100g)</div>
         <div class="row">
@@ -5360,6 +5372,13 @@ function attachDietHandlers() {
     renderFoodResults();
   });
   renderFoodResults();
+
+  const unitsInput = document.getElementById('unitsInput');
+  if (unitsInput) unitsInput.addEventListener('input', () => {
+    const ug = ui.selectedFood ? unitGramsOf(ui.selectedFood.name) : null;
+    const n = Number(unitsInput.value);
+    if (ug && n > 0) document.getElementById('gramsInput').value = +(n * ug).toFixed(1);
+  });
 
   document.getElementById('addFoodBtn').addEventListener('click', () => {
     const g = Number(document.getElementById('gramsInput').value);
@@ -6843,6 +6862,16 @@ function periodSummaries(mode) {
     .sort((a, b) => (a.key < b.key ? 1 : -1));
 }
 
+// Se o nome do alimento tem uma pista de peso por unidade ("~50 g/un.", "1 un. ≈ 2,68 g",
+// "50 g por ovo"), devolve esse peso em gramas — usado pro campo "un." no formulário.
+function unitGramsOf(name) {
+  const s = String(name || '');
+  const m = s.match(/1\s*un\.?\s*[≈~=]\s*([\d]+(?:[.,]\d+)?)\s*g/i)
+    || s.match(/([\d]+(?:[.,]\d+)?)\s*g\s*\/\s*un/i)
+    || s.match(/([\d]+(?:[.,]\d+)?)\s*g\s*por\s+(?:un|ovo|unidade)/i);
+  return m ? parseFloat(m[1].replace(',', '.')) : null;
+}
+
 function dietHtml() {
   const totals = dietTotals();
   const waterToday = DB.waterLog[ui.dietDate] || 0;
@@ -6910,12 +6939,14 @@ function dietHtml() {
           <input id="foodSearchInput" placeholder="Buscar alimento (ex: ovo, arroz, roquefort...)" style="width:100%" autocomplete="off" value="${ui.selectedFood ? esc(ui.selectedFood.name) : ''}" ${!ui.selectedMealType ? 'disabled' : ''}>
           <div id="foodResults"></div>
         </div>
+        ${ui.selectedFood && unitGramsOf(ui.selectedFood.name) ? `<input id="unitsInput" type="number" min="0" step="1" placeholder="un." title="unidades — preenche os gramas" style="width:56px" ${!ui.selectedMealType ? 'disabled' : ''}>` : ''}
         <input id="gramsInput" type="number" min="0" placeholder="Gramas" style="width:100px" ${!ui.selectedMealType ? 'disabled' : ''}>
         <button class="btn" id="addFoodBtn" ${ui.selectedFood && ui.selectedMealType ? '' : 'disabled'}>+ Add</button>
       </div>
       ${!ui.selectedMealType ? '<div style="margin-top:6px;font-size:11.5px;color:#B08A3E">👆 Escolha primeiro o momento do dia (café da manhã, almoço...) pra liberar o resto.</div>' : ''}
       ${ui.selectedFood && ui.selectedFood.src === 'off_com' ? '<div style="margin-top:6px;font-size:11.5px;color:#C4573F">⚠ Open Food Facts · comunidade — não verificado. Confere com a embalagem antes de logar.</div>' : ''}
       ${ui.selectedFood && ui.selectedFood.src === 'off_prod' ? '<div style="margin-top:6px;font-size:11.5px;color:#2F7D4F">✓ Open Food Facts · dado do próprio produtor.</div>' : ''}
+      ${ui.selectedFood && unitGramsOf(ui.selectedFood.name) ? `<div style="margin-top:6px;font-size:11.5px;color:#7a7d72">1 unidade ≈ ${unitGramsOf(ui.selectedFood.name)} g — digite em "un." e os gramas se preenchem sozinhos.</div>` : ''}
       <div id="customFoodForm" style="display:${ui.showCustomForm ? 'block' : 'none'};margin-top:10px;border-top:1px solid #DCEEE1;padding-top:10px">
         <div class="card-title">Novo alimento (valores por 100g)</div>
         <div class="row">
@@ -7164,6 +7195,13 @@ function attachDietHandlers() {
     }, 450);
   });
   renderFoodResults();
+
+  const unitsInput = document.getElementById('unitsInput');
+  if (unitsInput) unitsInput.addEventListener('input', () => {
+    const ug = ui.selectedFood ? unitGramsOf(ui.selectedFood.name) : null;
+    const n = Number(unitsInput.value);
+    if (ug && n > 0) document.getElementById('gramsInput').value = +(n * ug).toFixed(1);
+  });
 
   document.getElementById('addFoodBtn').addEventListener('click', () => {
     const g = Number(document.getElementById('gramsInput').value);

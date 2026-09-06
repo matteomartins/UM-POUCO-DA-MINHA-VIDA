@@ -1057,10 +1057,8 @@
   #view-dieta .section-diet .btn:hover { background: #5f1622; }
   #view-dieta .section-diet .btn.secondary { background: #f0e2e4; color: #7a1f2c; }
   #view-dieta .section-diet .btn.secondary:hover { background: #e6d2d5; }
-  #view-dieta .section-diet .card.card-water { background: #EAF6FB; border-color: #BFE2EF; }
-  #view-dieta .section-diet .card.card-water .card-title { color: #1E7595; }
-  #view-dieta .section-diet .card.card-water .btn.secondary { background: #D5EEF6; color: #14607D; }
-  #view-dieta .section-diet .card.card-water .btn.secondary:hover { background: #C2E5F1; }
+  #view-dieta .section-diet #metasCard [data-water] { background: #D5EEF6; color: #14607D; border-color: #BFE2EF; }
+  #view-dieta .section-diet #metasCard [data-water]:hover { background: #C2E5F1; }
   #view-dieta .section-diet .card.card-add { background: #faf4f5; border-color: #ecdcde; }
   #view-dieta .section-diet .card.card-meals { background: #faf4f5; border-color: #ecdcde; }
   #view-dieta .section-diet .card.card-stats { background: #faf4f5; border-color: #ecdcde; }
@@ -2319,7 +2317,7 @@ document.getElementById('refreshBtn').addEventListener('click', ()=>location.rel
 const BACKUP_KEYS = [
   'agenda_pendencias', 'agenda_user_events', 'agenda_routine_overrides', 'agenda_recurring',
   'livro_cambio_v2',
-  'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog',
+  'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog', 'dieta_habits', 'dieta_habitLog',
   'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog', 'treino_gymLog', 'treino_gymMinutes',
   'ideias_itens',
   'faculdade_farmaco_status', 'faculdade_medint_status', 'faculdade_notas_medint', 'faculdade_notas_guardias',
@@ -4767,6 +4765,8 @@ const DB = {
   customFoods: [],
   dietLog: [],
   waterLog: {},
+  habits: [],         // metas diárias do usuário: [{id, label}] (chave dieta_habits)
+  habitLog: {},       // { "YYYY-MM-DD": [habitId, ...] } (chave dieta_habitLog)
   cardioLog: [],      // só leitura — vem do app Treino (chave treino_cardioLog)
   gymLog: [],         // só leitura — idas à academia (chave treino_gymLog)
   measurements: [],   // só leitura — vem do app Treino (chave treino_measurements)
@@ -4777,6 +4777,8 @@ function persist() {
   saveWS('customFoods', DB.customFoods);
   saveWS('dietLog', DB.dietLog);
   saveWS('waterLog', DB.waterLog);
+  saveWS('habits', DB.habits);
+  saveWS('habitLog', DB.habitLog);
 }
 // Lê uma chave crua (com prefixo completo), sem forçar o prefixo dieta_.
 async function loadRaw(fullKey, fallback) {
@@ -4790,6 +4792,8 @@ async function loadDBFromStorage() {
   DB.customFoods = await loadWS('customFoods', DB.customFoods);
   DB.dietLog = await loadWS('dietLog', DB.dietLog);
   DB.waterLog = await loadWS('waterLog', DB.waterLog);
+  DB.habits = await loadWS('habits', DB.habits) || [];
+  DB.habitLog = await loadWS('habitLog', DB.habitLog) || {};
   DB.cardioLog = await loadRaw('treino_cardioLog', []) || [];
   DB.gymLog = await loadRaw('treino_gymLog', []) || [];
   DB.measurements = await loadRaw('treino_measurements', []) || [];
@@ -5035,6 +5039,50 @@ function unitGramsFor(food) {
   return unitGramsOf(food.name);
 }
 
+function habitStreak(checkFn, fromDate) {
+  let n = 0, cur = fromDate;
+  while (checkFn(cur)) { n++; cur = shiftDate(cur, -1); if (n > 400) break; }
+  return n;
+}
+function metasCardHtml() {
+  const d = ui.dietDate;
+  const waterToday = DB.waterLog[d] || 0;
+  const wGoal = DB.goals.water || 2500;
+  const wDone = waterToday >= wGoal;
+  const doneList = DB.habitLog[d] || [];
+  const wStreak = habitStreak(dd => (DB.waterLog[dd] || 0) >= wGoal, d);
+  const fmtL = ml => (ml / 1000).toFixed(2).replace('.', ',');
+  return `<div class="card" id="metasCard">
+    <div class="card-title">✅ Metas do dia — ${fmtDateLabel(d)}</div>
+    <div style="border-bottom:1px solid #EEEDE6;padding-bottom:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-weight:600">💧 Água ${wDone ? '<span style="color:#2F7D4F">✓</span>' : ''}</span>
+        <span class="scoreboard" style="font-size:14px;color:#14607D">${fmtL(waterToday)} / ${fmtL(wGoal)} L${wStreak > 1 ? ` &nbsp;<span style="color:#E8843C;font-weight:700">🔥 ${wStreak}</span>` : ''}</span>
+      </div>
+      <div class="nutri-line" style="margin:8px 0;background:#D5EEF6"><div class="nutri-line-fill${wDone ? ' over' : ''}" style="width:${Math.min(100, (waterToday / wGoal) * 100)}%;background:#2E9DC7"></div></div>
+      <div class="row" style="gap:6px;flex-wrap:wrap">
+        <button class="btn secondary" data-water="1500">+ 1,5 L (garrafa)</button>
+        <button class="btn secondary" data-water="500">+ 500 ml</button>
+        <button class="btn secondary" data-water="-500">− 500 ml</button>
+      </div>
+    </div>
+    ${DB.habits.length ? DB.habits.map(h => {
+      const done = doneList.includes(h.id);
+      const st = habitStreak(dd => (DB.habitLog[dd] || []).includes(h.id), d);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0">
+        <button data-habit-toggle="${h.id}" title="marcar / desmarcar" style="width:26px;height:26px;border-radius:7px;border:2px solid ${done ? '#2F7D4F' : '#C9CBC0'};background:${done ? '#2F7D4F' : '#fff'};color:#fff;font-size:15px;font-weight:700;line-height:1;cursor:pointer;flex:0 0 auto">${done ? '✓' : ''}</button>
+        <span style="flex:1${done ? ';color:#9A9C90;text-decoration:line-through' : ''}">${esc(h.label)}</span>
+        ${st > 1 ? `<span style="color:#E8843C;font-weight:700;font-size:12px">🔥 ${st}</span>` : ''}
+        <button class="icon-btn" data-habit-del="${h.id}" title="Remover meta">🗑</button>
+      </div>`;
+    }).join('') : '<div style="font-size:11.5px;color:#9A9C90;padding:4px 0">Nenhuma meta ainda. Adicione abaixo (ex: minoxidil, clareamento, ler 10 min...).</div>'}
+    <div class="row" style="gap:6px;margin-top:10px">
+      <input id="newHabitInput" placeholder="Nova meta diária" style="flex:1;min-width:150px">
+      <button class="btn" id="addHabitBtn" style="padding:6px 16px">＋</button>
+    </div>
+  </div>`;
+}
+
 function dietHtml() {
   const totals = dietTotals();
   const waterToday = DB.waterLog[ui.dietDate] || 0;
@@ -5078,19 +5126,7 @@ function dietHtml() {
       ${goalBarHtml('Fibra alimentar', totals.fiber, DB.goals.fiber, 'g', '#8A6D3B')}
     </div>
 
-    <div class="card card-water">
-      <div class="card-title">💧 Água do dia</div>
-      <div class="row" style="justify-content:space-between;margin-bottom:10px">
-        <span class="scoreboard" style="font-size:18px;font-weight:700;color:#14607D">${waterToday} <span style="color:#7FAFC2;font-size:13px;font-weight:400">/ ${DB.goals.water} ml</span></span>
-      </div>
-      <div class="nutri-line" style="margin-bottom:10px;background:#D5EEF6"><div class="nutri-line-fill${waterToday > DB.goals.water ? ' over' : ''}" style="width:${Math.min(100, (waterToday / DB.goals.water) * 100)}%;background:#2E9DC7"></div></div>
-      <div class="row">
-        <button class="btn secondary" data-water="200">+200ml</button>
-        <button class="btn secondary" data-water="300">+300ml</button>
-        <button class="btn secondary" data-water="500">+500ml</button>
-        <button class="btn secondary" data-water="-200">-200ml</button>
-      </div>
-    </div>
+    ${metasCardHtml()}
 
     <div class="card card-add" id="addFoodCard">
       <div class="card-title">🥗 Adicionar alimento</div>
@@ -5364,6 +5400,25 @@ function attachDietHandlers() {
     DB.waterLog[ui.dietDate] = Math.max(0, (DB.waterLog[ui.dietDate] || 0) + ml);
     persist(); renderAll();
   }));
+  document.querySelectorAll('[data-habit-toggle]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.habitToggle, d = ui.dietDate;
+    const list = DB.habitLog[d] || [];
+    DB.habitLog[d] = list.includes(id) ? list.filter(x => x !== id) : [...list, id];
+    persist(); renderAll();
+  }));
+  document.querySelectorAll('[data-habit-del]').forEach(b => b.addEventListener('click', () => {
+    if (!confirm('Remover essa meta? O histórico dela some junto.')) return;
+    DB.habits = (DB.habits || []).filter(h => h.id !== b.dataset.habitDel);
+    persist(); renderAll();
+  }));
+  const addHabitBtn = document.getElementById('addHabitBtn');
+  if (addHabitBtn) addHabitBtn.addEventListener('click', () => {
+    const inp = document.getElementById('newHabitInput');
+    const v = (inp.value || '').trim();
+    if (!v) return;
+    (DB.habits = DB.habits || []).push({ id: 'h_' + uid(), label: v });
+    persist(); renderAll();
+  });
 
   const searchInput = document.getElementById('foodSearchInput');
   let _offDebounce;
@@ -5449,6 +5504,7 @@ function attachDietHandlers() {
   });
 
   bindEnterKey('addFoodCard', 'addFoodBtn');
+  bindEnterKey('metasCard', 'addHabitBtn');
   if (saveCF) bindEnterKey('customFoodForm', 'saveCustomFoodBtn');
 }
 
@@ -6891,6 +6947,50 @@ function unitGramsFor(food) {
   return unitGramsOf(food.name);
 }
 
+function habitStreak(checkFn, fromDate) {
+  let n = 0, cur = fromDate;
+  while (checkFn(cur)) { n++; cur = shiftDate(cur, -1); if (n > 400) break; }
+  return n;
+}
+function metasCardHtml() {
+  const d = ui.dietDate;
+  const waterToday = DB.waterLog[d] || 0;
+  const wGoal = DB.goals.water || 2500;
+  const wDone = waterToday >= wGoal;
+  const doneList = DB.habitLog[d] || [];
+  const wStreak = habitStreak(dd => (DB.waterLog[dd] || 0) >= wGoal, d);
+  const fmtL = ml => (ml / 1000).toFixed(2).replace('.', ',');
+  return `<div class="card" id="metasCard">
+    <div class="card-title">✅ Metas do dia — ${fmtDateLabel(d)}</div>
+    <div style="border-bottom:1px solid #EEEDE6;padding-bottom:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-weight:600">💧 Água ${wDone ? '<span style="color:#2F7D4F">✓</span>' : ''}</span>
+        <span class="scoreboard" style="font-size:14px;color:#14607D">${fmtL(waterToday)} / ${fmtL(wGoal)} L${wStreak > 1 ? ` &nbsp;<span style="color:#E8843C;font-weight:700">🔥 ${wStreak}</span>` : ''}</span>
+      </div>
+      <div class="nutri-line" style="margin:8px 0;background:#D5EEF6"><div class="nutri-line-fill${wDone ? ' over' : ''}" style="width:${Math.min(100, (waterToday / wGoal) * 100)}%;background:#2E9DC7"></div></div>
+      <div class="row" style="gap:6px;flex-wrap:wrap">
+        <button class="btn secondary" data-water="1500">+ 1,5 L (garrafa)</button>
+        <button class="btn secondary" data-water="500">+ 500 ml</button>
+        <button class="btn secondary" data-water="-500">− 500 ml</button>
+      </div>
+    </div>
+    ${DB.habits.length ? DB.habits.map(h => {
+      const done = doneList.includes(h.id);
+      const st = habitStreak(dd => (DB.habitLog[dd] || []).includes(h.id), d);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0">
+        <button data-habit-toggle="${h.id}" title="marcar / desmarcar" style="width:26px;height:26px;border-radius:7px;border:2px solid ${done ? '#2F7D4F' : '#C9CBC0'};background:${done ? '#2F7D4F' : '#fff'};color:#fff;font-size:15px;font-weight:700;line-height:1;cursor:pointer;flex:0 0 auto">${done ? '✓' : ''}</button>
+        <span style="flex:1${done ? ';color:#9A9C90;text-decoration:line-through' : ''}">${esc(h.label)}</span>
+        ${st > 1 ? `<span style="color:#E8843C;font-weight:700;font-size:12px">🔥 ${st}</span>` : ''}
+        <button class="icon-btn" data-habit-del="${h.id}" title="Remover meta">🗑</button>
+      </div>`;
+    }).join('') : '<div style="font-size:11.5px;color:#9A9C90;padding:4px 0">Nenhuma meta ainda. Adicione abaixo (ex: minoxidil, clareamento, ler 10 min...).</div>'}
+    <div class="row" style="gap:6px;margin-top:10px">
+      <input id="newHabitInput" placeholder="Nova meta diária" style="flex:1;min-width:150px">
+      <button class="btn" id="addHabitBtn" style="padding:6px 16px">＋</button>
+    </div>
+  </div>`;
+}
+
 function dietHtml() {
   const totals = dietTotals();
   const waterToday = DB.waterLog[ui.dietDate] || 0;
@@ -6934,19 +7034,7 @@ function dietHtml() {
       ${goalBarHtml('Fibra alimentar', totals.fiber, DB.goals.fiber, 'g', '#8A6D3B')}
     </div>
 
-    <div class="card card-water">
-      <div class="card-title">💧 Água do dia</div>
-      <div class="row" style="justify-content:space-between;margin-bottom:10px">
-        <span class="scoreboard" style="font-size:18px;font-weight:700;color:#14607D">${waterToday} <span style="color:#7FAFC2;font-size:13px;font-weight:400">/ ${DB.goals.water} ml</span></span>
-      </div>
-      <div class="nutri-line" style="margin-bottom:10px;background:#D5EEF6"><div class="nutri-line-fill${waterToday > DB.goals.water ? ' over' : ''}" style="width:${Math.min(100, (waterToday / DB.goals.water) * 100)}%;background:#2E9DC7"></div></div>
-      <div class="row">
-        <button class="btn secondary" data-water="200">+200ml</button>
-        <button class="btn secondary" data-water="300">+300ml</button>
-        <button class="btn secondary" data-water="500">+500ml</button>
-        <button class="btn secondary" data-water="-200">-200ml</button>
-      </div>
-    </div>
+    ${metasCardHtml()}
 
     <div class="card card-add" id="addFoodCard">
       <div class="card-title">🥗 Adicionar alimento</div>
@@ -7196,6 +7284,25 @@ function attachDietHandlers() {
     DB.waterLog[ui.dietDate] = Math.max(0, (DB.waterLog[ui.dietDate] || 0) + ml);
     persist(); renderAll();
   }));
+  document.querySelectorAll('[data-habit-toggle]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.habitToggle, d = ui.dietDate;
+    const list = DB.habitLog[d] || [];
+    DB.habitLog[d] = list.includes(id) ? list.filter(x => x !== id) : [...list, id];
+    persist(); renderAll();
+  }));
+  document.querySelectorAll('[data-habit-del]').forEach(b => b.addEventListener('click', () => {
+    if (!confirm('Remover essa meta? O histórico dela some junto.')) return;
+    DB.habits = (DB.habits || []).filter(h => h.id !== b.dataset.habitDel);
+    persist(); renderAll();
+  }));
+  const addHabitBtn = document.getElementById('addHabitBtn');
+  if (addHabitBtn) addHabitBtn.addEventListener('click', () => {
+    const inp = document.getElementById('newHabitInput');
+    const v = (inp.value || '').trim();
+    if (!v) return;
+    (DB.habits = DB.habits || []).push({ id: 'h_' + uid(), label: v });
+    persist(); renderAll();
+  });
 
   const searchInput = document.getElementById('foodSearchInput');
   searchInput.addEventListener('input', () => {
@@ -7283,6 +7390,7 @@ function attachDietHandlers() {
   });
 
   bindEnterKey('addFoodCard', 'addFoodBtn');
+  bindEnterKey('metasCard', 'addHabitBtn');
   if (saveCF) bindEnterKey('customFoodForm', 'saveCustomFoodBtn');
 }
 

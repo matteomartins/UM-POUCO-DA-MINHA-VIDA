@@ -5026,6 +5026,14 @@ function unitGramsOf(name) {
     || s.match(/([\d]+(?:[.,]\d+)?)\s*g\s*por\s+(?:un|ovo|unidade)/i);
   return m ? parseFloat(m[1].replace(',', '.')) : null;
 }
+// Peso por unidade de um alimento: usa o campo unitGrams (setado na hora de criar) se existir,
+// senão tenta deduzir do nome. É o que decide se o campo "un." aparece no formulário.
+function unitGramsFor(food) {
+  if (!food) return null;
+  const explicit = Number(food.unitGrams);
+  if (explicit > 0) return explicit;
+  return unitGramsOf(food.name);
+}
 
 function dietHtml() {
   const totals = dietTotals();
@@ -5094,14 +5102,14 @@ function dietHtml() {
           <input id="foodSearchInput" placeholder="Buscar alimento (ex: ovo, arroz, roquefort...)" style="width:100%" autocomplete="off" value="${ui.selectedFood ? esc(ui.selectedFood.name) : ''}" ${!ui.selectedMealType ? 'disabled' : ''}>
           <div id="foodResults"></div>
         </div>
-        ${ui.selectedFood && unitGramsOf(ui.selectedFood.name) ? `<input id="unitsInput" type="number" min="0" step="1" placeholder="un." title="unidades — preenche os gramas" style="width:56px" ${!ui.selectedMealType ? 'disabled' : ''}>` : ''}
+        ${unitGramsFor(ui.selectedFood) ? `<input id="unitsInput" type="number" min="0" step="1" placeholder="un." title="unidades — preenche os gramas" style="width:56px" ${!ui.selectedMealType ? 'disabled' : ''}>` : ''}
         <input id="gramsInput" type="number" min="0" placeholder="Gramas" style="width:100px" ${!ui.selectedMealType ? 'disabled' : ''}>
         <button class="btn" id="addFoodBtn" ${ui.selectedFood && ui.selectedMealType ? '' : 'disabled'}>+ Add</button>
       </div>
       ${!ui.selectedMealType ? '<div style="margin-top:6px;font-size:11.5px;color:#B08A3E">👆 Escolha primeiro o momento do dia (café da manhã, almoço...) pra liberar o resto.</div>' : ''}
       ${ui.selectedFood && ui.selectedFood.src === 'off_com' ? '<div style="margin-top:6px;font-size:11.5px;color:#C4573F">⚠ Open Food Facts · comunidade — não verificado. Confere com a embalagem antes de logar.</div>' : ''}
       ${ui.selectedFood && ui.selectedFood.src === 'off_prod' ? '<div style="margin-top:6px;font-size:11.5px;color:#2F7D4F">✓ Open Food Facts · dado do próprio produtor.</div>' : ''}
-      ${ui.selectedFood && unitGramsOf(ui.selectedFood.name) ? `<div style="margin-top:6px;font-size:11.5px;color:#7a7d72">1 unidade ≈ ${unitGramsOf(ui.selectedFood.name)} g — digite em "un." e os gramas se preenchem sozinhos.</div>` : ''}
+      ${unitGramsFor(ui.selectedFood) ? `<div style="margin-top:6px;font-size:11.5px;color:#7a7d72">1 unidade ≈ ${unitGramsFor(ui.selectedFood)} g — digite em "un." e os gramas se preenchem sozinhos.</div>` : ''}
       <div id="customFoodForm" style="display:${ui.showCustomForm ? 'block' : 'none'};margin-top:10px;border-top:1px solid #DCEEE1;padding-top:10px">
         <div class="card-title">Novo alimento (valores por 100g)</div>
         <div class="row">
@@ -5111,6 +5119,7 @@ function dietHtml() {
           <input id="cfCarbs" type="number" min="0" placeholder="Carb g" style="width:70px">
           <input id="cfFat" type="number" min="0" placeholder="Gord g" style="width:70px">
           <input id="cfFiber" type="number" min="0" placeholder="Fibra g" style="width:70px">
+          <input id="cfUnitG" type="number" min="0" step="0.1" placeholder="g/un. (opc)" title="peso de 1 unidade, se fizer sentido — libera o campo 'un.' na hora de logar" style="width:92px">
           <button class="btn" id="saveCustomFoodBtn">Salvar</button>
         </div>
       </div>
@@ -5375,7 +5384,7 @@ function attachDietHandlers() {
 
   const unitsInput = document.getElementById('unitsInput');
   if (unitsInput) unitsInput.addEventListener('input', () => {
-    const ug = ui.selectedFood ? unitGramsOf(ui.selectedFood.name) : null;
+    const ug = unitGramsFor(ui.selectedFood);
     const n = Number(unitsInput.value);
     if (ug && n > 0) document.getElementById('gramsInput').value = +(n * ug).toFixed(1);
   });
@@ -5423,6 +5432,7 @@ function attachDietHandlers() {
     const name = document.getElementById('cfName').value.trim();
     const kcal = document.getElementById('cfKcal').value;
     if (!name || kcal === '') return;
+    const unitG = Number(document.getElementById('cfUnitG').value) || 0;
     const food = {
       id: 'custom_' + uid(), name,
       kcal: Number(kcal) || 0,
@@ -5432,6 +5442,7 @@ function attachDietHandlers() {
       fiber: Number(document.getElementById('cfFiber').value) || 0,
       origin: 'manual',
     };
+    if (unitG > 0) food.unitGrams = unitG;
     DB.customFoods.push(food);
     ui.selectedFood = food; ui.showCustomForm = false;
     persist(); renderAll();
@@ -6871,6 +6882,14 @@ function unitGramsOf(name) {
     || s.match(/([\d]+(?:[.,]\d+)?)\s*g\s*por\s+(?:un|ovo|unidade)/i);
   return m ? parseFloat(m[1].replace(',', '.')) : null;
 }
+// Peso por unidade de um alimento: usa o campo unitGrams (setado na hora de criar) se existir,
+// senão tenta deduzir do nome. É o que decide se o campo "un." aparece no formulário.
+function unitGramsFor(food) {
+  if (!food) return null;
+  const explicit = Number(food.unitGrams);
+  if (explicit > 0) return explicit;
+  return unitGramsOf(food.name);
+}
 
 function dietHtml() {
   const totals = dietTotals();
@@ -6939,14 +6958,14 @@ function dietHtml() {
           <input id="foodSearchInput" placeholder="Buscar alimento (ex: ovo, arroz, roquefort...)" style="width:100%" autocomplete="off" value="${ui.selectedFood ? esc(ui.selectedFood.name) : ''}" ${!ui.selectedMealType ? 'disabled' : ''}>
           <div id="foodResults"></div>
         </div>
-        ${ui.selectedFood && unitGramsOf(ui.selectedFood.name) ? `<input id="unitsInput" type="number" min="0" step="1" placeholder="un." title="unidades — preenche os gramas" style="width:56px" ${!ui.selectedMealType ? 'disabled' : ''}>` : ''}
+        ${unitGramsFor(ui.selectedFood) ? `<input id="unitsInput" type="number" min="0" step="1" placeholder="un." title="unidades — preenche os gramas" style="width:56px" ${!ui.selectedMealType ? 'disabled' : ''}>` : ''}
         <input id="gramsInput" type="number" min="0" placeholder="Gramas" style="width:100px" ${!ui.selectedMealType ? 'disabled' : ''}>
         <button class="btn" id="addFoodBtn" ${ui.selectedFood && ui.selectedMealType ? '' : 'disabled'}>+ Add</button>
       </div>
       ${!ui.selectedMealType ? '<div style="margin-top:6px;font-size:11.5px;color:#B08A3E">👆 Escolha primeiro o momento do dia (café da manhã, almoço...) pra liberar o resto.</div>' : ''}
       ${ui.selectedFood && ui.selectedFood.src === 'off_com' ? '<div style="margin-top:6px;font-size:11.5px;color:#C4573F">⚠ Open Food Facts · comunidade — não verificado. Confere com a embalagem antes de logar.</div>' : ''}
       ${ui.selectedFood && ui.selectedFood.src === 'off_prod' ? '<div style="margin-top:6px;font-size:11.5px;color:#2F7D4F">✓ Open Food Facts · dado do próprio produtor.</div>' : ''}
-      ${ui.selectedFood && unitGramsOf(ui.selectedFood.name) ? `<div style="margin-top:6px;font-size:11.5px;color:#7a7d72">1 unidade ≈ ${unitGramsOf(ui.selectedFood.name)} g — digite em "un." e os gramas se preenchem sozinhos.</div>` : ''}
+      ${unitGramsFor(ui.selectedFood) ? `<div style="margin-top:6px;font-size:11.5px;color:#7a7d72">1 unidade ≈ ${unitGramsFor(ui.selectedFood)} g — digite em "un." e os gramas se preenchem sozinhos.</div>` : ''}
       <div id="customFoodForm" style="display:${ui.showCustomForm ? 'block' : 'none'};margin-top:10px;border-top:1px solid #DCEEE1;padding-top:10px">
         <div class="card-title">Novo alimento (valores por 100g)</div>
         <div class="row">
@@ -6956,6 +6975,7 @@ function dietHtml() {
           <input id="cfCarbs" type="number" min="0" placeholder="Carb g" style="width:70px">
           <input id="cfFat" type="number" min="0" placeholder="Gord g" style="width:70px">
           <input id="cfFiber" type="number" min="0" placeholder="Fibra g" style="width:70px">
+          <input id="cfUnitG" type="number" min="0" step="0.1" placeholder="g/un. (opc)" title="peso de 1 unidade, se fizer sentido — libera o campo 'un.' na hora de logar" style="width:92px">
           <button class="btn" id="saveCustomFoodBtn">Salvar</button>
         </div>
       </div>
@@ -7198,7 +7218,7 @@ function attachDietHandlers() {
 
   const unitsInput = document.getElementById('unitsInput');
   if (unitsInput) unitsInput.addEventListener('input', () => {
-    const ug = ui.selectedFood ? unitGramsOf(ui.selectedFood.name) : null;
+    const ug = unitGramsFor(ui.selectedFood);
     const n = Number(unitsInput.value);
     if (ug && n > 0) document.getElementById('gramsInput').value = +(n * ug).toFixed(1);
   });
@@ -7246,6 +7266,7 @@ function attachDietHandlers() {
     const name = document.getElementById('cfName').value.trim();
     const kcal = document.getElementById('cfKcal').value;
     if (!name || kcal === '') return;
+    const unitG = Number(document.getElementById('cfUnitG').value) || 0;
     const food = {
       id: 'custom_' + uid(), name,
       kcal: Number(kcal) || 0,
@@ -7255,6 +7276,7 @@ function attachDietHandlers() {
       fiber: Number(document.getElementById('cfFiber').value) || 0,
       origin: 'manual',
     };
+    if (unitG > 0) food.unitGrams = unitG;
     DB.customFoods.push(food);
     ui.selectedFood = food; ui.showCustomForm = false;
     persist(); renderAll();

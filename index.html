@@ -5209,6 +5209,10 @@ function metasCardHtml() {
       <input id="newHabitInput" placeholder="＋ nova meta (ex: alongamento)" style="flex:1;min-width:150px">
       <label style="font-size:11px;color:#86897F;display:inline-flex;gap:4px;align-items:center;white-space:nowrap"><input type="checkbox" id="newHabitCount" style="width:auto"> com número</label>
       <button class="btn" id="addHabitBtn" style="padding:6px 16px">Adicionar</button>
+      <div id="newHabitExtra" class="row" style="display:none;width:100%;gap:6px;margin-top:4px">
+        <input id="newHabitUnit" placeholder="unidade (páginas, min, horas...)" style="flex:1;min-width:120px">
+        <input id="newHabitTarget" type="number" min="0" placeholder="meta/dia (opcional)" style="width:130px">
+      </div>
     </div>
     ${DB.habits.length ? `<details class="metas-hist"${ui._histOpen ? ' open' : ''}>
       <summary>📊 Quantas vezes já fiz</summary>
@@ -5567,15 +5571,26 @@ function attachDietHandlers() {
     DB.waterLog[ui.dietDate] = Math.max(0, (DB.waterLog[ui.dietDate] || 0) + ml);
     persist(); renderAll();
   });
+  const nhc = document.getElementById('newHabitCount');
+  if (nhc) nhc.addEventListener('change', () => {
+    const ex = document.getElementById('newHabitExtra');
+    if (ex) ex.style.display = nhc.checked ? 'flex' : 'none';
+  });
   const addHabitBtn = document.getElementById('addHabitBtn');
   if (addHabitBtn) addHabitBtn.addEventListener('click', () => {
     const inp = document.getElementById('newHabitInput');
     const v = (inp.value || '').trim();
     if (!v) return;
     const isCount = !!(document.getElementById('newHabitCount') && document.getElementById('newHabitCount').checked);
-    (DB.habits = DB.habits || []).push(isCount
-      ? { id: 'h_' + uid(), label: v, type: 'count', unit: '' }
-      : { id: 'h_' + uid(), label: v });
+    let h;
+    if (isCount) {
+      h = { id: 'h_' + uid(), label: v, type: 'count', unit: (document.getElementById('newHabitUnit').value || '').trim() };
+      const tg = Math.max(0, Math.floor(Number(document.getElementById('newHabitTarget').value) || 0));
+      if (tg > 0) h.target = tg;
+    } else {
+      h = { id: 'h_' + uid(), label: v };
+    }
+    (DB.habits = DB.habits || []).push(h);
     persist(); renderAll();
   });
   document.querySelectorAll('[data-habit-edit]').forEach(b => b.addEventListener('click', () => {
@@ -7282,6 +7297,10 @@ function metasCardHtml() {
       <input id="newHabitInput" placeholder="＋ nova meta (ex: alongamento)" style="flex:1;min-width:150px">
       <label style="font-size:11px;color:#86897F;display:inline-flex;gap:4px;align-items:center;white-space:nowrap"><input type="checkbox" id="newHabitCount" style="width:auto"> com número</label>
       <button class="btn" id="addHabitBtn" style="padding:6px 16px">Adicionar</button>
+      <div id="newHabitExtra" class="row" style="display:none;width:100%;gap:6px;margin-top:4px">
+        <input id="newHabitUnit" placeholder="unidade (páginas, min, horas...)" style="flex:1;min-width:120px">
+        <input id="newHabitTarget" type="number" min="0" placeholder="meta/dia (opcional)" style="width:130px">
+      </div>
     </div>
     ${DB.habits.length ? `<details class="metas-hist"${ui._histOpen ? ' open' : ''}>
       <summary>📊 Quantas vezes já fiz</summary>
@@ -7616,15 +7635,26 @@ function attachDietHandlers() {
     DB.waterLog[ui.dietDate] = Math.max(0, (DB.waterLog[ui.dietDate] || 0) + ml);
     persist(); renderAll();
   });
+  const nhc = document.getElementById('newHabitCount');
+  if (nhc) nhc.addEventListener('change', () => {
+    const ex = document.getElementById('newHabitExtra');
+    if (ex) ex.style.display = nhc.checked ? 'flex' : 'none';
+  });
   const addHabitBtn = document.getElementById('addHabitBtn');
   if (addHabitBtn) addHabitBtn.addEventListener('click', () => {
     const inp = document.getElementById('newHabitInput');
     const v = (inp.value || '').trim();
     if (!v) return;
     const isCount = !!(document.getElementById('newHabitCount') && document.getElementById('newHabitCount').checked);
-    (DB.habits = DB.habits || []).push(isCount
-      ? { id: 'h_' + uid(), label: v, type: 'count', unit: '' }
-      : { id: 'h_' + uid(), label: v });
+    let h;
+    if (isCount) {
+      h = { id: 'h_' + uid(), label: v, type: 'count', unit: (document.getElementById('newHabitUnit').value || '').trim() };
+      const tg = Math.max(0, Math.floor(Number(document.getElementById('newHabitTarget').value) || 0));
+      if (tg > 0) h.target = tg;
+    } else {
+      h = { id: 'h_' + uid(), label: v };
+    }
+    (DB.habits = DB.habits || []).push(h);
     persist(); renderAll();
   });
   document.querySelectorAll('[data-habit-edit]').forEach(b => b.addEventListener('click', () => {

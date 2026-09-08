@@ -3750,10 +3750,12 @@ function renderDays(){
     const oldUp = document.getElementById('agendaUpcomingBox');
     if(oldUp) oldUp.remove();
     const t0 = new Date(today); t0.setHours(0,0,0,0);
+    // só os avulsos que o usuário adicionou na mão (＋ do dia = 'evento', formulário do dia / agendar pendência = 'pessoal').
+    // fica de fora o lote de inscrições/asignaciones acadêmicas.
     const upcoming = userEvents
-      .filter(e=>{ const ed = new Date(e.d+'T00:00:00'); return ed >= t0; })
+      .filter(e=>{ const ed = new Date(e.d+'T00:00:00'); return ed >= t0 && (e.c === 'evento' || e.c === 'pessoal'); })
       .sort((a,b)=> a.d.localeCompare(b.d) || (a.t||'').localeCompare(b.t||''))
-      .slice(0,7);
+      .slice(0,8);
     if(upcoming.length){
       let up = `<div class="agenda-upcoming" id="agendaUpcomingBox"><div class="au-title">📌 Chegando — coisas fora da rotina</div><ul>`;
       upcoming.forEach(e=>{

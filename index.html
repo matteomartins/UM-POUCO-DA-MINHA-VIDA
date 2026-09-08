@@ -379,23 +379,22 @@
 
   #view-agenda .agenda-quickadd {
     max-width:760px;margin:0 auto 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
-    background:#FBF7F2;border:1px solid var(--paper-line);border-radius:6px;padding:10px 14px;
+    background:#faf4f5;border:1px solid #ecdcde;border-radius:6px;padding:10px 14px;
   }
   #view-agenda .agenda-quickadd .qa-label {
     font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:700;
-    letter-spacing:.06em;text-transform:uppercase;color:#C24E11;flex-shrink:0;
+    letter-spacing:.06em;text-transform:uppercase;color:#7a1f2c;flex-shrink:0;
   }
   #view-agenda .agenda-quickadd input {
-    font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid #E0D8CC;
+    font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid #e3cfd0;
     border-radius:5px;background:#fff;
   }
   #view-agenda .agenda-quickadd #qaTitle {flex:1;min-width:140px;}
-  #view-agenda .agenda-quickadd #qaTime {width:60px;}
   #view-agenda .agenda-quickadd .btn {
-    background:#E8611C;color:#fff;border:none;border-radius:5px;padding:7px 16px;
+    background:#7a1f2c;color:#fff;border:none;border-radius:5px;padding:7px 16px;
     font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;
   }
-  #view-agenda .agenda-quickadd .btn:hover {background:#C24E11;}
+  #view-agenda .agenda-quickadd .btn:hover {background:#5f1622;}
 
   #view-agenda footer {
     margin-top:30px;padding-top:14px;border-top:1px solid var(--paper-line);
@@ -1824,7 +1823,7 @@ async function storageGetWithRetry(key){
   <span class="qa-label">＋ Evento avulso</span>
   <input type="date" id="qaDate" title="dia">
   <input type="text" id="qaTitle" placeholder="o que é? (consulta, jogo, prova…)" maxlength="90">
-  <input type="text" id="qaTime" placeholder="hora" maxlength="5">
+  <input type="time" id="qaTime" title="horário (opcional)">
   <button class="btn" id="qaAddBtn">Adicionar</button>
 </div>
 <div class="mensal-subheader">

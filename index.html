@@ -344,6 +344,39 @@
   #view-agenda .entry.asignacion .who {color:#6A1B9A;font-style:normal;}
   #view-agenda .cuadri-wrap .pill.asignacion {background:#F3E5F5;color:#4A148C;border-left:2px solid #7B1FA2;}
 
+  /* evento avulso (adicionado tocando no dia) — laranja bem visível */
+  #view-agenda .entry.evento {border-color:#E8611C;background:#FFEDE0;}
+  #view-agenda .entry.evento .time {color:#C24E11;}
+  #view-agenda .entry.evento .title {color:#8A3208;font-weight:700;}
+  #view-agenda .entry.evento .who {color:#B4531B;font-style:normal;}
+  #view-agenda .cuadri-wrap .pill.evento {background:#FFEDE0;color:#8A3208;border-left:2px solid #E8611C;}
+
+  #view-agenda .day-add {
+    background:none;border:1px solid var(--paper-line);color:var(--muted);
+    width:24px;height:24px;border-radius:6px;font-size:15px;line-height:1;cursor:pointer;
+    flex-shrink:0;padding:0;font-family:inherit;
+  }
+  #view-agenda .day-add:hover {border-color:#E8611C;color:#E8611C;}
+
+  #view-agenda .agenda-upcoming {
+    max-width:760px;margin:0 auto 18px;background:#FFF6EE;border:1px solid #F0CBA6;
+    border-left:4px solid #E8611C;border-radius:6px;padding:12px 16px;
+  }
+  #view-agenda .agenda-upcoming .au-title {
+    font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:.09em;
+    text-transform:uppercase;color:#C24E11;font-weight:700;margin-bottom:8px;
+  }
+  #view-agenda .agenda-upcoming ul {list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  #view-agenda .agenda-upcoming li {display:flex;gap:10px;align-items:baseline;font-size:13px;}
+  #view-agenda .agenda-upcoming li .au-when {
+    font-family:'Helvetica Neue',Arial,sans-serif;font-size:10.5px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.04em;color:#B4531B;min-width:74px;flex-shrink:0;
+  }
+  #view-agenda .agenda-upcoming li.soon .au-when {color:#fff;background:#E8611C;padding:1px 6px;border-radius:10px;text-align:center;}
+  #view-agenda .agenda-upcoming li.soon .au-text {font-weight:700;}
+  #view-agenda .agenda-upcoming li .au-text {color:var(--ink);}
+  #view-agenda .agenda-upcoming li .au-text .au-date {color:var(--muted);font-size:11.5px;}
+
   #view-agenda footer {
     margin-top:30px;padding-top:14px;border-top:1px solid var(--paper-line);
     font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;color:var(--muted);line-height:1.6;
@@ -3690,8 +3723,11 @@ function renderDays(){
 
     html += `<div class="day-card${isToday?' today':''}${isTomorrow?' tomorrow':''}">`;
     html += `<div class="day-top"><div class="day-title"><span class="day-weekday">${weekdayNames[d.getDay()]}</span><span class="day-num">${d.getDate()} ${monthNames[d.getMonth()]}</span></div>`;
+    html += `<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">`;
     if(isToday) html += `<span class="badge hoje">hoje</span>`;
     if(isTomorrow) html += `<span class="badge amanha">amanhã</span>`;
+    html += `<button class="day-add" data-date="${dateStr}" title="adicionar evento nesse dia">＋</button>`;
+    html += `</div>`;
     html += `</div><div class="day-entries">`;
 
     all.forEach(e=>{
@@ -3708,6 +3744,30 @@ function renderDays(){
     html += `</div></div>`;
   }
   daysContainer.innerHTML = html;
+
+  // ---- "Chegando": eventos avulsos que o usuário adicionou (não recorrentes), pra não se perderem ----
+  {
+    const oldUp = document.getElementById('agendaUpcomingBox');
+    if(oldUp) oldUp.remove();
+    const t0 = new Date(today); t0.setHours(0,0,0,0);
+    const upcoming = userEvents
+      .filter(e=>{ const ed = new Date(e.d+'T00:00:00'); return ed >= t0; })
+      .sort((a,b)=> a.d.localeCompare(b.d) || (a.t||'').localeCompare(b.t||''))
+      .slice(0,7);
+    if(upcoming.length){
+      let up = `<div class="agenda-upcoming" id="agendaUpcomingBox"><div class="au-title">📌 Chegando — coisas fora da rotina</div><ul>`;
+      upcoming.forEach(e=>{
+        const ed = new Date(e.d+'T00:00:00');
+        const diff = Math.round((ed - t0) / 86400000);
+        const when = diff===0 ? 'hoje' : diff===1 ? 'amanhã' : diff<7 ? `em ${diff} dias` : `${ed.getDate()} ${monthNames[ed.getMonth()]}`;
+        const soon = diff<=2;
+        const dateTxt = `${ed.getDate()} ${monthNames[ed.getMonth()]}${e.t?` · ${e.t}`:''}`;
+        up += `<li class="${soon?'soon':''}"><span class="au-when">${soon&&diff<=1?'❗ ':''}${when}</span><span class="au-text">${e.ti} <span class="au-date">(${dateTxt})</span></span></li>`;
+      });
+      up += `</ul></div>`;
+      daysContainer.insertAdjacentHTML('beforebegin', up);
+    }
+  }
 
   daysContainer.querySelectorAll('.entry-edit').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -3741,6 +3801,18 @@ function renderDays(){
         saveUserEvents();
         refreshAgenda();
       }
+    });
+  });
+
+  daysContainer.querySelectorAll('.day-add').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const dstr = btn.dataset.date;
+      const ti = prompt('O que vai rolar nesse dia?\n(ex: Jogo do Corinthians, Consulta com Dr. Fulano)');
+      if(ti === null || !ti.trim()) return;
+      const t = (prompt('Horário? (opcional — ex: 19:00)') || '').trim();
+      userEvents.push({ id:uid(), d:dstr, t, ti:ti.trim(), c:'evento' });
+      saveUserEvents();
+      refreshAgenda();
     });
   });
 

@@ -3750,14 +3750,15 @@ function renderDays(){
     const oldUp = document.getElementById('agendaUpcomingBox');
     if(oldUp) oldUp.remove();
     const t0 = new Date(today); t0.setHours(0,0,0,0);
-    // só os avulsos que o usuário adicionou na mão (＋ do dia = 'evento', formulário do dia / agendar pendência = 'pessoal').
-    // fica de fora o lote de inscrições/asignaciones acadêmicas.
-    const upcoming = userEvents
-      .filter(e=>{ const ed = new Date(e.d+'T00:00:00'); return ed >= t0 && (e.c === 'evento' || e.c === 'pessoal'); })
+    // eventos pontuais das DUAS listas (academicEvents fixos + userEvents): provas, consultas/turnos,
+    // shows, jogos e o que o usuário adicionou. Fora: aula normal, rotina, inscrições/asignaciones.
+    const SURFACE_CLASSES = ['evento','pessoal','saopaulo','medb-strong','farmaco-strong'];
+    const upcoming = allEvents
+      .filter(e=>{ const ed = new Date(e.d+'T00:00:00'); return ed >= t0 && SURFACE_CLASSES.includes(e.c); })
       .sort((a,b)=> a.d.localeCompare(b.d) || (a.t||'').localeCompare(b.t||''))
       .slice(0,8);
     if(upcoming.length){
-      let up = `<div class="agenda-upcoming" id="agendaUpcomingBox"><div class="au-title">📌 Chegando — coisas fora da rotina</div><ul>`;
+      let up = `<div class="agenda-upcoming" id="agendaUpcomingBox"><div class="au-title">📌 Chegando — provas, consultas, jogos e o que você marcou</div><ul>`;
       upcoming.forEach(e=>{
         const ed = new Date(e.d+'T00:00:00');
         const diff = Math.round((ed - t0) / 86400000);

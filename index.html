@@ -4913,6 +4913,8 @@ const weekStartOf = dateStr => {
   return toLocalISODate(d);
 };
 const monthKeyOf = dateStr => dateStr.slice(0, 7); // YYYY-MM
+// Data em que o usuário começou a usar as Metas — o histórico/navegador de mês não deixa ir antes disso.
+const METAS_START = '2026-08-31';
 const fmtMonthLabel = key => {
   const [y, m] = key.split('-');
   const dt = new Date(Number(y), Number(m) - 1, 1);
@@ -5379,25 +5381,30 @@ function metasCardHtml() {
     ${DB.habits.length ? (() => {
       const curMonth = todayStr().slice(0, 7);
       const todayD = todayStr();
-      const hm = ui._histMonth && ui._histMonth <= curMonth ? ui._histMonth : d.slice(0, 7);
+      const startMonth = METAS_START.slice(0, 7);
+      let hm = ui._histMonth && ui._histMonth <= curMonth ? ui._histMonth : d.slice(0, 7);
+      if (hm < startMonth) hm = startMonth;
       const hy = Number(hm.slice(0, 4)), hmm = Number(hm.slice(5, 7));
       const daysInMonth = new Date(hy, hmm, 0).getDate();
       const isCurMonth = hm === curMonth;
+      const isStartMonth = hm <= startMonth;
       const doneInMonth = (h, mk, dim) => { let c = 0; for (let day = 1; day <= dim; day++) if (habitDone(`${mk}-${String(day).padStart(2, '0')}`, h.id, h)) c++; return c; };
       const trend = (h) => {
         const out = [];
         for (let i = 5; i >= 0; i--) {
           const dd = new Date(hy, hmm - 1 - i, 1);
           const mk = `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}`;
+          const label = dd.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+          if (mk < startMonth) { out.push(label + ' —'); continue; }
           const dim = new Date(dd.getFullYear(), dd.getMonth() + 1, 0).getDate();
-          out.push(dd.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '') + ' ' + doneInMonth(h, mk, dim));
+          out.push(label + ' ' + doneInMonth(h, mk, dim));
         }
         return out.join('  ·  ');
       };
       return `<details class="metas-hist"${ui._histOpen ? ' open' : ''}>
         <summary>📊 Meu progresso</summary>
         <div class="hist-monthnav">
-          <button data-hist-month="prev">◀</button>
+          <button data-hist-month="prev"${isStartMonth ? ' disabled' : ''}>◀</button>
           <span>${fmtMonthLabel(hm)}</span>
           <button data-hist-month="next"${isCurMonth ? ' disabled' : ''}>▶</button>
         </div>
@@ -5414,7 +5421,9 @@ function metasCardHtml() {
                 const day = i + 1;
                 const dt = `${hm}-${String(day).padStart(2, '0')}`;
                 const future = isCurMonth && dt > todayD;
-                return `<button class="hd${habitDone(dt, h.id, h) ? ' on' : ''}${dt === todayD ? ' today' : ''}${future ? ' future' : ''}"${future ? ' disabled' : ` data-habit-day="${h.id}|${dt}"`} title="${dt}">${day}</button>`;
+                const beforeStart = dt < METAS_START;
+                const locked = future || beforeStart;
+                return `<button class="hd${habitDone(dt, h.id, h) ? ' on' : ''}${dt === todayD ? ' today' : ''}${locked ? ' future' : ''}"${locked ? ' disabled' : ` data-habit-day="${h.id}|${dt}"`} title="${dt}">${day}</button>`;
               }).join('')}
             </div>
             <div class="hist-trend">${trend(h)}</div>
@@ -5837,11 +5846,14 @@ function attachDietHandlers() {
   document.querySelectorAll('[data-hist-month]').forEach(b => b.addEventListener('click', () => {
     if (b.disabled) return;
     const curMonth = todayStr().slice(0, 7);
+    const startMonth = METAS_START.slice(0, 7);
     const base = (ui._histMonth && ui._histMonth <= curMonth) ? ui._histMonth : ui.dietDate.slice(0, 7);
     const y = Number(base.slice(0, 4)), m = Number(base.slice(5, 7));
     const nd = new Date(y, m - 1 + (b.dataset.histMonth === 'next' ? 1 : -1), 1);
-    const mk = `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}`;
-    ui._histMonth = mk > curMonth ? curMonth : mk;
+    let mk = `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}`;
+    if (mk > curMonth) mk = curMonth;
+    if (mk < startMonth) mk = startMonth;
+    ui._histMonth = mk;
     ui._histOpen = true;
     renderAll();
   }));
@@ -6964,6 +6976,8 @@ const weekStartOf = dateStr => {
   return toLocalISODate(d);
 };
 const monthKeyOf = dateStr => dateStr.slice(0, 7); // YYYY-MM
+// Data em que o usuário começou a usar as Metas — o histórico/navegador de mês não deixa ir antes disso.
+const METAS_START = '2026-08-31';
 const fmtMonthLabel = key => {
   const [y, m] = key.split('-');
   const dt = new Date(Number(y), Number(m) - 1, 1);
@@ -7541,25 +7555,30 @@ function metasCardHtml() {
     ${DB.habits.length ? (() => {
       const curMonth = todayStr().slice(0, 7);
       const todayD = todayStr();
-      const hm = ui._histMonth && ui._histMonth <= curMonth ? ui._histMonth : d.slice(0, 7);
+      const startMonth = METAS_START.slice(0, 7);
+      let hm = ui._histMonth && ui._histMonth <= curMonth ? ui._histMonth : d.slice(0, 7);
+      if (hm < startMonth) hm = startMonth;
       const hy = Number(hm.slice(0, 4)), hmm = Number(hm.slice(5, 7));
       const daysInMonth = new Date(hy, hmm, 0).getDate();
       const isCurMonth = hm === curMonth;
+      const isStartMonth = hm <= startMonth;
       const doneInMonth = (h, mk, dim) => { let c = 0; for (let day = 1; day <= dim; day++) if (habitDone(`${mk}-${String(day).padStart(2, '0')}`, h.id, h)) c++; return c; };
       const trend = (h) => {
         const out = [];
         for (let i = 5; i >= 0; i--) {
           const dd = new Date(hy, hmm - 1 - i, 1);
           const mk = `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}`;
+          const label = dd.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+          if (mk < startMonth) { out.push(label + ' —'); continue; }
           const dim = new Date(dd.getFullYear(), dd.getMonth() + 1, 0).getDate();
-          out.push(dd.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '') + ' ' + doneInMonth(h, mk, dim));
+          out.push(label + ' ' + doneInMonth(h, mk, dim));
         }
         return out.join('  ·  ');
       };
       return `<details class="metas-hist"${ui._histOpen ? ' open' : ''}>
         <summary>📊 Meu progresso</summary>
         <div class="hist-monthnav">
-          <button data-hist-month="prev">◀</button>
+          <button data-hist-month="prev"${isStartMonth ? ' disabled' : ''}>◀</button>
           <span>${fmtMonthLabel(hm)}</span>
           <button data-hist-month="next"${isCurMonth ? ' disabled' : ''}>▶</button>
         </div>
@@ -7576,7 +7595,9 @@ function metasCardHtml() {
                 const day = i + 1;
                 const dt = `${hm}-${String(day).padStart(2, '0')}`;
                 const future = isCurMonth && dt > todayD;
-                return `<button class="hd${habitDone(dt, h.id, h) ? ' on' : ''}${dt === todayD ? ' today' : ''}${future ? ' future' : ''}"${future ? ' disabled' : ` data-habit-day="${h.id}|${dt}"`} title="${dt}">${day}</button>`;
+                const beforeStart = dt < METAS_START;
+                const locked = future || beforeStart;
+                return `<button class="hd${habitDone(dt, h.id, h) ? ' on' : ''}${dt === todayD ? ' today' : ''}${locked ? ' future' : ''}"${locked ? ' disabled' : ` data-habit-day="${h.id}|${dt}"`} title="${dt}">${day}</button>`;
               }).join('')}
             </div>
             <div class="hist-trend">${trend(h)}</div>
@@ -7975,11 +7996,14 @@ function attachDietHandlers() {
   document.querySelectorAll('[data-hist-month]').forEach(b => b.addEventListener('click', () => {
     if (b.disabled) return;
     const curMonth = todayStr().slice(0, 7);
+    const startMonth = METAS_START.slice(0, 7);
     const base = (ui._histMonth && ui._histMonth <= curMonth) ? ui._histMonth : ui.dietDate.slice(0, 7);
     const y = Number(base.slice(0, 4)), m = Number(base.slice(5, 7));
     const nd = new Date(y, m - 1 + (b.dataset.histMonth === 'next' ? 1 : -1), 1);
-    const mk = `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}`;
-    ui._histMonth = mk > curMonth ? curMonth : mk;
+    let mk = `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}`;
+    if (mk > curMonth) mk = curMonth;
+    if (mk < startMonth) mk = startMonth;
+    ui._histMonth = mk;
     ui._histOpen = true;
     renderAll();
   }));

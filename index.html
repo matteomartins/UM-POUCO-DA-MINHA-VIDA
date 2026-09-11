@@ -1070,6 +1070,7 @@
   #view-dieta .btn.secondary { background: #F0EFE8; color: #1E211D; }
   #view-dieta .btn.secondary:hover { background: #E6E4D9; }
   #view-dieta .icon-btn { background: none; border: none; color: #B3B1A6; cursor: pointer; padding: 4px; font-size: 14px; }
+  #view-dieta .icon-btn:disabled { opacity: .3; cursor: default; }
   #view-dieta .icon-btn:hover { color: #C4573F; }
   #view-dieta [data-del-entry], #view-dieta [data-del-food] {display:none;}
   #view-dieta .card.edit-mode [data-del-entry], #view-dieta .card.edit-mode [data-del-food] {display:inline-block;}
@@ -5454,9 +5455,9 @@ function dietHtml() {
   return `
     <div class="section-diet">
     <div class="date-nav">
-      <input type="date" id="dietDateInput" value="${ui.dietDate}">
-      <button class="icon-btn" id="dietPrevDayBtn" title="Dia anterior" style="font-size:16px">▼</button>
-      <button class="icon-btn" id="dietNextDayBtn" title="Próximo dia" style="font-size:16px">▲</button>
+      <input type="date" id="dietDateInput" value="${ui.dietDate}" min="${METAS_START}" max="${todayStr()}">
+      <button class="icon-btn" id="dietPrevDayBtn" title="Dia anterior" style="font-size:16px"${ui.dietDate <= METAS_START ? ' disabled' : ''}>▼</button>
+      <button class="icon-btn" id="dietNextDayBtn" title="Próximo dia" style="font-size:16px"${ui.dietDate >= todayStr() ? ' disabled' : ''}>▲</button>
       <button class="btn secondary" id="dietTodayBtn">Hoje</button>
     </div>
 
@@ -5720,7 +5721,13 @@ function pickFood(food) {
 function attachDietHandlers() {
   const dateInput = document.getElementById('dietDateInput');
   if (!dateInput) return;
-  dateInput.addEventListener('change', e => { ui.dietDate = e.target.value; renderAll(); });
+  dateInput.addEventListener('change', e => {
+    let v = e.target.value;
+    if (v < METAS_START) v = METAS_START;
+    if (v > todayStr()) v = todayStr();
+    ui.dietDate = v;
+    renderAll();
+  });
 
   const dayBtn = document.getElementById('deficitDayBtn');
   const wkBtn = document.getElementById('deficitWeekBtn');
@@ -5747,8 +5754,18 @@ function attachDietHandlers() {
     renderAll();
   });
   document.getElementById('dietTodayBtn').addEventListener('click', () => { ui.dietDate = todayStr(); renderAll(); });
-  document.getElementById('dietPrevDayBtn').addEventListener('click', () => { ui.dietDate = shiftDate(ui.dietDate, -1); renderAll(); });
-  document.getElementById('dietNextDayBtn').addEventListener('click', () => { ui.dietDate = shiftDate(ui.dietDate, 1); renderAll(); });
+  document.getElementById('dietPrevDayBtn').addEventListener('click', () => {
+    if (ui.dietDate <= METAS_START) return;
+    ui.dietDate = shiftDate(ui.dietDate, -1);
+    if (ui.dietDate < METAS_START) ui.dietDate = METAS_START;
+    renderAll();
+  });
+  document.getElementById('dietNextDayBtn').addEventListener('click', () => {
+    if (ui.dietDate >= todayStr()) return;
+    ui.dietDate = shiftDate(ui.dietDate, 1);
+    if (ui.dietDate > todayStr()) ui.dietDate = todayStr();
+    renderAll();
+  });
 
   document.querySelectorAll('[data-water]').forEach(btn => btn.addEventListener('click', () => {
     const ml = Number(btn.dataset.water);
@@ -7628,9 +7645,9 @@ function dietHtml() {
   return `
     <div class="section-diet">
     <div class="date-nav">
-      <input type="date" id="dietDateInput" value="${ui.dietDate}">
-      <button class="icon-btn" id="dietPrevDayBtn" title="Dia anterior" style="font-size:16px">▼</button>
-      <button class="icon-btn" id="dietNextDayBtn" title="Próximo dia" style="font-size:16px">▲</button>
+      <input type="date" id="dietDateInput" value="${ui.dietDate}" min="${METAS_START}" max="${todayStr()}">
+      <button class="icon-btn" id="dietPrevDayBtn" title="Dia anterior" style="font-size:16px"${ui.dietDate <= METAS_START ? ' disabled' : ''}>▼</button>
+      <button class="icon-btn" id="dietNextDayBtn" title="Próximo dia" style="font-size:16px"${ui.dietDate >= todayStr() ? ' disabled' : ''}>▲</button>
       <button class="btn secondary" id="dietTodayBtn">Hoje</button>
     </div>
 
@@ -7870,7 +7887,13 @@ function pickFood(food) {
 function attachDietHandlers() {
   const dateInput = document.getElementById('dietDateInput');
   if (!dateInput) return;
-  dateInput.addEventListener('change', e => { ui.dietDate = e.target.value; renderAll(); });
+  dateInput.addEventListener('change', e => {
+    let v = e.target.value;
+    if (v < METAS_START) v = METAS_START;
+    if (v > todayStr()) v = todayStr();
+    ui.dietDate = v;
+    renderAll();
+  });
 
   const dayBtn = document.getElementById('deficitDayBtn');
   const wkBtn = document.getElementById('deficitWeekBtn');
@@ -7897,8 +7920,18 @@ function attachDietHandlers() {
     renderAll();
   });
   document.getElementById('dietTodayBtn').addEventListener('click', () => { ui.dietDate = todayStr(); renderAll(); });
-  document.getElementById('dietPrevDayBtn').addEventListener('click', () => { ui.dietDate = shiftDate(ui.dietDate, -1); renderAll(); });
-  document.getElementById('dietNextDayBtn').addEventListener('click', () => { ui.dietDate = shiftDate(ui.dietDate, 1); renderAll(); });
+  document.getElementById('dietPrevDayBtn').addEventListener('click', () => {
+    if (ui.dietDate <= METAS_START) return;
+    ui.dietDate = shiftDate(ui.dietDate, -1);
+    if (ui.dietDate < METAS_START) ui.dietDate = METAS_START;
+    renderAll();
+  });
+  document.getElementById('dietNextDayBtn').addEventListener('click', () => {
+    if (ui.dietDate >= todayStr()) return;
+    ui.dietDate = shiftDate(ui.dietDate, 1);
+    if (ui.dietDate > todayStr()) ui.dietDate = todayStr();
+    renderAll();
+  });
 
   document.querySelectorAll('[data-water]').forEach(btn => btn.addEventListener('click', () => {
     const ml = Number(btn.dataset.water);

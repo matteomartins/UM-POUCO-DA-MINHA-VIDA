@@ -1504,6 +1504,10 @@
   #view-faculdade .fac-addpend:hover{ background:#efe2de; }
   #view-faculdade .fac-addpend.in{ background:var(--fac-brand); color:#fff; border-color:var(--fac-brand); cursor:default; }
   #view-faculdade .fac-vid > .fac-addpend{ align-self:flex-start; margin-top:1px; }
+  #view-faculdade .fac-guias{ padding:9px 14px; border-top:1px solid var(--fac-line); background:#faf6f4; font-size:12px; line-height:1.7; }
+  #view-faculdade .fac-guias a{ color:var(--fac-brand); font-weight:700; text-decoration:none; }
+  #view-faculdade .fac-guias a:hover{ text-decoration:underline; }
+  #view-faculdade .fac-guias.none{ color:var(--fac-muted); font-style:italic; }
   #view-faculdade .fac-cols{ display:grid; grid-template-columns:1fr 1fr; }
   #view-faculdade .fac-col{ padding:12px 14px; min-width:0; }
   #view-faculdade .fac-col + .fac-col{ border-left:1px solid var(--fac-line); }
@@ -9119,8 +9123,10 @@ window.init_faculdade = function(){
   // u = id do YouTube (link vira https://youtu.be/<u>). miss:true = não tem vídeo. alt:true = versión alternativa.
   const FARMACO = [
     { n:'Clase 1', t:'Hipolipemiantes, Antihipertensivos, Diuréticos',
-      moodle:{ total:'1h59min', items:[
-        { x:'Hipolipemiantes', miss:true, note:'sin video en Moodle (solo PDF de guía)' },
+      guias:[ { x:'Hipolipemiantes', r:126922 }, { x:'Antihipertensivos', r:126952 }, { x:'Diuréticos', r:126923 } ],
+      moodle:{ items:[
+        { x:'Hipolipemiantes — 1/2 (Nicolás Loschiavo)', u:'PsjoRANBp1s' },
+        { x:'Hipolipemiantes — 2/2 (Nicolás Loschiavo)', u:'wiA8rzP3q20' },
         { x:'Antihipertensivos', d:'59 min', u:'MV87vCKSrLs' },
         { x:'Diuréticos', d:'1h00', u:'F1Dg8fQnnj0' },
       ]},
@@ -9131,6 +9137,7 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 2', t:'Antiarrítmicos, Farmacología de la Sangre',
+      guias:[ { x:'Antiarrítmicos', r:127375 }, { x:'Farmacología de la Sangre', r:127376 } ],
       moodle:{ total:'22 min', items:[
         { x:'Antiarrítmicos — video complementario (Modulación del Potencial de Acción)', d:'22 min', u:'FjG8xJdPrNw' },
         { x:'Farmacología de la Sangre — Dr. Maximiliano Ink', u:'h96tXTENVRI' },
@@ -9141,6 +9148,7 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 3', t:'Antianginosos y Vasodilatadores, Inotrópicos',
+      guias:[ { x:'Antianginosos y Vasodilatadores', r:127629 }, { x:'Inotrópicos y Vasopresores', r:127628 } ],
       moodle:{ items:[
         { x:'Antianginosos y Vasodilatadores', miss:true, note:'sin video en Moodle' },
         { x:'Inotrópicos y Vasopresores — Hernan Monteiro', u:'ZV2GEd9Nu_4' },
@@ -9151,6 +9159,7 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 4', t:'Video sin TP — Farmacología del Sistema Respiratorio',
+      guias:[ { x:'Sistema Respiratorio', r:127630 } ],
       moodle:{ total:'59 min', items:[
         { x:'Farmacología del Sistema Respiratorio', d:'59 min', u:'H5jM-MpUPN0' },
       ]},
@@ -9159,10 +9168,11 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 5', t:'Generalidades de ATB, Betalactámicos, Glicopéptidos',
+      guias:[ { x:'Generalidades de Antibióticos', r:128187 }, { x:'Cuadros para completar sobre antibióticos', r:128186 }, { x:'Betalactámicos y Glicopéptidos', r:128192 } ],
       moodle:{ items:[
-        { x:'Generalidades de Antibióticos', miss:true, note:'sin video en Moodle' },
+        { x:'Generalidades de Antibióticos — Facundo Díaz Kozak', u:'iao90MsGAB8' },
         { x:'Betalactámicos', miss:true, note:'sin video en Moodle (solo guía TP)' },
-        { x:'Glicopéptidos', miss:true, note:'sin video en Moodle' },
+        { x:'Glicopéptidos — Denisse Potz', u:'R2ND_GwMI1M' },
       ]},
       yt:{ total:'1h57min', items:[
         { x:'Generalidades de ATB', d:'21 min', u:'pFQnCQNPw4o' },
@@ -9172,10 +9182,11 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 6', t:'Antimicobacterianos, Aminoglucósidos, Quinolonas',
-      moodle:{ total:'22 min', items:[
+      guias:[ { x:'Antimicobacterianos', r:128379 }, { x:'Aminoglucósidos', r:128380 } ],
+      moodle:{ items:[
         { x:'Antimicobacterianos (tuberculosis)', d:'22 min', u:'huiUWkWAjik' },
         { x:'Aminoglucósidos', miss:true, note:'sin video en Moodle (solo PDF)' },
-        { x:'Quinolonas', miss:true, note:'sin video en Moodle' },
+        { x:'Quinolonas — Sofía Origgi', u:'ahsX-Z8zVjg' },
       ]},
       yt:{ total:'2h51min', items:[
         { x:'Antimicobacterianos', d:'1h45', u:'YN3siKSc4Vs' },
@@ -9201,8 +9212,8 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 8', t:'Antineoplásicos, Antirretrovirales, Antivirales',
-      moodle:{ total:'1h29min', items:[
-        { x:'Antineoplásicos', miss:true, note:'sin video en Moodle (solo PDF)' },
+      moodle:{ items:[
+        { x:'Antineoplásicos — Maximiliano Ink', u:'eeuTZhPbPcw' },
         { x:'Antirretrovirales', d:'59 min', u:'GxGSeEI1iq4' },
         { x:'Antivirales', d:'30 min', u:'02qZXQgc3yI' },
       ]},
@@ -9232,6 +9243,7 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 10', t:'Generalidades de Psicofarmacología, Antidepresivos',
+      guias:[ { x:'Antidepresivos', r:99249 } ],
       moodle:{ items:[
         { x:'Generalidades de Psicofarmacología', miss:true, note:'sin video en Moodle (solo libro)' },
         { x:'Antidepresivos', miss:true, note:'sin video en Moodle (solo PDF/guía/libro)' },
@@ -9243,6 +9255,7 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 11', t:'Ansiolíticos e Hipnóticos, Antiepilépticos y Litio',
+      guias:[ { x:'Ansiolíticos e Hipnóticos', r:114983 }, { x:'Antiepilépticos y litio', r:99123 } ],
       moodle:{ total:'2h43min', items:[
         { x:'Ansiolíticos e Hipnóticos (Benzodiacepinas)', d:'1h36', u:'jwicag1oQDw' },
         { x:'Antiepilépticos y Litio (Estabilizadores del Ánimo)', d:'1h07', u:'nU180j7lk3U' },
@@ -9255,6 +9268,7 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 12', t:'Antipsicóticos, Farmacología Digestiva',
+      guias:[ { x:'Antipsicóticos', r:99248 }, { x:'Farmacología Digestiva', r:115150 } ],
       moodle:{ total:'6h13min', items:[
         { x:'Antipsicóticos', d:'2h18', u:'TwHPxMPxPNo' },
         { x:'Farm. Digestiva — Parte 1/4 (Generalidades y protectores gástricos)', d:'1h11', u:'NjdB-xh3dhE' },
@@ -9271,6 +9285,7 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 13', t:'Video sin TP — Antiparkinsonianos, Psicoestimulantes',
+      guias:[ { x:'Antiparkinsonianos', r:115149 } ],
       moodle:{ total:'1h11min', items:[
         { x:'Antiparkinsonianos', d:'33 min', u:'1MIhCnJht9M' },
         { x:'Psicoestimulantes', d:'38 min', u:'4Xc2Qgxw35E' },
@@ -9349,6 +9364,7 @@ window.init_faculdade = function(){
       return div + `<div class="fac-clase">
         <div class="fac-clase-head"><span class="fac-clase-title">${c.n} <span class="fac-clase-sub">— ${c.t}</span></span>${claseBtn}</div>
         <div class="fac-cols">${colHtml(ci, c.moodle, 'm', c.n)}${colHtml(ci, c.yt, 'y', c.n)}</div>
+        ${c.guias ? `<div class="fac-guias"><b>📄 Guías de TP:</b> ${c.guias.map(g => `<a href="https://campus.fmed.uba.ar/mod/resource/view.php?id=${g.r}" target="_blank" rel="noopener">${g.x}</a>`).join(' · ')}</div>` : (/^Clase/.test(c.n) ? `<div class="fac-guias none">📄 Sin guía de TP publicada en el campus</div>` : '')}
       </div>`;
     }).join('');
 

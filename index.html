@@ -7072,11 +7072,11 @@ function saveWS(key, value) {
 // ---------------------------------------------------------------------------
 // Estado
 // ---------------------------------------------------------------------------
-// Plano do Matteo (v6, 2026-09-20) — SEM perna e SEM cardio (tornozelo lesionado, aguardando ressonância).
+// Plano do Matteo (v7, 2026-09-20) — SEM perna e SEM cardio (tornozelo lesionado, aguardando ressonância).
 // Sem bi-set, sem drop-set, uma única repetição-alvo por exercício, só sentado/deitado, pouca polia.
 // Semana começa na terça (segunda é descanso). Só a carga (número, kg fixo) e a foto são editáveis pelo app.
 const PLAN_SEED = {
-  version: 6,
+  version: 7,
   days: [
     { id:'ter', weekday:2, label:'Terça', focus:'Peito e tríceps', groups:[
       { combined:false, exercises:[
@@ -7129,7 +7129,7 @@ const PLAN_SEED = {
         { id:'n15', name:'Abdominal Supra Solo', scheme:'3x 15', carga:'', interval:'60s' },
       ]},
       { combined:false, exercises:[
-        { id:'n25', name:'Abdominal Oblíquo no Solo', scheme:'3x 15', carga:'', interval:'60s' },
+        { id:'n29', name:'Abdominal Remador com Apoio', scheme:'3x 15', carga:'', interval:'60s' },
       ]},
     ]},
     { id:'sab', weekday:6, label:'Sábado', focus:'Braços e reforço', groups:[
@@ -7143,13 +7143,16 @@ const PLAN_SEED = {
         { id:'n19', name:'Rosca Scott Máquina', scheme:'3x 12', carga:'7,5/7,5', interval:'60s' },
       ]},
       { combined:false, exercises:[
-        { id:'n26', name:'Tríceps Banco (mergulho no banco)', scheme:'3x 12', carga:'', interval:'60s' },
+        { id:'n32', name:'Tríceps Testa com Halteres (deitado)', scheme:'3x 12', carga:'6/6', interval:'60s' },
       ]},
       { combined:false, exercises:[
         { id:'n27', name:'Elevação Lateral com Halteres (em pé)', scheme:'3x 12', carga:'4/4', interval:'60s' },
       ]},
       { combined:false, exercises:[
-        { id:'n28', name:'Abdominal com Peso no Peito (halter ou anilha)', scheme:'3x 15', carga:'5', interval:'60s' },
+        { id:'n30', name:'Abdominal Supra Solo', scheme:'3x 15', carga:'', interval:'60s' },
+      ]},
+      { combined:false, exercises:[
+        { id:'n31', name:'Abdominal Remador com Apoio', scheme:'3x 15', carga:'', interval:'60s' },
       ]},
     ]},
   ],

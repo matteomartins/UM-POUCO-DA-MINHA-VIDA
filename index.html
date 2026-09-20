@@ -7072,102 +7072,89 @@ function saveWS(key, value) {
 // ---------------------------------------------------------------------------
 // Estado
 // ---------------------------------------------------------------------------
-// Plano base do Matteo — Rotina Médio, redução de gordura/hipertrofia, avançado.
-// Semana começa na terça (segunda é descanso). Grupo combined = BI-SET (2 exercícios que se
-// alternam); os demais exercícios são individuais. Só a carga (número, kg fixo) e a foto são
-// editáveis pelo app.
+// Plano do Matteo (v4, 2026-09-20) — SEM perna e SEM cardio (tornozelo lesionado, aguardando ressonância).
+// Sem bi-set, sem drop-set, uma única repetição-alvo por exercício, só sentado/deitado, pouca polia.
+// Semana começa na terça (segunda é descanso). Só a carga (número, kg fixo) e a foto são editáveis pelo app.
 const PLAN_SEED = {
-  version: 3,
+  version: 4,
   days: [
     { id:'ter', weekday:2, label:'Terça', focus:'Peito e tríceps', groups:[
-      { combined:true, label:'Bi-set 1', exercises:[
-        { id:'t1', name:'Banco Supino Inclinado', scheme:'4x 10 a 12', carga:'10' },
-        { id:'t2', name:'Flexão de Braços', scheme:'4x até o máximo', carga:'10' },
+      { combined:false, exercises:[
+        { id:'n1', name:'Supino Reto (barra ou halteres)', scheme:'3x 10', carga:'', interval:'90s' },
       ]},
       { combined:false, exercises:[
-        { id:'t3', name:'Banco Supino Reto', scheme:'4x 10 a 12', carga:'15' },
+        { id:'n2', name:'Supino Inclinado com Halteres', scheme:'3x 12', carga:'', interval:'90s' },
       ]},
       { combined:false, exercises:[
-        { id:'t4', name:'Crucifixo Máquina', scheme:'3x drop-set 8-10-12', carga:'35' },
-      ]},
-      { combined:true, label:'Bi-set 2', exercises:[
-        { id:'t5', name:'Crossover Polia Alta', scheme:'3x 12 a 15 (pico de contração)', carga:'15' },
-        { id:'t6', name:'Tríceps Banco com Pernas Esticadas', scheme:'3x 12 a 15', carga:'10' },
+        { id:'n3', name:'Crucifixo Máquina (Peck Deck)', scheme:'3x 12', carga:'', interval:'60s' },
       ]},
       { combined:false, exercises:[
-        { id:'t7', name:'Tríceps Invertido na Polia com Barra', scheme:'4x 10 a 12', carga:'40' },
+        { id:'n4', name:'Tríceps Testa com Halteres (deitado)', scheme:'3x 12', carga:'', interval:'60s' },
       ]},
       { combined:false, exercises:[
-        { id:'t8', name:'Tríceps Francês na Polia com Corda', scheme:'4x 10 a 12', carga:'30' },
+        { id:'n5', name:'Tríceps Francês com Halter (sentado)', scheme:'3x 12', carga:'', interval:'60s' },
       ]},
     ]},
     { id:'qua', weekday:3, label:'Quarta', focus:'Costas e bíceps', groups:[
       { combined:false, exercises:[
-        { id:'q1', name:'Puxada Unilateral Polia Alta', scheme:'3x 12 a 15 (pico de contração)', carga:'35' },
-      ]},
-      { combined:true, label:'Bi-set 1', exercises:[
-        { id:'q2', name:'Puxada Neutra Barra H', scheme:'4x 10 a 12 (pico de contração)', carga:'25' },
-        { id:'q3', name:'Remada Curvada com Barra Reta (pegada supinada)', scheme:'4x 10 a 12', carga:'7.5/7.5' },
+        { id:'n6', name:'Puxada na Frente (máquina)', scheme:'3x 12', carga:'', interval:'90s' },
       ]},
       { combined:false, exercises:[
-        { id:'q4', name:'Remada Baixa na Polia Baixa (pegada supinada)', scheme:'4x 8 a 10', carga:'40', interval:'120s' },
+        { id:'n7', name:'Remada Sentada na Máquina (pegada neutra)', scheme:'3x 12', carga:'', interval:'90s' },
       ]},
-      { combined:true, label:'Bi-set 2', exercises:[
-        { id:'q5', name:'Remada Baixa Triângulo', scheme:'4x 10 a 12', carga:'30' },
-        { id:'q6', name:'Rosca com Rotação de Punho', scheme:'4x 10 a 12', carga:'7' },
+      { combined:false, exercises:[
+        { id:'n8', name:'Remada Máquina (pegada aberta)', scheme:'3x 12', carga:'', interval:'60s' },
       ]},
-      { combined:true, label:'Bi-set 3', exercises:[
-        { id:'q7', name:'Rosca Scott Máquina', scheme:'4x 10 a 12', carga:'7,5/7,5' },
-        { id:'q8', name:'Rosca Martelo com Halteres', scheme:'4x até o máximo', carga:'7' },
+      { combined:false, exercises:[
+        { id:'n9', name:'Rosca Direta com Halteres (sentado)', scheme:'3x 12', carga:'', interval:'60s' },
+      ]},
+      { combined:false, exercises:[
+        { id:'n10', name:'Rosca Martelo com Halteres (sentado)', scheme:'3x 12', carga:'', interval:'60s' },
       ]},
     ]},
-    { id:'sex', weekday:5, label:'Sexta', focus:'Inferiores', groups:[
+    { id:'sex', weekday:5, label:'Sexta', focus:'Ombro e abdômen', groups:[
       { combined:false, exercises:[
-        { id:'s1', name:'Agachamento Smith', scheme:'4x 10 a 12', carga:'20' },
-      ]},
-      { combined:true, label:'Bi-set', exercises:[
-        { id:'s2', name:'Leg Press 45', scheme:'4x 10 a 12', carga:'70/70' },
-        { id:'s3', name:'Agachamento Isométrico na Parede', scheme:'4x até o máximo', carga:'0' },
+        { id:'n11', name:'Desenvolvimento com Halteres (sentado)', scheme:'3x 10', carga:'', interval:'90s' },
       ]},
       { combined:false, exercises:[
-        { id:'s4', name:'Adução de Quadril Máquina', scheme:'3x 12 a 15', carga:'80' },
+        { id:'n12', name:'Elevação Lateral com Halteres (sentado)', scheme:'3x 12', carga:'', interval:'60s' },
       ]},
       { combined:false, exercises:[
-        { id:'s5', name:'Cadeira Extensora', scheme:'4x 8 a 10', carga:'55', interval:'120s' },
+        { id:'n13', name:'Crucifixo Inverso Máquina', scheme:'3x 12', carga:'', interval:'60s' },
       ]},
       { combined:false, exercises:[
-        { id:'s6', name:'Panturrilha Sentado Máquina', scheme:'4x 8 a 10', carga:'50', interval:'120s' },
+        { id:'n14', name:'Encolhimento com Halteres (sentado)', scheme:'3x 12', carga:'', interval:'60s' },
       ]},
       { combined:false, exercises:[
-        { id:'s7', name:'Cadeira Flexora', scheme:'4x 8 a 10', carga:'0', interval:'120s' },
+        { id:'n15', name:'Abdominal Supra Solo', scheme:'3x 15', carga:'', interval:'60s' },
+      ]},
+      { combined:false, exercises:[
+        { id:'n16', name:'Abdominal Máquina (sentado)', scheme:'3x 15', carga:'', interval:'60s' },
       ]},
     ]},
-    { id:'sab', weekday:6, label:'Sábado', focus:'Ombro, braços e abs', groups:[
+    { id:'sab', weekday:6, label:'Sábado', focus:'Braços e reforço', groups:[
       { combined:false, exercises:[
-        { id:'a1', name:'Desenvolvimento com Halteres Sentado', scheme:'4x 10 a 12 (1ª série de aquecimento, 20 rep)', carga:'10/15' },
-      ]},
-      { combined:true, label:'Bi-set 1', exercises:[
-        { id:'a2', name:'Elevação Lateral Unilateral na Polia Baixa Neutra', scheme:'4x 10 a 12', carga:'10' },
-        { id:'a3', name:'Abdominal Supra Solo', scheme:'4x 10 a 12', carga:'0' },
-      ]},
-      { combined:true, label:'Bi-set 2', exercises:[
-        { id:'a4', name:'Elevação Frontal na Polia com Corda', scheme:'3x 12 a 15 (pico de contração)', carga:'15' },
-        { id:'a5', name:'Face Pull', scheme:'3x 12 a 15 (pico de contração)', carga:'25' },
-      ]},
-      { combined:true, label:'Bi-set 3', exercises:[
-        { id:'a6', name:'Crucifixo Inverso Máquina', scheme:'4x 8 a 10', carga:'25', interval:'120s' },
-        { id:'a7', name:'Tríceps Banco com Pernas Esticadas', scheme:'4x 8 a 10', carga:'0', interval:'120s' },
+        { id:'n17', name:'Supino Máquina (Chest Press)', scheme:'3x 12', carga:'', interval:'90s' },
       ]},
       { combined:false, exercises:[
-        { id:'a8', name:'Rosca Direta 21 na Polia Baixa', scheme:'3x 7+7+7', carga:'25' },
+        { id:'n18', name:'Remada Baixa Máquina', scheme:'3x 12', carga:'', interval:'90s' },
       ]},
-      { combined:true, label:'Bi-set 4', exercises:[
-        { id:'a9', name:'Abdominal Remador com Apoio', scheme:'3x 12 a 15', carga:'0' },
-        { id:'a10', name:'Abdominal Prancha', scheme:'3x até o máximo', carga:'0' },
+      { combined:false, exercises:[
+        { id:'n19', name:'Rosca Scott Máquina', scheme:'3x 12', carga:'', interval:'60s' },
+      ]},
+      { combined:false, exercises:[
+        { id:'n20', name:'Tríceps Máquina (extensão)', scheme:'3x 12', carga:'', interval:'60s' },
+      ]},
+      { combined:false, exercises:[
+        { id:'n21', name:'Elevação Lateral Máquina', scheme:'3x 12', carga:'', interval:'60s' },
+      ]},
+      { combined:false, exercises:[
+        { id:'n22', name:'Abdominal Infra Solo (elevação de pelve)', scheme:'3x 15', carga:'', interval:'60s' },
       ]},
     ]},
   ],
 };
+
 function clonePlan(p){ return JSON.parse(JSON.stringify(p)); }
 function planNeedsSeed(p){ return !p || !Array.isArray(p.days) || !p.days.length || !p.days[0].groups; }
 // Carga é só número (kg é fixo na UI). Aceita "/" e "," pra cargas duplas ("7,5/7,5").

@@ -5651,26 +5651,30 @@ function resolveDietRangeDays(defaultCount) {
 }
 
 function caloriesChartHtml() {
-  const days = resolveDietRangeDays(14);
+  const allDays = resolveDietRangeDays(14);
+  const loggedDates = new Set(DB.dietLog.map(e => e.date));
+  const days = allDays.filter(d => loggedDates.has(d));
   const data = days.map(d => ({
     label: fmtShortDate(d),
     value: round1(DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0)),
   }));
   const hasAny = data.some(d => d.value > 0);
-  const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
+  const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período: ${allDays[0]} até ${allDays[allDays.length - 1]} · ${days.length} dia${days.length !== 1 ? 's' : ''} com registro${allDays.length - days.length ? ` (${allDays.length - days.length} sem registro ignorado${allDays.length - days.length > 1 ? 's' : ''} — não entram na conta nem no gráfico)` : ''} · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
   if (!hasAny) return '<div class="empty">Registre algumas refeições pra ver o gráfico aqui.</div>' + rangeInfo;
   return buildBarChartSVG(data, { color: '#2F7D4F', goal: DB.goals.kcal, goalColor: '#C4573F' }) + rangeInfo;
 }
 
 function deficitChartHtml() {
-  const days = resolveDietRangeDays(30);
+  const allDays = resolveDietRangeDays(30);
+  const loggedDates = new Set(DB.dietLog.map(e => e.date));
+  const days = allDays.filter(d => loggedDates.has(d));
   const data = days.map(d => ({
     label: fmtShortDate(d),
     // negativo = déficit (comeu abaixo da meta, linha pra baixo/vermelha); positivo = superávit (verde, pra cima)
     value: round1((DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - exerciseKcalForDate(d)) - DB.goals.kcal),
   }));
   const hasAny = DB.dietLog.some(e => days.includes(e.date));
-  const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
+  const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período: ${allDays[0]} até ${allDays[allDays.length - 1]} · ${days.length} dia${days.length !== 1 ? 's' : ''} com registro${allDays.length - days.length ? ` (${allDays.length - days.length} sem registro ignorado${allDays.length - days.length > 1 ? 's' : ''} — não entram na conta nem no gráfico)` : ''} · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
   if (!hasAny) return '<div class="empty">Registre refeições pra ver esse gráfico.</div>' + rangeInfo;
   return buildLineChartSVG(data, { color: '#2F7D4F', negColor: '#C4573F', lineColor: '#9AA0A6', unit: ' kcal', zeroLine: true }) + rangeInfo;
 }
@@ -7841,26 +7845,30 @@ function resolveDietRangeDays(defaultCount) {
 }
 
 function caloriesChartHtml() {
-  const days = resolveDietRangeDays(14);
+  const allDays = resolveDietRangeDays(14);
+  const loggedDates = new Set(DB.dietLog.map(e => e.date));
+  const days = allDays.filter(d => loggedDates.has(d));
   const data = days.map(d => ({
     label: fmtShortDate(d),
     value: round1(DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0)),
   }));
   const hasAny = data.some(d => d.value > 0);
-  const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
+  const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período: ${allDays[0]} até ${allDays[allDays.length - 1]} · ${days.length} dia${days.length !== 1 ? 's' : ''} com registro${allDays.length - days.length ? ` (${allDays.length - days.length} sem registro ignorado${allDays.length - days.length > 1 ? 's' : ''} — não entram na conta nem no gráfico)` : ''} · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
   if (!hasAny) return '<div class="empty">Registre algumas refeições pra ver o gráfico aqui.</div>' + rangeInfo;
   return buildBarChartSVG(data, { color: '#2F7D4F', goal: DB.goals.kcal, goalColor: '#C4573F' }) + rangeInfo;
 }
 
 function deficitChartHtml() {
-  const days = resolveDietRangeDays(30);
+  const allDays = resolveDietRangeDays(30);
+  const loggedDates = new Set(DB.dietLog.map(e => e.date));
+  const days = allDays.filter(d => loggedDates.has(d));
   const data = days.map(d => ({
     label: fmtShortDate(d),
     // negativo = déficit (comeu abaixo da meta, linha pra baixo/vermelha); positivo = superávit (verde, pra cima)
     value: round1((DB.dietLog.filter(e => e.date === d).reduce((s, e) => s + e.kcal, 0) - exerciseKcalForDate(d)) - DB.goals.kcal),
   }));
   const hasAny = DB.dietLog.some(e => days.includes(e.date));
-  const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período calculado: ${days[0]} até ${days[days.length - 1]} (${days.length} dia${days.length > 1 ? 's' : ''}) · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
+  const rangeInfo = `<div style="font-size:10.5px;color:#ABA9A0;margin-top:6px">Período: ${allDays[0]} até ${allDays[allDays.length - 1]} · ${days.length} dia${days.length !== 1 ? 's' : ''} com registro${allDays.length - days.length ? ` (${allDays.length - days.length} sem registro ignorado${allDays.length - days.length > 1 ? 's' : ''} — não entram na conta nem no gráfico)` : ''} · ${DB.dietLog.length} refeição(ões) salva(s) no total</div>`;
   if (!hasAny) return '<div class="empty">Registre refeições pra ver esse gráfico.</div>' + rangeInfo;
   return buildLineChartSVG(data, { color: '#2F7D4F', negColor: '#C4573F', lineColor: '#9AA0A6', unit: ' kcal', zeroLine: true }) + rangeInfo;
 }

@@ -9310,7 +9310,7 @@ window.init_faculdade = function(){
   let _facLoaded = false;
   let _facSyncing = false;
   // estado de colapsar (só guarda o que está FECHADO; padrão = aberto). Sobrevive a re-render e a recarregar a página.
-  let facCollapsed = { p: {}, c: {} };
+  let facCollapsed = { p: {}, c: {}, m: {} };
   let _collTimer = null;
   function saveCollapsed(){
     clearTimeout(_collTimer);
@@ -9514,11 +9514,21 @@ window.init_faculdade = function(){
             + `</div>`;
         }).join('');
       }
-      return `<div class="fac-clase">
-        <div class="fac-clase-head"><span class="fac-clase-title">Módulo ${mi + 1} <span class="fac-clase-sub">— ${m.mod}</span></span>${modBtn}</div>
-        <div style="padding:10px 14px">${rows}</div>
+      return `<div class="fac-clase${facCollapsed.m[mi] ? '' : ' open'}">
+        <div class="fac-clase-head"><span class="fac-clase-title" data-medint-togglemod="${mi}"><span class="fac-clase-chevron">⌄</span>Módulo ${mi + 1} <span class="fac-clase-sub">— ${m.mod}</span></span>${modBtn}</div>
+        <div class="fac-clase-body" style="padding:10px 14px">${rows}</div>
       </div>`;
     }).join('');
+
+    medintListEl.querySelectorAll('[data-medint-togglemod]').forEach(el => {
+      el.addEventListener('click', () => {
+        const c = el.closest('.fac-clase');
+        c.classList.toggle('open');
+        const k = el.dataset.medintTogglemod;
+        if(c.classList.contains('open')) delete facCollapsed.m[k]; else facCollapsed.m[k] = true;
+        saveCollapsed();
+      });
+    });
 
     medintListEl.querySelectorAll('input[data-mk]').forEach(cb => {
       cb.addEventListener('change', () => setMedintDone(cb.dataset.mk, cb.checked, false));
@@ -9693,7 +9703,7 @@ window.init_faculdade = function(){
       const cr = await storageGetWithRetry('faculdade_farmaco_collapsed');
       if(cr && cr.value !== undefined) facCollapsed = JSON.parse(cr.value) || {};
     } catch(e){}
-    facCollapsed.p = facCollapsed.p || {}; facCollapsed.c = facCollapsed.c || {};
+    facCollapsed.p = facCollapsed.p || {}; facCollapsed.c = facCollapsed.c || {}; facCollapsed.m = facCollapsed.m || {};
     _facLoaded = true;
     render();
     renderMedint();

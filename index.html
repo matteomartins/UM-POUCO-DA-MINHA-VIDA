@@ -2441,7 +2441,7 @@ const BACKUP_KEYS = [
   'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog', 'dieta_habits', 'dieta_habitLog',
   'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog', 'treino_gymLog', 'treino_gymMinutes',
   'ideias_itens',
-  'faculdade_farmaco_status', 'faculdade_medint_status', 'faculdade_notas_medint', 'faculdade_notas_guardias',
+  'faculdade_farmaco_status', 'faculdade_farmaco_collapsed', 'faculdade_medint_status', 'faculdade_notas_medint', 'faculdade_notas_guardias',
 ];
 
 async function doGlobalExport(){
@@ -9305,6 +9305,9 @@ window.init_faculdade = function(){
   let seen = {};
   let _facLoaded = false;
   let _facSyncing = false;
+  // estado de colapsar (só guarda o que está FECHADO; padrão = aberto). Sobrevive a re-render e a recarregar a página.
+  let facCollapsed = { p: {}, c: {} };
+  function saveCollapsed(){ storageSetWithRetry('faculdade_farmaco_collapsed', JSON.stringify(facCollapsed)); }
   const claseKeyOf = ci => 'fclase-' + ci;
   const inPend = fn => !!(window.PEND && fn());
 
@@ -9353,7 +9356,7 @@ window.init_faculdade = function(){
     const claseHas = inPend(() => PEND.byClase(ck));
     const claseBtn = `<button class="fac-addpend fac-addpend-clase${claseHas ? ' in' : ''}" data-fac-addclase="${ci}"`
       + ` title="${claseHas ? 'clase já está nas pendências' : 'adicionar clase inteira às pendências'}">${claseHas ? '✓ pendência' : '+ pendência'}</button>`;
-    return `<div class="fac-clase open">
+    return `<div class="fac-clase${facCollapsed.c[ci] ? '' : ' open'}">
       <div class="fac-clase-head"><span class="fac-clase-title" data-fac-toggleclase="${ci}"><span class="fac-clase-chevron">⌄</span>${c.n} <span class="fac-clase-sub">— ${c.t}</span></span>${claseBtn}</div>
       <div class="fac-clase-body">
         <div class="fac-cols">${colHtml(ci, c.moodle, 'm', c.n)}${colHtml(ci, c.yt, 'y', c.n)}</div>
@@ -9365,19 +9368,30 @@ window.init_faculdade = function(){
   function render(){
     const groups = [];
     FARMACO.forEach((c, ci) => {
-      if (PARCIAIS[ci]) groups.push({ p: PARCIAIS[ci], items: [] });
+      if (PARCIAIS[ci]) groups.push({ p: PARCIAIS[ci], key: ci, items: [] });
       groups[groups.length - 1].items.push({ c, ci });
     });
-    listEl.innerHTML = groups.map(g => `<div class="fac-parcial-group open">
+    listEl.innerHTML = groups.map(g => `<div class="fac-parcial-group${facCollapsed.p[g.key] ? '' : ' open'}" data-pkey="${g.key}">
       <div class="fac-parcial" data-fac-toggleparcial><span class="fac-parcial-chevron">⌄</span><div><div class="fac-parcial-t">${g.p.t}</div><div class="fac-parcial-s">${g.p.sub}</div></div></div>
       <div class="fac-parcial-body">${g.items.map(({ c, ci }) => claseHtml(c, ci)).join('')}</div>
     </div>`).join('');
 
     listEl.querySelectorAll('[data-fac-toggleparcial]').forEach(el => {
-      el.addEventListener('click', () => el.closest('.fac-parcial-group').classList.toggle('open'));
+      el.addEventListener('click', () => {
+        const g = el.closest('.fac-parcial-group');
+        g.classList.toggle('open');
+        if(g.classList.contains('open')) delete facCollapsed.p[g.dataset.pkey]; else facCollapsed.p[g.dataset.pkey] = true;
+        saveCollapsed();
+      });
     });
     listEl.querySelectorAll('[data-fac-toggleclase]').forEach(el => {
-      el.addEventListener('click', () => el.closest('.fac-clase').classList.toggle('open'));
+      el.addEventListener('click', () => {
+        const c = el.closest('.fac-clase');
+        c.classList.toggle('open');
+        const k = el.dataset.facToggleclase;
+        if(c.classList.contains('open')) delete facCollapsed.c[k]; else facCollapsed.c[k] = true;
+        saveCollapsed();
+      });
     });
     listEl.querySelectorAll('input[type=checkbox]').forEach(cb => {
       cb.addEventListener('change', () => setVisto(cb.dataset.k, cb.checked, false));
@@ -9665,8 +9679,13 @@ window.init_faculdade = function(){
     if(r && r.value !== undefined){ try { medintSeen = JSON.parse(r.value) || {}; } catch(e){ medintSeen = {}; } }
     if(_facLoaded) renderMedint();
   });
-  storageGetWithRetry('faculdade_farmaco_status').then(r => {
+  storageGetWithRetry('faculdade_farmaco_status').then(async r => {
     if(r && r.value !== undefined){ try { seen = JSON.parse(r.value) || {}; } catch(e){ seen = {}; } }
+    try {
+      const cr = await storageGetWithRetry('faculdade_farmaco_collapsed');
+      if(cr && cr.value !== undefined) facCollapsed = JSON.parse(cr.value) || {};
+    } catch(e){}
+    facCollapsed.p = facCollapsed.p || {}; facCollapsed.c = facCollapsed.c || {};
     _facLoaded = true;
     render();
     renderMedint();

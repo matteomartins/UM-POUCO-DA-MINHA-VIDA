@@ -9307,7 +9307,11 @@ window.init_faculdade = function(){
   let _facSyncing = false;
   // estado de colapsar (só guarda o que está FECHADO; padrão = aberto). Sobrevive a re-render e a recarregar a página.
   let facCollapsed = { p: {}, c: {} };
-  function saveCollapsed(){ storageSetWithRetry('faculdade_farmaco_collapsed', JSON.stringify(facCollapsed)); }
+  let _collTimer = null;
+  function saveCollapsed(){
+    clearTimeout(_collTimer);
+    _collTimer = setTimeout(() => storageSetWithRetry('faculdade_farmaco_collapsed', JSON.stringify(facCollapsed)), 350);
+  }
   const claseKeyOf = ci => 'fclase-' + ci;
   const inPend = fn => !!(window.PEND && fn());
 

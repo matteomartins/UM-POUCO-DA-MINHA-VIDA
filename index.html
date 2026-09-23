@@ -6188,14 +6188,14 @@ function attachWorkoutHandlers() {
     const inp = document.createElement('input');
     inp.className = 'wex-carga-input';
     inp.inputMode = 'decimal';
-    inp.value = ex.carga || '';
+    inp.value = cargaForEdit(ex);
     inp.addEventListener('input', () => { inp.value = inp.value.replace(/[^\d.,/\s]/g, ''); });
     btn.replaceWith(inp);
     inp.focus(); inp.select();
     let done = false;
     const commit = () => {
       if (done) return; done = true;
-      const nv = normalizeCarga(inp.value);
+      const nv = cargaFromInput(ex, inp.value);
       if (nv !== (ex.carga || '')) {
         ex.carga = nv;
         const w = parseWeight(nv);
@@ -7159,6 +7159,10 @@ function clonePlan(p){ return JSON.parse(JSON.stringify(p)); }
 function planNeedsSeed(p){ return !p || !Array.isArray(p.days) || !p.days.length || !p.days[0].groups; }
 // Carga é só número (kg é fixo na UI). Aceita "/" e "," pra cargas duplas ("7,5/7,5").
 function normalizeCarga(s){ return String(s == null ? '' : s).replace(/[^\d.,/\s]/g, '').replace(/\s{2,}/g, ' ').trim(); }
+// Exercício de halteres (dois pesos iguais): guarda "7/7" pra mostrar os dois lados, mas ao editar basta digitar um número só.
+function isPairEx(ex){ return !!ex && ((/halteres/i.test(ex.name || '') && !/barra/i.test(ex.name || '')) || /\//.test(ex.carga || '')); }
+function cargaForEdit(ex){ const c = (ex && ex.carga) || ''; const m = c.match(/^\s*([\d.,]+)\s*\/\s*([\d.,]+)\s*$/); return (m && m[1] === m[2]) ? m[1] : c; }
+function cargaFromInput(ex, raw){ const n = normalizeCarga(raw); return (n && isPairEx(ex) && n.indexOf('/') === -1) ? n + '/' + n : n; }
 
 // Reaplica a ESTRUTURA do PLAN_SEED (grupos/exercícios/prescrição) preservando o que o
 // usuário editou: carga e foto, casadas por id de exercício.
@@ -8341,14 +8345,14 @@ function attachWorkoutHandlers() {
     const inp = document.createElement('input');
     inp.className = 'wex-carga-input';
     inp.inputMode = 'decimal';
-    inp.value = ex.carga || '';
+    inp.value = cargaForEdit(ex);
     inp.addEventListener('input', () => { inp.value = inp.value.replace(/[^\d.,/\s]/g, ''); });
     btn.replaceWith(inp);
     inp.focus(); inp.select();
     let done = false;
     const commit = () => {
       if (done) return; done = true;
-      const nv = normalizeCarga(inp.value);
+      const nv = cargaFromInput(ex, inp.value);
       if (nv !== (ex.carga || '')) {
         ex.carga = nv;
         const w = parseWeight(nv);

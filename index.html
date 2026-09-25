@@ -614,6 +614,9 @@
 #view-agenda .agmodal label{display:block;font-size:11px;font-weight:700;color:#7a7d72;margin-top:8px;}
 #view-agenda .agmodal input{display:block;width:100%;box-sizing:border-box;margin-top:3px;padding:8px 10px;border:1px solid #d9cfca;border-radius:8px;font-size:14px;font-family:inherit;}
 #view-agenda .agm-hint{font-size:11px;color:#9a988c;margin-top:8px;}
+#view-agenda .agm-chips{display:flex;gap:6px;margin-top:6px;}
+#view-agenda .agm-chip{flex:1;padding:7px 10px;border-radius:8px;border:1px solid #d9cfca;background:#fff;color:#7a1f2c;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;}
+#view-agenda .agm-chip.on{background:#7a1f2c;color:#fff;border-color:#7a1f2c;}
 #view-agenda .agm-btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
 #view-agenda .agm-btns button{padding:8px 12px;border-radius:8px;border:1px solid #d9cfca;background:#fff;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;}
 #view-agenda .agm-btns .agm-save{background:#7a1f2c;color:#fff;border-color:#7a1f2c;}
@@ -3570,6 +3573,7 @@ function setupGymFab(){
     bg.className = 'agmodal-bg';
     bg.innerHTML = '<div class="agmodal"><h3>🏋️ Academia</h3>'
       + '<label>Dia<input type="date" class="agm-d"></label>'
+      + '<div class="agm-chips"><button type="button" class="agm-chip" data-off="0">Hoje</button><button type="button" class="agm-chip" data-off="1">Amanhã</button></div>'
       + '<label>Horário<input type="time" class="agm-t"></label>'
       + '<label>Título<input type="text" class="agm-ti"></label>'
       + '<div class="agm-btns"><button type="button" class="agm-save">Adicionar</button><button type="button" class="agm-cancel">Cancelar</button></div></div>';
@@ -3589,7 +3593,20 @@ function setupGymFab(){
     q('.agm-ti').value = titleFor(q('.agm-d').value);
     let tocouTitulo = false;
     q('.agm-ti').addEventListener('input', () => { tocouTitulo = true; });
-    q('.agm-d').addEventListener('change', () => { if(!tocouTitulo && q('.agm-d').value) q('.agm-ti').value = titleFor(q('.agm-d').value); });
+    const syncChips = () => {
+      const v = q('.agm-d').value;
+      bg.querySelectorAll('.agm-chip').forEach(c => {
+        const dd = new Date(today); dd.setDate(dd.getDate() + Number(c.dataset.off));
+        c.classList.toggle('on', fmt(dd) === v);
+      });
+    };
+    q('.agm-d').addEventListener('change', () => { if(!tocouTitulo && q('.agm-d').value) q('.agm-ti').value = titleFor(q('.agm-d').value); syncChips(); });
+    bg.querySelectorAll('.agm-chip').forEach(c => c.addEventListener('click', () => {
+      const dd = new Date(today); dd.setDate(dd.getDate() + Number(c.dataset.off));
+      q('.agm-d').value = fmt(dd);
+      q('.agm-d').dispatchEvent(new Event('change'));
+    }));
+    syncChips();
     bg.addEventListener('click', e => { if(e.target === bg) close(); });
     q('.agm-cancel').addEventListener('click', close);
     q('.agm-save').addEventListener('click', () => {

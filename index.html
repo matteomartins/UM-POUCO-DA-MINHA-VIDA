@@ -485,6 +485,13 @@
   padding:12px 20px; cursor:pointer; box-shadow:0 4px 14px rgba(122,31,44,.3);
 }
 #view-agenda .agenda-add-fab:hover{background:#5f1622;}
+#view-agenda .agenda-edit-fab{
+  position:fixed; bottom:72px; right:18px; z-index:150;
+  background:#fff; color:#7a1f2c; border:2px solid #7a1f2c; border-radius:24px;
+  font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; font-weight:700;
+  padding:10px 20px; cursor:pointer; box-shadow:0 4px 14px rgba(122,31,44,.22);
+}
+#view-agenda .agenda-edit-fab.active{background:#7a1f2c; color:#fff;}
 #view-agenda .agenda-drawer-backdrop{
   position:fixed; inset:0; background:rgba(20,24,30,.34); z-index:199; display:none;
 }
@@ -1888,6 +1895,7 @@ async function storageGetWithRetry(key){
   </div>
 </div>
 
+<button id="agendaEditFab" class="agenda-edit-fab" aria-label="Ligar ou desligar o modo editar">✎ Editar</button>
 <button id="agendaAddBtn" class="agenda-add-fab" aria-label="Adicionar ou editar">☰ Adicionar</button>
 <div id="agendaDrawerBackdrop" class="agenda-drawer-backdrop"></div>
 <aside id="agendaDrawer" class="agenda-drawer">
@@ -3534,13 +3542,17 @@ function setupPendEditToggle(){
 
 function setupCronoEditToggle(){
   const btn = document.getElementById('cronoEditToggle');
+  const fab = document.getElementById('agendaEditFab');
   if(!btn) return;
   const view = document.getElementById('view-agenda');
-  btn.addEventListener('click', ()=>{
+  const toggle = ()=>{
     const on = view.classList.toggle('crono-editing');
     btn.classList.toggle('active', on);
     btn.textContent = on ? '✓ Pronto' : '✎ Editar cronograma';
-  });
+    if(fab){ fab.classList.toggle('active', on); fab.textContent = on ? '✓ Pronto' : '✎ Editar'; }
+  };
+  btn.addEventListener('click', toggle);
+  if(fab) fab.addEventListener('click', toggle);
 }
 
 function setupAgendaToggle(){

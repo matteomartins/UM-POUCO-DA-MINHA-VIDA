@@ -304,6 +304,9 @@
   #view-agenda .entry.farmaco-strong {border-color:var(--farmaco-strong);background:var(--farmaco-strong);}
   #view-agenda .entry.farmaco-strong .time, #view-agenda .entry.farmaco-strong .title {color:#fff;}
 
+  #view-agenda .entry.academia {border-color:#d9a400;background:#fff4bf;}
+  #view-agenda .entry.academia .time {color:#9a6f00;}
+  #view-agenda .entry.academia .title {color:var(--ink);}
   #view-agenda .entry.pessoal {border-color:var(--pessoal);background:var(--pessoal-bg);}
   #view-agenda .entry.pessoal .time {color:var(--pessoal);}
 
@@ -4021,7 +4024,7 @@ function renderDays(){
       if(e.c==="saopaulo"){
         html += `<div class="entry saopaulo${past}"><span class="time">⭐${e.t?" "+e.t:""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
       } else {
-        html += `<div class="entry ${e.c}${past}"><span class="time">${e.t||""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
+        html += `<div class="entry ${/^\s*academia/i.test(e.ti||'') ? 'academia' : e.c}${past}"><span class="time">${e.t||""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
       }
     });
 

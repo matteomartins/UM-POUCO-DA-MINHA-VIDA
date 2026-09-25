@@ -1343,6 +1343,24 @@
   #view-treino .wex-body { flex:1; min-width:0; }
   #view-treino .wex-name { font-size:13px; font-weight:700; }
   #view-treino .wex-meta { font-size:11px; color:#86897F; margin:2px 0 6px; }
+  #view-treino .wex-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:7px; }
+  #view-treino .wex-done, #view-treino .wex-rest { padding:5px 10px; border-radius:8px; border:1px solid #d9cfca; background:#fff; color:#7a1f2c; font-size:11.5px; font-weight:700; cursor:pointer; font-family:inherit; }
+  #view-treino .wex-done.on { background:#2f7d4f; border-color:#2f7d4f; color:#fff; }
+  #view-treino .sess-card.active { background:#faf1f2; border-color:#e3c7cb; text-align:center; }
+  #view-treino .sess-label { font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:#7a1f2c; }
+  #view-treino .sess-clock { font-size:44px; font-weight:800; color:#1e211d; font-variant-numeric:tabular-nums; line-height:1.15; margin-top:4px; }
+  #view-treino .sess-clock.over { color:#c0392b; }
+  #view-treino .sess-sub { font-size:11.5px; color:#86897F; margin-top:2px; }
+  #view-treino .sess-prog { height:8px; border-radius:6px; background:#ecdfe1; overflow:hidden; margin:10px 0 4px; }
+  #view-treino .sess-prog-bar { height:100%; background:#7a1f2c; transition:width .25s; }
+  #view-treino .sess-prog-txt { font-size:12px; color:#4A4D45; font-weight:700; }
+  #view-treino .rest-bar { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:160; background:#7a1f2c; color:#fff; border-radius:26px; padding:8px 8px 8px 18px; display:flex; align-items:center; gap:10px; box-shadow:0 6px 22px rgba(0,0,0,.3); font-family:'Helvetica Neue',Arial,sans-serif; max-width:calc(100vw - 24px); }
+  #view-treino .rest-bar[hidden] { display:none; }
+  #view-treino .rest-bar.done { background:#2f7d4f; animation:restPulse .8s ease-in-out infinite alternate; }
+  #view-treino .rest-bar .rb-label { font-size:11.5px; opacity:.9; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #view-treino .rest-bar .rb-time { font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; }
+  #view-treino .rest-bar button { border:none; background:rgba(255,255,255,.2); color:#fff; border-radius:16px; padding:7px 12px; font-weight:800; font-size:12px; cursor:pointer; font-family:inherit; }
+  @keyframes restPulse { from { transform:translateX(-50%) scale(1); } to { transform:translateX(-50%) scale(1.06); } }
   #view-treino .wex-carga { display:flex; align-items:center; gap:8px; }
   #view-treino .wex-carga-label { font-size:9px; text-transform:uppercase; letter-spacing:.05em; font-weight:800; color:#9A9C90; }
   #view-treino .wex-carga-val { background:#f4e4e6; color:#7a1f2c; border:1px solid #e3c7cb; border-radius:6px; padding:3px 10px; font-size:13px; font-weight:800; cursor:pointer; font-family:inherit; }
@@ -4040,7 +4058,18 @@ function renderDays(){
     // eventos pontuais das DUAS listas (academicEvents fixos + userEvents): provas, consultas/turnos,
     // shows, jogos e o que o usuário adicionou. Fora: aula normal, rotina, inscrições/asignaciones.
     const SURFACE_CLASSES = ['evento','pessoal','saopaulo','medb-strong','farmaco-strong'];
-    const upcoming = allEvents
+    // cortes de cabelo (rotina de 14 em 14 dias) entram; Academia nao (e rotina do dia a dia)
+    const hairPool = [];
+    for(let i=0;i<60;i++){
+      const hd = new Date(today); hd.setDate(hd.getDate()+i);
+      const diff = Math.round((hd - haircutAnchor) / 86400000);
+      if(diff>=0 && diff%14===0){
+        const hs = fmt(hd); const o = findOverride('r:cabelo', hs);
+        if(o && o.hide) continue;
+        hairPool.push({ d:(o && o.d2) || hs, t:(o && o.t!==undefined) ? o.t : '11:00', ti:(o && o.ti) || 'Cortar o cabelo ✂️', c:'pessoal' });
+      }
+    }
+    const upcoming = allEvents.filter(e=>!/^\s*academia/i.test(e.ti||'')).concat(hairPool)
       .filter(e=>{ const ed = new Date(e.d+'T00:00:00'); return ed >= t0 && SURFACE_CLASSES.includes(e.c); })
       .sort((a,b)=> a.d.localeCompare(b.d) || (a.t||'').localeCompare(b.t||''))
       .slice(0,8);
@@ -8407,6 +8436,120 @@ function parseWeight(str) {
   return m ? parseFloat(m[0]) : null;
 }
 
+// ---------- Treino em andamento: cronometro geral, check por exercicio e descanso ----------
+const SESS_KEY = 'treino_session_v1';
+let SESS = (function(){ try { const j = JSON.parse(localStorage.getItem(SESS_KEY) || 'null'); return (j && j.startedAt && Date.now() - j.startedAt < 8 * 3600 * 1000) ? j : null; } catch(e){ return null; } })();
+let REST = null; // { endAt, total, label, fired }
+let _wake = null;
+function saveSess(){ try { if(SESS) localStorage.setItem(SESS_KEY, JSON.stringify(SESS)); else localStorage.removeItem(SESS_KEY); } catch(e){} }
+function fmtClock(sec){ const s = Math.abs(Math.round(sec)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+function restSecOf(ex){ const m = String((ex && ex.interval) || '').match(/(\d+)\s*(min|m|s)?/i); if(!m) return 60; let n = Number(m[1]); if(/^m/i.test(m[2] || '')) n *= 60; return n || 60; }
+function sessDay(){ return SESS ? ((DB.plan && DB.plan.days) || []).find(d => d.id === SESS.dayId) : null; }
+function sessExIds(){ const d = sessDay(); return d ? d.groups.flatMap(g => g.exercises.map(e => e.id)) : []; }
+async function requestWake(){ try { if(navigator.wakeLock && !_wake) { _wake = await navigator.wakeLock.request('screen'); _wake.addEventListener('release', () => { _wake = null; }); } } catch(e){} }
+function releaseWake(){ try { if(_wake) { _wake.release(); } } catch(e){} _wake = null; }
+function unlockAudio(){ try { const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return; if(!window.__treinoAC) window.__treinoAC = new AC(); if(window.__treinoAC.state === 'suspended') window.__treinoAC.resume(); } catch(e){} }
+function beepRest(){
+  try { const ac = window.__treinoAC; if(ac) [0, .28, .56].forEach(d => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = 880; g.gain.value = .18; o.connect(g); g.connect(ac.destination); o.start(ac.currentTime + d); o.stop(ac.currentTime + d + .16); }); } catch(e){}
+  try { if(navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]); } catch(e){}
+}
+function restBarEl(){
+  let el = document.getElementById('restBar');
+  if(!el){
+    const host = document.getElementById('view-treino') || document.body;
+    el = document.createElement('div');
+    el.id = 'restBar'; el.className = 'rest-bar'; el.hidden = true;
+    el.innerHTML = '<span class="rb-label"></span><span class="rb-time"></span><button type="button" data-rb="add">+15s</button><button type="button" data-rb="stop">✕</button>';
+    host.appendChild(el);
+    el.addEventListener('click', e => {
+      const b = e.target.closest('[data-rb]'); if(!b || !REST) return;
+      if(b.dataset.rb === 'add') { REST.endAt += 15000; REST.total += 15; REST.fired = false; }
+      if(b.dataset.rb === 'stop') { REST = null; }
+      tickTreino();
+    });
+  }
+  return el;
+}
+function startRest(label, sec){
+  unlockAudio();
+  REST = { endAt: Date.now() + sec * 1000, total: sec, label, fired: false };
+  tickTreino();
+}
+function tickTreino(){
+  const clock = document.getElementById('sessClock');
+  if(SESS && clock){
+    const el = (Date.now() - SESS.startedAt) / 1000, left = (SESS.targetMin || 45) * 60 - el;
+    clock.textContent = (left < 0 ? '+' : '') + fmtClock(left);
+    clock.classList.toggle('over', left < 0);
+    const sub = document.getElementById('sessSub');
+    if(sub) sub.textContent = 'decorrido ' + fmtClock(el) + ' · meta ' + (SESS.targetMin || 45) + ' min';
+  }
+  const bar = restBarEl();
+  if(!REST){ bar.hidden = true; return; }
+  const left = (REST.endAt - Date.now()) / 1000;
+  bar.hidden = false;
+  bar.querySelector('.rb-label').textContent = REST.label;
+  bar.classList.toggle('done', left <= 0);
+  bar.querySelector('.rb-time').textContent = left > 0 ? fmtClock(Math.ceil(left)) : 'já pode! ▶';
+  if(left <= 0 && !REST.fired){ REST.fired = true; beepRest(); }
+}
+if(!window.__treinoTick) window.__treinoTick = setInterval(tickTreino, 500);
+document.addEventListener('visibilitychange', () => { if(!document.hidden && SESS) requestWake(); tickTreino(); });
+
+function sessionCardHtml(day){
+  if(!SESS) return `<div class="card sess-card"><button class="btn" id="sessStartBtn" style="width:100%">▶ Iniciar treino · ${esc(day.focus)} (${gymMinutesDefault() || 45} min)</button></div>`;
+  const sd = sessDay();
+  const ids = sessExIds();
+  const done = ids.filter(id => SESS.done && SESS.done[id]).length;
+  return `<div class="card sess-card active">
+    <div class="sess-label">Treino em andamento${sd ? ' · ' + esc(sd.label) + ' — ' + esc(sd.focus) : ''}</div>
+    <div class="sess-clock" id="sessClock">--:--</div>
+    <div class="sess-sub" id="sessSub"></div>
+    <div class="sess-prog"><div class="sess-prog-bar" style="width:${ids.length ? Math.round(done / ids.length * 100) : 0}%"></div></div>
+    <div class="sess-prog-txt">${done}/${ids.length} exercícios feitos</div>
+    <div class="row" style="gap:8px;margin-top:10px">
+      <button class="btn" id="sessFinishBtn" style="flex:1">⏹ Finalizar treino</button>
+      <button class="btn secondary" id="sessCancelBtn" style="padding:6px 14px">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+function attachSessionHandlers(){
+  const sb = document.getElementById('sessStartBtn');
+  if(sb) sb.addEventListener('click', () => {
+    const day = currentPlanDay(); if(!day) return;
+    SESS = { startedAt: Date.now(), dayId: day.id, done: {}, targetMin: gymMinutesDefault() || 45 };
+    saveSess(); requestWake(); unlockAudio(); renderAll(); tickTreino();
+  });
+  const fb = document.getElementById('sessFinishBtn');
+  if(fb) fb.addEventListener('click', () => {
+    if(!SESS) return;
+    const min = Math.max(1, Math.round((Date.now() - SESS.startedAt) / 60000));
+    const t = todayStr(); const cur = gymEntryFor(t);
+    if(cur) cur.minutes = min; else (DB.gymLog = DB.gymLog || []).push({ id: uid(), date: t, minutes: min, kcal: null });
+    SESS = null; REST = null; saveSess(); releaseWake();
+    persist(); renderAll(); tickTreino(); showToast('Treino salvo: ' + min + ' min.');
+  });
+  const cb = document.getElementById('sessCancelBtn');
+  if(cb) cb.addEventListener('click', () => {
+    if(!confirm('Cancelar o treino em andamento? (não marca o dia)')) return;
+    SESS = null; REST = null; saveSess(); releaseWake(); renderAll(); tickTreino();
+  });
+  document.querySelectorAll('[data-ex-done]').forEach(b => b.addEventListener('click', () => {
+    if(!SESS) return;
+    const id = b.dataset.exDone;
+    SESS.done = SESS.done || {};
+    if(SESS.done[id]) delete SESS.done[id]; else SESS.done[id] = true;
+    saveSess(); renderAll(); tickTreino();
+  }));
+  document.querySelectorAll('[data-ex-rest]').forEach(b => b.addEventListener('click', () => {
+    const ex = findExercise(b.dataset.exRest); if(!ex) return;
+    startRest(ex.name.replace(/\s*\(.*\)\s*$/, ''), restSecOf(ex));
+  }));
+  tickTreino();
+}
+if(SESS) requestWake();
+
 function exerciseRowHtml(ex) {
   const img = ex.img
     ? `<div class="wex-imgwrap"><img class="wex-img" src="${ex.img}" data-ex-zoom="${ex.id}" alt=""><button class="wex-img-del" data-ex-imgdel="${ex.id}" title="voltar pra imagem original">✕</button></div>`
@@ -8420,6 +8563,10 @@ function exerciseRowHtml(ex) {
         <div class="wex-carga">
           <span class="wex-carga-label">Carga</span>
           <button type="button" class="wex-carga-val" data-ex-carga="${ex.id}">${ex.carga ? esc(ex.carga) + ' kg' : '—'} ✎</button>
+        </div>
+        <div class="wex-actions">
+          ${(SESS && sessExIds().indexOf(ex.id) !== -1) ? `<button type="button" class="wex-done${SESS.done && SESS.done[ex.id] ? ' on' : ''}" data-ex-done="${ex.id}">${SESS.done && SESS.done[ex.id] ? '✓ feito' : '○ marcar feito'}</button>` : ''}
+          <button type="button" class="wex-rest" data-ex-rest="${ex.id}">⏱ descanso ${restSecOf(ex)}s</button>
         </div>
       </div>
     </div>`;
@@ -8466,6 +8613,7 @@ function workoutHtml() {
       <div class="workout-day-tabs">
         ${days.map(d => `<button class="wday-btn${d.id === day.id ? ' active' : ''}" data-day="${d.id}"><b>${d.label}</b><span>${esc(d.focus)}</span></button>`).join('')}
       </div>
+      ${sessionCardHtml(day)}
       ${gymPresenceCardHtml()}
       <div class="card card-plan">
         <div class="card-title" style="margin:0 0 4px">${day.label.toUpperCase()} · ${esc(day.focus)}</div>
@@ -8485,6 +8633,7 @@ function attachWorkoutHandlers() {
   document.querySelectorAll('.wday-btn').forEach(b => b.addEventListener('click', () => {
     ui.workoutDay = b.dataset.day; renderAll();
   }));
+  attachSessionHandlers();
 
   const gymTodayBtn = document.getElementById('gymTodayBtn');
   if (gymTodayBtn) gymTodayBtn.addEventListener('click', () => {

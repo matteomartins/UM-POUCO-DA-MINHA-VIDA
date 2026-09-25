@@ -601,6 +601,17 @@
 }
 #view-agenda .entry-edit:hover{color:var(--farmaco);}
 #view-agenda .entry-del:hover{color:var(--medb);}
+#view-agenda .agmodal-bg{position:fixed;inset:0;background:rgba(30,20,22,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;}
+#view-agenda .agmodal{background:#fff;border-radius:12px;padding:18px 18px 14px;width:100%;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,.25);font-family:'Helvetica Neue',Arial,sans-serif;}
+#view-agenda .agmodal h3{margin:0 0 10px;font-size:15px;color:#7a1f2c;}
+#view-agenda .agmodal label{display:block;font-size:11px;font-weight:700;color:#7a7d72;margin-top:8px;}
+#view-agenda .agmodal input{display:block;width:100%;box-sizing:border-box;margin-top:3px;padding:8px 10px;border:1px solid #d9cfca;border-radius:8px;font-size:14px;font-family:inherit;}
+#view-agenda .agm-hint{font-size:11px;color:#9a988c;margin-top:8px;}
+#view-agenda .agm-btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+#view-agenda .agm-btns button{padding:8px 12px;border-radius:8px;border:1px solid #d9cfca;background:#fff;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;}
+#view-agenda .agm-btns .agm-save{background:#7a1f2c;color:#fff;border-color:#7a1f2c;}
+#view-agenda .agm-btns .agm-del{color:#b23b2e;}
+
 #view-agenda .pend-item .pend-text{flex:1;}
 #view-agenda .pend-remove{
   display:none;
@@ -2436,7 +2447,7 @@ document.getElementById('backBtn').addEventListener('click', showHome);
 document.getElementById('refreshBtn').addEventListener('click', ()=>location.reload());
 
 const BACKUP_KEYS = [
-  'agenda_pendencias', 'agenda_user_events', 'agenda_routine_overrides', 'agenda_recurring',
+  'agenda_pendencias', 'agenda_user_events', 'agenda_routine_overrides', 'agenda_recurring', 'agenda_event_overrides',
   'livro_cambio_v2',
   'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog', 'dieta_habits', 'dieta_habitLog',
   'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog', 'treino_gymLog', 'treino_gymMinutes',
@@ -3212,6 +3223,7 @@ let pendencias = [];
 let userEvents = [];
 let routineOverrides = [];
 let recurringEvents = [];
+let eventOverrides = []; // edicoes/exclusoes de UM dia especifico de itens fixos (rotina, recorrentes, eventos do codigo)
 
 const weekdayNames = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 const monthNames = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
@@ -3233,10 +3245,13 @@ async function loadAll(){
   routineOverrides = (ro && ro.value !== undefined) ? JSON.parse(ro.value) : [];
   const rc = await storageGetWithRetry('agenda_recurring');
   recurringEvents = (rc && rc.value !== undefined) ? JSON.parse(rc.value) : [];
+  const eo = await storageGetWithRetry('agenda_event_overrides');
+  eventOverrides = (eo && eo.value !== undefined) ? JSON.parse(eo.value) : [];
 }
 function savePendencias(){ PEND.list = pendencias; PEND.save(); }
 function saveUserEvents(){ storageSetWithRetry('agenda_user_events', JSON.stringify(userEvents)); }
 function saveRoutineOverrides(){ storageSetWithRetry('agenda_routine_overrides', JSON.stringify(routineOverrides)); }
+function saveEventOverrides(){ storageSetWithRetry('agenda_event_overrides', JSON.stringify(eventOverrides)); }
 function saveRecurring(){ storageSetWithRetry('agenda_recurring', JSON.stringify(recurringEvents)); }
 function activeOverrideFor(dateStr){
   // período (intervalo de datas) tem prioridade — é o mais específico
@@ -3756,12 +3771,110 @@ function sortVal(e){
   return -1;
 }
 
+// ---------- Editar/excluir QUALQUER item de um dia (rotina, recorrentes, eventos fixos do codigo) ----------
+// Item fixo nao tem id; a edicao vira um "override" so daquele dia: { key, d (dia original), hide?, d2?, t, ti, w, c }.
+function ovKeyAcademic(e){ return 'a:' + e.d + '|' + (e.t || '') + '|' + e.ti; }
+function findOverride(key, d0){ return eventOverrides.find(o => o.key === key && o.d === d0); }
+function effectiveAcademic(){
+  const out = [];
+  academicEvents.forEach(e => {
+    const key = ovKeyAcademic(e);
+    const o = findOverride(key, e.d);
+    if(!o){ out.push(Object.assign({}, e, { _base: { key, d: e.d, overridden: false } })); return; }
+    if(o.hide) return;
+    out.push(Object.assign({}, e, {
+      d: o.d2 || e.d, t: o.t !== undefined ? o.t : e.t, ti: o.ti || e.ti, w: o.w !== undefined ? o.w : e.w,
+      _base: { key, d: e.d, overridden: true }
+    }));
+  });
+  return out;
+}
+function applyDayOverride(item, key, dateStr){
+  const o = findOverride(key, dateStr);
+  if(!o) return Object.assign({}, item, { _base: { key, d: dateStr, overridden: false } });
+  if(o.hide || (o.d2 && o.d2 !== dateStr)) return null;
+  return Object.assign({}, item, { t: o.t !== undefined ? o.t : item.t, ti: o.ti || item.ti, w: o.w, _base: { key, d: dateStr, overridden: true } });
+}
+function upsertOverride(key, d0, data){
+  let o = findOverride(key, d0);
+  if(!o){ o = { id: uid(), key, d: d0 }; eventOverrides.push(o); }
+  delete o.d2; delete o.hide;
+  Object.assign(o, data);
+  saveEventOverrides();
+}
+function removeOverride(key, d0){
+  eventOverrides = eventOverrides.filter(o => !(o.key === key && o.d === d0));
+  saveEventOverrides();
+}
+function quickDeleteEvent(ref){
+  if(!ref) return;
+  if(ref.kind === 'user'){
+    const ev = userEvents.find(e => e.id === ref.id);
+    if(!ev) return;
+    if(confirm('Excluir "' + ev.ti + '"? (some da Mensal e do Cuadrimestre)')){
+      userEvents = userEvents.filter(e => e.id !== ev.id);
+      saveUserEvents(); refreshAgenda();
+    }
+    return;
+  }
+  if(confirm('Tirar "' + ref.cur.ti + '" so deste dia? (da pra restaurar depois pelo lapis)')){
+    upsertOverride(ref.key, ref.d0, { hide: true });
+    refreshAgenda();
+  }
+}
+function openEventEditor(ref){
+  if(!ref) return;
+  const root = document.getElementById('view-agenda');
+  let cur;
+  if(ref.kind === 'user'){
+    const ev = userEvents.find(e => e.id === ref.id);
+    if(!ev) return;
+    cur = { d: ev.d, t: ev.t || '', ti: ev.ti, w: ev.w || '' };
+  } else {
+    cur = { d: ref.cur.d, t: ref.cur.t || '', ti: ref.cur.ti, w: ref.cur.w || '' };
+  }
+  const bg = document.createElement('div');
+  bg.className = 'agmodal-bg';
+  bg.innerHTML = '<div class="agmodal"><h3>Editar</h3>'
+    + '<label>Título<input type="text" class="agm-ti"></label>'
+    + '<label>Horário<input type="time" class="agm-t"></label>'
+    + '<label>Dia<input type="date" class="agm-d"></label>'
+    + '<label>Local / observação<input type="text" class="agm-w"></label>'
+    + '<div class="agm-hint">' + (ref.kind === 'user' ? 'Vale pra este item.' : 'Vale só pra este dia — o resto da rotina não muda.') + '</div>'
+    + '<div class="agm-btns"><button type="button" class="agm-save">Salvar</button>'
+    + (ref.kind === 'base' && ref.overridden ? '<button type="button" class="agm-restore">Restaurar original</button>' : '')
+    + '<button type="button" class="agm-del">Excluir</button><button type="button" class="agm-cancel">Cancelar</button></div></div>';
+  root.appendChild(bg);
+  const q = c => bg.querySelector(c);
+  q('.agm-ti').value = cur.ti; q('.agm-t').value = cur.t; q('.agm-d').value = cur.d; q('.agm-w').value = cur.w;
+  const close = () => bg.remove();
+  bg.addEventListener('click', e => { if(e.target === bg) close(); });
+  q('.agm-cancel').addEventListener('click', close);
+  q('.agm-save').addEventListener('click', () => {
+    const ti = q('.agm-ti').value.trim(), t = q('.agm-t').value, d = q('.agm-d').value || cur.d, w = q('.agm-w').value.trim();
+    if(!ti){ alert('O título não pode ficar vazio.'); return; }
+    if(ref.kind === 'user'){
+      const ev = userEvents.find(e => e.id === ref.id);
+      ev.ti = ti; ev.t = t; ev.d = d; if(w) ev.w = w; else delete ev.w;
+      saveUserEvents();
+    } else {
+      upsertOverride(ref.key, ref.d0, { t, ti, w, c: ref.cur.c, d2: d !== ref.d0 ? d : undefined });
+    }
+    close(); refreshAgenda();
+  });
+  q('.agm-del').addEventListener('click', () => { close(); quickDeleteEvent(ref); });
+  const rb = q('.agm-restore');
+  if(rb) rb.addEventListener('click', () => { removeOverride(ref.key, ref.d0); close(); refreshAgenda(); });
+  q('.agm-ti').focus();
+}
+
 function renderDays(){
   const endDate = new Date(today); endDate.setDate(endDate.getDate()+29);
   document.getElementById("rangeLabel").textContent =
     `${today.getDate()} de ${monthNames[today.getMonth()]} — ${endDate.getDate()} de ${monthNames[endDate.getMonth()]} de ${endDate.getFullYear()}`;
 
-  const allEvents = academicEvents.concat(userEvents);
+  const allEvents = effectiveAcademic().concat(userEvents);
+  const entryRefs = [];
   const _now = new Date();
   const nowVal = _now.getHours() * 100 + _now.getMinutes(); // pra comparar com timeVal("HH:MM")
   const daysContainer = document.getElementById("days");
@@ -3773,23 +3886,19 @@ function renderDays(){
     const isTomorrow = i===1;
 
     const ovr = activeOverrideFor(dateStr);
-    const routine = [
-      {t:(ovr && ovr.manha) || "07:00",ti:"Café da manhã" + (ovr && ovr.manha ? " ✳️" : ""),c:"rotina"},
-      {t:(ovr && ovr.almoco) || "13:00",ti:"Almoço" + (ovr && ovr.almoco ? " ✳️" : ""),c:"rotina"},
-      {t:(ovr && ovr.tarde) || "17:00",ti:"Café da tarde" + (ovr && ovr.tarde ? " ✳️" : ""),c:"rotina"},
-      {t:(ovr && ovr.jantar) || "21:00",ti:"Jantar" + (ovr && ovr.jantar ? " ✳️" : ""),c:"rotina"},
+    const routineRaw = [
+      {k:'r:cafe',t:(ovr && ovr.manha) || "07:00",ti:"Café da manhã" + (ovr && ovr.manha ? " ✳️" : ""),c:"rotina"},
+      {k:'r:almoco',t:(ovr && ovr.almoco) || "13:00",ti:"Almoço" + (ovr && ovr.almoco ? " ✳️" : ""),c:"rotina"},
+      {k:'r:tarde',t:(ovr && ovr.tarde) || "17:00",ti:"Café da tarde" + (ovr && ovr.tarde ? " ✳️" : ""),c:"rotina"},
+      {k:'r:jantar',t:(ovr && ovr.jantar) || "21:00",ti:"Jantar" + (ovr && ovr.jantar ? " ✳️" : ""),c:"rotina"},
     ];
 
     const diffDays = Math.round((d - haircutAnchor) / 86400000);
     if(diffDays>=0 && diffDays%14===0){
-      routine.push({t:"11:00",ti:"Cortar o cabelo ✂️",c:"pessoal"});
-    }
-    if(d.getDay()===0){
-      routine.push({t:"09:00",ti:"Futebol — jogar ⚽",c:"pessoal"});
-      routine.push({t:"11:00",ti:"Cozinhar 🍳",c:"pessoal"});
+      routineRaw.push({k:'r:cabelo',t:"11:00",ti:"Cortar o cabelo ✂️",c:"pessoal"});
     }
     if(d.getDay()===2){
-      routine.push({t:"14:00",ti:"Psicólogo",c:"pessoal"});
+      routineRaw.push({k:'r:psicologo',t:"14:00",ti:"Psicólogo",c:"pessoal"});
     }
 
     // compromissos recorrentes do usuário (chave agenda_recurring)
@@ -3802,7 +3911,14 @@ function renderDays(){
         const dd = Math.round((d - an) / 86400000);
         hit = dd >= 0 && dd % Number(rc.everyN) === 0;
       }
-      if(hit) routine.push({ t: rc.t || "", ti: rc.ti, c: rc.c || "pessoal" });
+      if(hit) routineRaw.push({ k: 'rc:' + (rc.id || (rc.ti + '@' + (rc.weekday !== undefined ? rc.weekday : rc.anchor))), t: rc.t || "", ti: rc.ti, c: rc.c || "pessoal" });
+    });
+
+    const routine = [];
+    routineRaw.forEach(it => { const r = applyDayOverride(it, it.k, dateStr); if(r) routine.push(r); });
+    eventOverrides.forEach(o => {
+      if((o.key.indexOf('r:')===0 || o.key.indexOf('rc:')===0) && !o.hide && o.d2 === dateStr && o.d !== dateStr)
+        routine.push({ t: o.t || '', ti: o.ti, w: o.w, c: o.c || 'pessoal', _base: { key: o.key, d: o.d, overridden: true } });
     });
 
     const dayEvents = allEvents.filter(e=>e.d===dateStr);
@@ -3818,8 +3934,11 @@ function renderDays(){
     html += `</div><div class="day-entries">`;
 
     all.forEach(e=>{
-      const editable = e.id !== undefined;
-      const editBtns = editable ? `<span class="entry-actions"><button class="entry-edit" data-id="${e.id}" title="editar">✎</button><button class="entry-del" data-id="${e.id}" title="excluir">✕</button></span>` : "";
+      let ref = null;
+      if(e.id !== undefined) ref = { kind:'user', id:e.id };
+      else if(e._base) ref = { kind:'base', key:e._base.key, d0:e._base.d, overridden:!!e._base.overridden, cur:{ d:dateStr, t:e.t||'', ti:e.ti, w:e.w||'', c:e.c } };
+      const refIdx = ref ? (entryRefs.push(ref) - 1) : -1;
+      const editBtns = ref ? `<span class="entry-actions"><button class="entry-edit" data-ref="${refIdx}" title="editar">✎</button><button class="entry-del" data-ref="${refIdx}" title="excluir">✕</button></span>` : "";
       const past = (isToday && e.t && timeVal(e.t) < nowVal) ? ' past' : '';
       if(e.c==="saopaulo"){
         html += `<div class="entry saopaulo${past}"><span class="time">⭐${e.t?" "+e.t:""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
@@ -3860,38 +3979,10 @@ function renderDays(){
   }
 
   daysContainer.querySelectorAll('.entry-edit').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const ev = userEvents.find(e=>e.id === btn.dataset.id);
-      if(!ev) return;
-      const novoTitulo = prompt('Editar título (deixe em branco e confirme pra EXCLUIR este item):', ev.ti);
-      if(novoTitulo === null) return;
-      if(novoTitulo.trim() === ''){
-        if(confirm('Excluir esse item?')){
-          userEvents = userEvents.filter(e=>e.id !== ev.id);
-          saveUserEvents();
-          refreshAgenda();
-        }
-        return;
-      }
-      const novoHorario = prompt('Editar horário (HH:MM, deixe em branco pra tirar o horário):', ev.t || '');
-      if(novoHorario === null) return;
-      ev.ti = novoTitulo.trim();
-      ev.t = novoHorario.trim();
-      saveUserEvents();
-      refreshAgenda();
-    });
+    btn.addEventListener('click', ()=> openEventEditor(entryRefs[Number(btn.dataset.ref)]));
   });
-
   daysContainer.querySelectorAll('.entry-del').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const ev = userEvents.find(e=>e.id === btn.dataset.id);
-      if(!ev) return;
-      if(confirm('Excluir "'+ev.ti+'"? (some da Mensal e do Cuadrimestre)')){
-        userEvents = userEvents.filter(e=>e.id !== ev.id);
-        saveUserEvents();
-        refreshAgenda();
-      }
-    });
+    btn.addEventListener('click', ()=> quickDeleteEvent(entryRefs[Number(btn.dataset.ref)]));
   });
 
   daysContainer.querySelectorAll('.day-add').forEach(btn=>{

@@ -492,6 +492,13 @@
   padding:10px 20px; cursor:pointer; box-shadow:0 4px 14px rgba(122,31,44,.22);
 }
 #view-agenda .agenda-edit-fab.active{background:#7a1f2c; color:#fff;}
+#view-agenda .agenda-gym-fab{
+  position:fixed; bottom:122px; right:18px; z-index:150;
+  background:#fff; color:#7a1f2c; border:2px solid #7a1f2c; border-radius:24px;
+  font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; font-weight:700;
+  padding:10px 20px; cursor:pointer; box-shadow:0 4px 14px rgba(122,31,44,.22);
+}
+#view-agenda .agenda-gym-fab:hover{background:#f7ecee;}
 #view-agenda .agenda-drawer-backdrop{
   position:fixed; inset:0; background:rgba(20,24,30,.34); z-index:199; display:none;
 }
@@ -1895,6 +1902,7 @@ async function storageGetWithRetry(key){
   </div>
 </div>
 
+<button id="agendaGymFab" class="agenda-gym-fab" aria-label="Adicionar academia na agenda">🏋️ Academia</button>
 <button id="agendaEditFab" class="agenda-edit-fab" aria-label="Ligar ou desligar o modo editar">✎ Editar</button>
 <button id="agendaAddBtn" class="agenda-add-fab" aria-label="Adicionar ou editar">☰ Adicionar</button>
 <div id="agendaDrawerBackdrop" class="agenda-drawer-backdrop"></div>
@@ -3555,6 +3563,52 @@ function setupCronoEditToggle(){
   if(fab) fab.addEventListener('click', toggle);
 }
 
+function setupGymFab(){
+  const fab = document.getElementById('agendaGymFab');
+  if(!fab) return;
+  const LAST_KEY = 'agenda_gym_last_time';
+  fab.addEventListener('click', async ()=>{
+    const root = document.getElementById('view-agenda');
+    let lastT = '17:30';
+    try { lastT = localStorage.getItem(LAST_KEY) || lastT; } catch(e){}
+    const bg = document.createElement('div');
+    bg.className = 'agmodal-bg';
+    bg.innerHTML = '<div class="agmodal"><h3>🏋️ Academia</h3>'
+      + '<label>Dia<input type="date" class="agm-d"></label>'
+      + '<label>Horário<input type="time" class="agm-t"></label>'
+      + '<label>Título<input type="text" class="agm-ti"></label>'
+      + '<div class="agm-btns"><button type="button" class="agm-save">Adicionar</button><button type="button" class="agm-cancel">Cancelar</button></div></div>';
+    root.appendChild(bg);
+    const q = c => bg.querySelector(c);
+    q('.agm-d').value = fmt(today);
+    q('.agm-t').value = lastT;
+    const close = () => bg.remove();
+    // sugere o foco do treino do dia (do plano do Treino), se existir
+    let plan = null;
+    try { const r = await storageGetWithRetry('treino_plan'); plan = (r && r.value) ? JSON.parse(r.value) : null; } catch(e){}
+    const titleFor = ds => {
+      const wd = new Date(ds + 'T00:00:00').getDay();
+      const day = plan && plan.days ? plan.days.find(x => Number(x.weekday) === wd) : null;
+      return 'Academia 🏋️' + (day && day.focus ? ' — ' + day.focus : '');
+    };
+    q('.agm-ti').value = titleFor(q('.agm-d').value);
+    let tocouTitulo = false;
+    q('.agm-ti').addEventListener('input', () => { tocouTitulo = true; });
+    q('.agm-d').addEventListener('change', () => { if(!tocouTitulo && q('.agm-d').value) q('.agm-ti').value = titleFor(q('.agm-d').value); });
+    bg.addEventListener('click', e => { if(e.target === bg) close(); });
+    q('.agm-cancel').addEventListener('click', close);
+    q('.agm-save').addEventListener('click', () => {
+      const d = q('.agm-d').value, t = q('.agm-t').value, ti = q('.agm-ti').value.trim();
+      if(!d || !ti){ alert('Escolhe o dia e confere o título.'); return; }
+      userEvents.push({ id: uid(), d, t, ti, c: 'pessoal' });
+      saveUserEvents();
+      try { if(t) localStorage.setItem(LAST_KEY, t); } catch(e){}
+      close(); refreshAgenda();
+    });
+    q('.agm-save').focus();
+  });
+}
+
 function setupAgendaToggle(){
   const btns = document.querySelectorAll('#view-agenda .agenda-toggle-btn');
   btns.forEach(btn=>{
@@ -4065,6 +4119,7 @@ loadAll().then(()=>{
   setupRecurringForm();
   renderRecurringList();
   setupCronoEditToggle();
+  setupGymFab();
   renderDays();
 
   // pendências agora vivem só na aba lateral global; a Agenda só precisa manter

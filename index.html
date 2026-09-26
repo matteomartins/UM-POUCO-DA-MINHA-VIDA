@@ -3808,7 +3808,7 @@ function renderCuadri(){
     for(let day=1; day<=daysInMonth; day++){
       const dateStr = `${year}-${cuadriPad(monthIdx+1)}-${cuadriPad(day)}`;
       const isToday = dateStr===cuadriTodayStr;
-      const dayEvents = cuadriEvents.concat(userEvents.filter(e=>e.scope!=='mensal')).filter(e=>e.d===dateStr);
+      const dayEvents = cuadriEvents.concat(userEvents.filter(e=>e.scope==='cuadri' || (e.scope!=='mensal' && !['pessoal','evento','rotina','saopaulo'].includes(e.c)))).filter(e=>e.d===dateStr);
       html += `<div class="cell${isToday?' today':''}"><div class="daynum">${day}</div>`;
       dayEvents.forEach(e=>{
         const isUser = e.id !== undefined;
@@ -3892,7 +3892,7 @@ function setupCuadriAdd(){
     const d = dateEl.value;
     const ti = titleEl.value.trim();
     if(!d || !ti) return;
-    userEvents.push({ id:uid(), d, t:timeEl.value||"", ti, c:'pessoal' });
+    userEvents.push({ id:uid(), d, t:timeEl.value||"", ti, c:'pessoal', scope:'cuadri' });
     titleEl.value = ''; timeEl.value = '';
     saveUserEvents();
     refreshAgenda();

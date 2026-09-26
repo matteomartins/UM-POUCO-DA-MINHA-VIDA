@@ -215,10 +215,13 @@
   #view-agenda .wrap {max-width:1080px;margin:0 auto;}
   #view-agenda header {margin-bottom:24px;padding-bottom:14px;text-align:center;}
   #view-agenda h1 {margin:0 0 16px;font-size:28px;font-weight:700;letter-spacing:-.01em;}
-  #view-agenda .mensal-subheader{text-align:center;margin-bottom:28px;max-width:640px;margin-left:auto;margin-right:auto;}
+  #view-agenda .mensal-subheader{text-align:center;margin-bottom:28px;max-width:1000px;margin-left:auto;margin-right:auto;}
   #view-agenda .range {font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--muted);margin-bottom:12px;}
-  #view-agenda .legend {display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;}
-  #view-agenda .legend span {display:inline-flex;align-items:center;gap:6px;color:var(--muted);}
+  #view-agenda .legend {display:flex;gap:12px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;}
+  #view-agenda .legend::-webkit-scrollbar {display:none;}
+  #view-agenda .legend > span:first-child {margin-left:auto;}
+  #view-agenda .legend > span:last-child {margin-right:auto;}
+  #view-agenda .legend span {display:inline-flex;align-items:center;gap:6px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
   #view-agenda .dot {width:9px;height:9px;border-radius:2px;display:inline-block;}
 
   #view-agenda .pend-box {

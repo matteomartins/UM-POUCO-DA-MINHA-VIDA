@@ -113,10 +113,10 @@
 
   /* ---------- Pendências: aba lateral + painel global ---------- */
   #pendTab{
-    position:fixed; left:0; top:45%; transform:translateY(-50%); z-index:120;
+    position:fixed; right:0; left:auto; top:64%; transform:translateY(-50%); z-index:120;
     background:#7a1f2c; color:#fff; border:none; cursor:pointer;
-    border-radius:0 13px 13px 0; padding:14px 6px 12px; display:flex; flex-direction:column;
-    align-items:center; gap:9px; box-shadow:2px 3px 12px rgba(0,0,0,.22);
+    border-radius:13px 0 0 13px; padding:14px 6px 12px; display:flex; flex-direction:column;
+    align-items:center; gap:9px; box-shadow:-2px 3px 12px rgba(0,0,0,.22);
   }
   #pendTab[hidden]{ display:none; }
   #pendTab .pend-tab-label{ writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg);
@@ -127,12 +127,12 @@
   #pendPanelBackdrop{ position:fixed; inset:0; background:rgba(0,0,0,.38); z-index:130; }
   #pendPanelBackdrop[hidden]{ display:none; }
   #pendPanel{
-    position:fixed; left:0; top:0; bottom:0; width:min(360px,87vw); z-index:140;
-    background:#faf7f5; box-shadow:4px 0 24px rgba(0,0,0,.28); display:flex; flex-direction:column;
+    position:fixed; right:0; left:auto; top:0; bottom:0; width:min(360px,87vw); z-index:140;
+    background:#faf7f5; box-shadow:-4px 0 24px rgba(0,0,0,.28); display:flex; flex-direction:column;
     font-family:'Helvetica Neue',Arial,sans-serif; animation:pendSlideIn .18s ease;
   }
   #pendPanel[hidden]{ display:none; }
-  @keyframes pendSlideIn{ from{ transform:translateX(-100%); } to{ transform:translateX(0); } }
+  @keyframes pendSlideIn{ from{ transform:translateX(100%); } to{ transform:translateX(0); } }
   #pendPanel .pend-panel-head{ display:flex; align-items:center; justify-content:space-between;
     padding:18px 18px 13px; font-size:19px; font-weight:800; color:#7a1f2c; border-bottom:1px solid #ece2de; }
   #pendPanel .pend-panel-head button{ background:none; border:none; font-size:18px; cursor:pointer; color:#8a7f78; }
@@ -159,7 +159,7 @@
   #pendPanel .pend-row-acts button:hover{ color:#7a1f2c; }
   #pendPanel .pend-panel-foot{ padding:12px 18px; font-size:11px; color:#8a7f78; border-top:1px solid #ece2de; line-height:1.5; }
   #pendPanel .pend-panel-empty{ font-size:12.5px; color:#8a7f78; padding:20px 4px; }
-  @media(max-width:640px){ #pendTab{ top:66px; bottom:auto; transform:none; padding:10px 6px 9px; } }
+  @media(max-width:640px){ #pendTab{ top:212px; bottom:auto; transform:none; padding:10px 6px 9px; } }
 
   #pendSchedBox{ position:fixed; inset:0; z-index:150; background:rgba(0,0,0,.45);
     display:flex; align-items:center; justify-content:center; padding:20px; font-family:'Helvetica Neue',Arial,sans-serif; }
@@ -404,21 +404,30 @@
     font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;color:var(--muted);line-height:1.6;
   }
 
-  #view-agenda .layout {display:flex;gap:24px;align-items:flex-start;max-width:760px;margin:0 auto;}
+  #view-agenda .layout {display:flex;gap:24px;align-items:flex-start;max-width:1080px;margin:0 auto;}
   #view-agenda .sidebar {
     width:300px;flex-shrink:0;
     position:sticky;top:20px;
     max-height:calc(100vh - 40px);overflow-y:auto;
     padding-right:2px;
   }
-  #view-agenda .main-col {flex:1;min-width:0;}
+  #view-agenda .main-col {flex:1;min-width:0;max-width:760px;}
+  #view-agenda .agenda-left {width:290px;flex-shrink:0;position:sticky;top:20px;max-height:calc(100vh - 40px);overflow-y:auto;}
+  #view-agenda .agenda-left:empty {display:none;}
+  #view-agenda .agenda-left .agenda-upcoming {max-width:none;margin:0;}
+  #view-agenda .agenda-upcoming summary {cursor:pointer;list-style:none;margin-bottom:0;}
+  #view-agenda .agenda-upcoming summary::-webkit-details-marker {display:none;}
+  #view-agenda .agenda-upcoming summary::before {content:'▸ ';}
+  #view-agenda .agenda-upcoming[open] summary {margin-bottom:8px;}
+  #view-agenda .agenda-upcoming[open] summary::before {content:'▾ ';}
 
   #view-agenda .pend-mobile-toggle{display:none;}
   #view-agenda .agenda-drawer-close-m{display:none;}
 
   @media(max-width:800px){
     #view-agenda .layout {display:block;}
-    #view-agenda .main-col {min-width:0;}
+    #view-agenda .main-col {min-width:0;max-width:none;}
+    #view-agenda .agenda-left {width:auto;position:static;max-height:none;overflow:visible;margin-bottom:14px;}
     #view-agenda .pend-mobile-toggle{
       display:block;width:100%;margin-bottom:16px;padding:14px;
       background:var(--ink);color:#fff;border:none;border-radius:12px;
@@ -482,7 +491,7 @@
 
 /* Gaveta de adicionar/editar */
 #view-agenda .agenda-dock{
-  position:fixed; right:0; top:45%; transform:translateY(-50%); z-index:150;
+  position:fixed; right:0; top:34%; transform:translateY(-50%); z-index:150;
   background:#7a1f2c; border-radius:13px 0 0 13px; box-shadow:-2px 3px 12px rgba(0,0,0,.22);
   display:flex; flex-direction:column; overflow:hidden;
 }
@@ -1894,6 +1903,7 @@ async function storageGetWithRetry(key){
 </div>
 
 <div class="layout" id="agendaLayout">
+  <aside class="agenda-left" id="agendaLeft"></aside>
   <main class="main-col">
     <div id="days"></div>
   </main>
@@ -4054,6 +4064,8 @@ function renderDays(){
   {
     const oldUp = document.getElementById('agendaUpcomingBox');
     if(oldUp) oldUp.remove();
+    const leftEl0 = document.getElementById('agendaLeft');
+    if(leftEl0) leftEl0.innerHTML = '';
     const t0 = new Date(today); t0.setHours(0,0,0,0);
     // eventos pontuais das DUAS listas (academicEvents fixos + userEvents): provas, consultas/turnos,
     // shows, jogos e o que o usuário adicionou. Fora: aula normal, rotina, inscrições/asignaciones.
@@ -4074,7 +4086,7 @@ function renderDays(){
       .sort((a,b)=> a.d.localeCompare(b.d) || (a.t||'').localeCompare(b.t||''))
       .slice(0,8);
     if(upcoming.length){
-      let up = `<div class="agenda-upcoming" id="agendaUpcomingBox"><div class="au-title">📌 Chegando — provas, consultas, jogos e o que você marcou</div><ul>`;
+      let up = `<details class="agenda-upcoming" id="agendaUpcomingBox"${window.innerWidth > 800 ? ' open' : ''}><summary class="au-title">📌 Chegando — provas, consultas, jogos e o que você marcou</summary><ul>`;
       upcoming.forEach(e=>{
         const ed = new Date(e.d+'T00:00:00');
         const diff = Math.round((ed - t0) / 86400000);
@@ -4083,8 +4095,9 @@ function renderDays(){
         const dateTxt = `${ed.getDate()} ${monthNames[ed.getMonth()]}${e.t?` · ${e.t}`:''}`;
         up += `<li class="${soon?'soon':''}"><span class="au-when">${soon&&diff<=1?'❗ ':''}${when}</span><span class="au-text">${e.ti} <span class="au-date">(${dateTxt})</span></span></li>`;
       });
-      up += `</ul></div>`;
-      daysContainer.insertAdjacentHTML('beforebegin', up);
+      up += `</ul></details>`;
+      const leftEl = document.getElementById('agendaLeft');
+      if(leftEl) leftEl.innerHTML = up; else daysContainer.insertAdjacentHTML('beforebegin', up);
     }
   }
 

@@ -1107,6 +1107,30 @@
   #view-dieta .btn.secondary:hover { background: #E6E4D9; }
   #view-dieta .icon-btn { background: none; border: none; color: #B3B1A6; cursor: pointer; padding: 4px; font-size: 14px; }
   #view-dieta .icon-btn:disabled { opacity: .3; cursor: default; }
+  #view-dieta .meals-nav { border:1px solid #d9d6cc; background:#fff; color:#1E5631; border-radius:6px; width:26px; height:24px; font-size:16px; font-weight:800; line-height:1; cursor:pointer; padding:0; }
+  #view-dieta .meals-nav:disabled { opacity:.3; cursor:default; }
+  #view-dieta .rep-btn { padding:4px 10px; border-radius:8px; border:1px solid #cfe0d4; background:#f2f8f4; color:#1E5631; font-size:11.5px; font-weight:800; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  #view-dieta .rep-empty { font-size:11.5px; color:#ABA9A0; font-style:italic; padding:2px 0 4px; }
+  #view-dieta .rep-bg { position:fixed; inset:0; background:rgba(20,30,24,.45); z-index:9999; display:flex; align-items:center; justify-content:center; padding:14px; }
+  #view-dieta .rep-modal { background:#fff; border-radius:14px; padding:16px 16px 14px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; box-shadow:0 10px 40px rgba(0,0,0,.28); font-family:'Helvetica Neue',Arial,sans-serif; }
+  #view-dieta .rep-modal h3 { margin:0 0 2px; font-size:16px; color:#1E5631; }
+  #view-dieta .rep-sub { font-size:12px; color:#6f7267; margin-bottom:10px; }
+  #view-dieta .rep-src { display:flex; align-items:center; gap:6px; font-size:12px; color:#4A4D45; }
+  #view-dieta .rep-src input[type=date] { padding:5px 7px; font-size:13px; border:1px solid #d9d6cc; border-radius:8px; }
+  #view-dieta .rep-nav { width:32px; height:32px; border-radius:8px; border:1px solid #d9d6cc; background:#fff; font-size:18px; font-weight:800; color:#1E5631; cursor:pointer; line-height:1; padding:0; }
+  #view-dieta .rep-nav:disabled { opacity:.3; cursor:default; }
+  #view-dieta .rep-rel { font-size:11.5px; color:#86897F; margin:4px 0 8px; }
+  #view-dieta .rep-list { display:flex; flex-direction:column; gap:2px; border-top:1px solid #eee; }
+  #view-dieta .rep-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #f1efe8; font-size:12.5px; }
+  #view-dieta .rep-row .rep-name { flex:1; min-width:0; line-height:1.3; }
+  #view-dieta .rep-row .rep-g { color:#86897F; white-space:nowrap; font-size:11.5px; }
+  #view-dieta .rep-row .rep-new { width:70px; padding:5px 6px; border:1px solid #d9d6cc; border-radius:8px; font-size:13px; text-align:right; }
+  #view-dieta .rep-none { padding:14px 4px; font-size:12.5px; color:#86897F; }
+  #view-dieta .rep-hint { font-size:11px; color:#9A9C90; margin-top:10px; line-height:1.5; }
+  #view-dieta .rep-btns { display:flex; gap:8px; margin-top:12px; }
+  #view-dieta .rep-btns button { flex:1; padding:10px 12px; border-radius:10px; border:1px solid #d9d6cc; background:#fff; font-size:13px; font-weight:800; cursor:pointer; font-family:inherit; }
+  #view-dieta .rep-btns .rep-go { background:#2F7D4F; border-color:#2F7D4F; color:#fff; }
+  #view-dieta .rep-btns .rep-go:disabled { opacity:.4; cursor:default; }
   #view-dieta .icon-btn:hover { color: #C4573F; }
   #view-dieta [data-del-entry], #view-dieta [data-del-food] {display:none;}
   #view-dieta .card.edit-mode [data-del-entry], #view-dieta .card.edit-mode [data-del-food] {display:inline-block;}
@@ -5421,22 +5445,100 @@ function dietTotals() {
   }), { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 });
 }
 
+// ---- Repetir uma refeição de outro dia ----
+function openRepeatModal(mealKey) {
+  const label = (MEAL_TYPES.find(([k]) => k === mealKey) || [])[1] || mealKey;
+  const target = ui.dietDate;
+  const itemsOf = d => DB.dietLog.filter(e => e.date === d && e.mealType === mealKey);
+  let src = shiftDate(target, -1);
+  for (let i = 1; i <= 14; i++) {
+    const d = shiftDate(target, -i);
+    if (d < METAS_START) break;
+    if (itemsOf(d).length) { src = d; break; }
+  }
+  if (src < METAS_START) src = METAS_START;
+  const root = document.getElementById('view-dieta');
+  const bg = document.createElement('div');
+  bg.className = 'rep-bg';
+  root.appendChild(bg);
+  const close = () => bg.remove();
+  function rel(d) {
+    const diff = Math.round((new Date(target + 'T00:00:00') - new Date(d + 'T00:00:00')) / 86400000);
+    return diff === 1 ? 'dia anterior' : diff === -1 ? 'dia seguinte' : diff > 1 ? diff + ' dias antes' : Math.abs(diff) + ' dias depois';
+  }
+  function draw() {
+    const items = itemsOf(src);
+    const already = itemsOf(target).length;
+    bg.innerHTML = `<div class="rep-modal">
+      <h3>↻ Repetir ${esc(label)}</h3>
+      <div class="rep-sub">para <b>${esc(fmtDateLabel(target))}</b>${already ? ` · já tem ${already} item(ns) aí, os novos são somados` : ''}</div>
+      <div class="rep-src">
+        <span>Copiar de:</span>
+        <button type="button" class="rep-nav" id="repPrev"${src <= METAS_START ? ' disabled' : ''}>‹</button>
+        <input type="date" id="repDate" value="${src}" min="${METAS_START}" max="${todayStr()}">
+        <button type="button" class="rep-nav" id="repNext"${src >= todayStr() ? ' disabled' : ''}>›</button>
+      </div>
+      <div class="rep-rel">${esc(fmtDateLabel(src))} · ${rel(src)}</div>
+      <div class="rep-list">${items.length ? items.map((e, i) => `<label class="rep-row">
+          <input type="checkbox" data-i="${i}" checked>
+          <span class="rep-name">${esc(e.name)}</span>
+          <span class="rep-g">${e.grams} g</span>
+          <input type="number" class="rep-new" data-i="${i}" min="0" step="any" inputmode="decimal" placeholder="${e.grams}" title="gramas dessa vez (vazio = igual)">
+        </label>`).join('') : '<div class="rep-none">Nada registrado nessa refeição nesse dia. Use as setas ‹ › pra escolher outro dia.</div>'}</div>
+      <div class="rep-hint">Deixe o campo em branco pra repetir <b>igual</b>. Se digitar outras gramas, as calorias e os macros são recalculados.</div>
+      <div class="rep-btns"><button type="button" class="rep-go"${items.length ? '' : ' disabled'}>Repetir</button><button type="button" class="rep-cancel">Cancelar</button></div>
+    </div>`;
+    const q = s => bg.querySelector(s);
+    q('.rep-cancel').addEventListener('click', close);
+    q('#repPrev').addEventListener('click', () => { if (src > METAS_START) { src = shiftDate(src, -1); draw(); } });
+    q('#repNext').addEventListener('click', () => { if (src < todayStr()) { src = shiftDate(src, 1); draw(); } });
+    q('#repDate').addEventListener('change', e => {
+      let v = e.target.value; if (!v) return;
+      if (v < METAS_START) v = METAS_START; if (v > todayStr()) v = todayStr();
+      src = v; draw();
+    });
+    const go = q('.rep-go');
+    if (go) go.addEventListener('click', () => {
+      let n = 0;
+      bg.querySelectorAll('.rep-row').forEach((row, i) => {
+        if (!row.querySelector('input[type=checkbox]').checked) return;
+        const e = items[i];
+        const raw = row.querySelector('.rep-new').value;
+        const g = raw === '' ? Number(e.grams) : Number(raw);
+        if (!(g > 0) || !(Number(e.grams) > 0)) return;
+        const f = g / Number(e.grams);
+        DB.dietLog.push(Object.assign({}, e, {
+          id: uid(), date: target, mealType: mealKey, grams: round1(g),
+          kcal: round1(e.kcal * f), protein: round1(e.protein * f), carbs: round1(e.carbs * f),
+          fat: round1(e.fat * f), fiber: round1((e.fiber || 0) * f),
+        }));
+        n++;
+      });
+      close();
+      if (n) { persist(); renderAll(); showToast('↻ ' + n + ' item(ns) repetido(s) em ' + label); }
+    });
+  }
+  bg.addEventListener('click', e => { if (e.target === bg) close(); });
+  draw();
+}
+
 function mealsTableHtml(entries) {
-  if (!entries.length) return '<div class="empty">Nenhum alimento registrado nesse dia.</div>';
   const groups = MEAL_TYPES.map(([k, l]) => [k, l, entries.filter(e => e.mealType === k)]);
   const others = entries.filter(e => !MEAL_TYPES.some(([k]) => k === e.mealType));
   if (others.length) groups.push(['outros', '🍴 Outros / sem categoria', others]);
-  const nonEmpty = groups.filter(([, , list]) => list.length);
-  if (!nonEmpty.length) return '<div class="empty">Nenhum alimento registrado nesse dia.</div>';
-  return nonEmpty.map(([key, label, list]) => {
+  return groups.map(([key, label, list]) => {
     const subtotal = round1(list.reduce((s, e) => s + e.kcal, 0));
+    const repBtn = key === 'outros' ? '' : `<button type="button" class="rep-btn" data-repeat-meal="${key}" title="repetir essa refeição de outro dia">↻ Repetir</button>`;
     return `
       <div style="margin-bottom:16px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
           <span style="font-size:12.5px;font-weight:700;color:#1E5631">${label}</span>
-          <span class="scoreboard" style="font-size:11.5px;color:#86897F">${subtotal} kcal</span>
+          <span style="display:flex;align-items:center;gap:8px">
+            <span class="scoreboard" style="font-size:11.5px;color:#86897F">${list.length ? subtotal + ' kcal' : ''}</span>
+            ${repBtn}
+          </span>
         </div>
-        <table>
+        ${list.length ? `<table>
           <thead><tr><th>Alimento</th><th>g</th><th>Kcal</th><th>P</th><th>C</th><th>G</th><th>Fibra</th><th></th><th></th></tr></thead>
           <tbody>
             ${list.map(e => `<tr>
@@ -5447,7 +5549,7 @@ function mealsTableHtml(entries) {
               <td><button class="icon-btn" data-del-entry="${e.id}">🗑</button></td>
             </tr>`).join('')}
           </tbody>
-        </table>
+        </table>` : '<div class="rep-empty">nada registrado</div>'}
       </div>`;
   }).join('');
 }
@@ -5794,7 +5896,7 @@ function dietHtml() {
     </div>
 
     <div class="card card-meals${ui.editMeals ? ' edit-mode' : ''}">
-      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px">📋 Refeições de ${fmtDateLabel(ui.dietDate)}<button type="button" class="sec-edit-btn${ui.editMeals ? ' active' : ''}" id="editMealsBtn">${ui.editMeals ? '✓ Pronto' : '✎ Editar'}</button></div>
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="display:flex;align-items:center;gap:6px;min-width:0">📋 Refeições de ${fmtDateLabel(ui.dietDate)}<button type="button" class="meals-nav" id="mealsPrevBtn" title="dia anterior"${ui.dietDate <= METAS_START ? ' disabled' : ''}>‹</button><button type="button" class="meals-nav" id="mealsNextBtn" title="próximo dia"${ui.dietDate >= todayStr() ? ' disabled' : ''}>›</button></span><button type="button" class="sec-edit-btn${ui.editMeals ? ' active' : ''}" id="editMealsBtn">${ui.editMeals ? '✓ Pronto' : '✎ Editar'}</button></div>
       ${mealsTableHtml(entries)}
     </div>
 
@@ -6046,6 +6148,21 @@ function attachDietHandlers() {
     if (ui.dietDate > todayStr()) ui.dietDate = todayStr();
     renderAll();
   });
+  const mealsPrev = document.getElementById('mealsPrevBtn');
+  if (mealsPrev) mealsPrev.addEventListener('click', () => {
+    if (ui.dietDate <= METAS_START) return;
+    ui.dietDate = shiftDate(ui.dietDate, -1);
+    if (ui.dietDate < METAS_START) ui.dietDate = METAS_START;
+    renderAll();
+  });
+  const mealsNext = document.getElementById('mealsNextBtn');
+  if (mealsNext) mealsNext.addEventListener('click', () => {
+    if (ui.dietDate >= todayStr()) return;
+    ui.dietDate = shiftDate(ui.dietDate, 1);
+    if (ui.dietDate > todayStr()) ui.dietDate = todayStr();
+    renderAll();
+  });
+  document.querySelectorAll('[data-repeat-meal]').forEach(b => b.addEventListener('click', () => openRepeatModal(b.dataset.repeatMeal)));
 
   document.querySelectorAll('[data-water]').forEach(btn => btn.addEventListener('click', () => {
     const ml = Number(btn.dataset.water);

@@ -113,7 +113,7 @@
 
   /* ---------- Pendências: aba lateral + painel global ---------- */
   #pendTab{
-    position:fixed; right:0; left:auto; top:64%; transform:translateY(-50%); z-index:120;
+    position:fixed; right:0; left:auto; top:33%; transform:translateY(-50%); z-index:120;
     background:#7a1f2c; color:#fff; border:none; cursor:pointer;
     border-radius:13px 0 0 13px; padding:14px 6px 12px; display:flex; flex-direction:column;
     align-items:center; gap:9px; box-shadow:-2px 3px 12px rgba(0,0,0,.22);
@@ -159,7 +159,7 @@
   #pendPanel .pend-row-acts button:hover{ color:#7a1f2c; }
   #pendPanel .pend-panel-foot{ padding:12px 18px; font-size:11px; color:#8a7f78; border-top:1px solid #ece2de; line-height:1.5; }
   #pendPanel .pend-panel-empty{ font-size:12.5px; color:#8a7f78; padding:20px 4px; }
-  @media(max-width:640px){ #pendTab{ top:212px; bottom:auto; transform:none; padding:10px 6px 9px; } }
+  @media(max-width:640px){ #pendTab{ top:66px; bottom:auto; transform:none; padding:10px 6px 9px; } }
 
   #pendSchedBox{ position:fixed; inset:0; z-index:150; background:rgba(0,0,0,.45);
     display:flex; align-items:center; justify-content:center; padding:20px; font-family:'Helvetica Neue',Arial,sans-serif; }
@@ -491,7 +491,7 @@
 
 /* Gaveta de adicionar/editar */
 #view-agenda .agenda-dock{
-  position:fixed; right:0; top:34%; transform:translateY(-50%); z-index:150;
+  position:fixed; right:0; top:62%; transform:translateY(-50%); z-index:118;
   background:#7a1f2c; border-radius:13px 0 0 13px; box-shadow:-2px 3px 12px rgba(0,0,0,.22);
   display:flex; flex-direction:column; overflow:hidden;
 }
@@ -503,7 +503,7 @@
 #view-agenda .dock-btn + .dock-btn{ border-top:1px solid rgba(255,255,255,.22); }
 #view-agenda .dock-btn:hover{ background:rgba(255,255,255,.12); }
 #view-agenda .dock-btn.active{ background:#fff; color:#7a1f2c; }
-@media(max-width:640px){ #view-agenda .agenda-dock{ top:66px; transform:none; } }
+@media(max-width:640px){ #view-agenda .agenda-dock{ top:222px; transform:none; } }
 #view-agenda .agenda-drawer-backdrop{
   position:fixed; inset:0; background:rgba(20,24,30,.34); z-index:199; display:none;
 }

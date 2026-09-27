@@ -1115,8 +1115,9 @@
   #view-dieta .rep-modal { background:#fff; border-radius:14px; padding:16px 16px 14px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; box-shadow:0 10px 40px rgba(0,0,0,.28); font-family:'Helvetica Neue',Arial,sans-serif; }
   #view-dieta .rep-modal h3 { margin:0 0 2px; font-size:16px; color:#1E5631; }
   #view-dieta .rep-sub { font-size:12px; color:#6f7267; margin-bottom:10px; }
-  #view-dieta .rep-src { display:flex; align-items:center; gap:6px; font-size:12px; color:#4A4D45; }
-  #view-dieta .rep-src input[type=date] { padding:5px 7px; font-size:13px; border:1px solid #d9d6cc; border-radius:8px; }
+  #view-dieta .rep-field { display:flex; align-items:center; gap:6px; font-size:12px; color:#4A4D45; }
+  #view-dieta .rep-field span { flex-shrink:0; }
+  #view-dieta .rep-field input[type=date] { padding:5px 7px; font-size:13px; border:1px solid #d9d6cc; border-radius:8px; min-width:0; flex:1; }
   #view-dieta .rep-nav { width:32px; height:32px; border-radius:8px; border:1px solid #d9d6cc; background:#fff; font-size:18px; font-weight:800; color:#1E5631; cursor:pointer; line-height:1; padding:0; }
   #view-dieta .rep-nav:disabled { opacity:.3; cursor:default; }
   #view-dieta .rep-rel { font-size:11.5px; color:#86897F; margin:4px 0 8px; }
@@ -5448,11 +5449,11 @@ function dietTotals() {
 // ---- Repetir uma refeição de outro dia ----
 function openRepeatModal(mealKey) {
   const label = (MEAL_TYPES.find(([k]) => k === mealKey) || [])[1] || mealKey;
-  const target = ui.dietDate;
   const itemsOf = d => DB.dietLog.filter(e => e.date === d && e.mealType === mealKey);
-  let src = shiftDate(target, -1);
+  let dst = ui.dietDate; // pra ONDE copia — editável, não fica preso ao dia que você está vendo
+  let src = shiftDate(dst, -1); // de ONDE copia
   for (let i = 1; i <= 14; i++) {
-    const d = shiftDate(target, -i);
+    const d = shiftDate(dst, -i);
     if (d < METAS_START) break;
     if (itemsOf(d).length) { src = d; break; }
   }
@@ -5463,30 +5464,37 @@ function openRepeatModal(mealKey) {
   root.appendChild(bg);
   const close = () => bg.remove();
   function rel(d) {
-    const diff = Math.round((new Date(target + 'T00:00:00') - new Date(d + 'T00:00:00')) / 86400000);
-    return diff === 1 ? 'dia anterior' : diff === -1 ? 'dia seguinte' : diff > 1 ? diff + ' dias antes' : Math.abs(diff) + ' dias depois';
+    const diff = Math.round((new Date(dst + 'T00:00:00') - new Date(d + 'T00:00:00')) / 86400000);
+    return diff === 0 ? 'mesmo dia' : diff === 1 ? 'dia anterior' : diff === -1 ? 'dia seguinte' : diff > 1 ? diff + ' dias antes' : Math.abs(diff) + ' dias depois';
   }
   function draw() {
     const items = itemsOf(src);
-    const already = itemsOf(target).length;
+    const already = itemsOf(dst).length;
+    const sameDay = src === dst;
     bg.innerHTML = `<div class="rep-modal">
       <h3>↻ Repetir ${esc(label)}</h3>
-      <div class="rep-sub">para <b>${esc(fmtDateLabel(target))}</b>${already ? ` · já tem ${already} item(ns) aí, os novos são somados` : ''}</div>
-      <div class="rep-src">
-        <span>Copiar de:</span>
+      <div class="rep-field">
+        <span>De (copiar de):</span>
         <button type="button" class="rep-nav" id="repPrev"${src <= METAS_START ? ' disabled' : ''}>‹</button>
         <input type="date" id="repDate" value="${src}" min="${METAS_START}" max="${todayStr()}">
         <button type="button" class="rep-nav" id="repNext"${src >= todayStr() ? ' disabled' : ''}>›</button>
       </div>
-      <div class="rep-rel">${esc(fmtDateLabel(src))} · ${rel(src)}</div>
+      <div class="rep-rel">${esc(fmtDateLabel(src))}</div>
+      <div class="rep-field" style="margin-top:8px">
+        <span>Para (colocar em):</span>
+        <button type="button" class="rep-nav" id="dstPrev"${dst <= METAS_START ? ' disabled' : ''}>‹</button>
+        <input type="date" id="dstDate" value="${dst}" min="${METAS_START}" max="${todayStr()}">
+        <button type="button" class="rep-nav" id="dstNext"${dst >= todayStr() ? ' disabled' : ''}>›</button>
+      </div>
+      <div class="rep-rel">${esc(fmtDateLabel(dst))} · ${rel(src)}${already ? ` · já tem ${already} item(ns) aí, os novos são somados` : ''}${sameDay ? ' · <b style="color:#c0392b">mesmo dia dos dois lados — isso duplica</b>' : ''}</div>
       <div class="rep-list">${items.length ? items.map((e, i) => `<label class="rep-row">
           <input type="checkbox" data-i="${i}" checked>
           <span class="rep-name">${esc(e.name)}</span>
           <span class="rep-g">${e.grams} g</span>
           <input type="number" class="rep-new" data-i="${i}" min="0" step="any" inputmode="decimal" placeholder="${e.grams}" title="gramas dessa vez (vazio = igual)">
-        </label>`).join('') : '<div class="rep-none">Nada registrado nessa refeição nesse dia. Use as setas ‹ › pra escolher outro dia.</div>'}</div>
+        </label>`).join('') : '<div class="rep-none">Nada registrado nessa refeição nesse dia. Use as setas ‹ › do "De" pra escolher outro dia.</div>'}</div>
       <div class="rep-hint">Deixe o campo em branco pra repetir <b>igual</b>. Se digitar outras gramas, as calorias e os macros são recalculados.</div>
-      <div class="rep-btns"><button type="button" class="rep-go"${items.length ? '' : ' disabled'}>Repetir</button><button type="button" class="rep-cancel">Cancelar</button></div>
+      <div class="rep-btns"><button type="button" class="rep-go"${items.length && !sameDay ? '' : ' disabled'}>Repetir</button><button type="button" class="rep-cancel">Cancelar</button></div>
     </div>`;
     const q = s => bg.querySelector(s);
     q('.rep-cancel').addEventListener('click', close);
@@ -5496,6 +5504,13 @@ function openRepeatModal(mealKey) {
       let v = e.target.value; if (!v) return;
       if (v < METAS_START) v = METAS_START; if (v > todayStr()) v = todayStr();
       src = v; draw();
+    });
+    q('#dstPrev').addEventListener('click', () => { if (dst > METAS_START) { dst = shiftDate(dst, -1); draw(); } });
+    q('#dstNext').addEventListener('click', () => { if (dst < todayStr()) { dst = shiftDate(dst, 1); draw(); } });
+    q('#dstDate').addEventListener('change', e => {
+      let v = e.target.value; if (!v) return;
+      if (v < METAS_START) v = METAS_START; if (v > todayStr()) v = todayStr();
+      dst = v; draw();
     });
     const go = q('.rep-go');
     if (go) go.addEventListener('click', () => {
@@ -5508,14 +5523,14 @@ function openRepeatModal(mealKey) {
         if (!(g > 0) || !(Number(e.grams) > 0)) return;
         const f = g / Number(e.grams);
         DB.dietLog.push(Object.assign({}, e, {
-          id: uid(), date: target, mealType: mealKey, grams: round1(g),
+          id: uid(), date: dst, mealType: mealKey, grams: round1(g),
           kcal: round1(e.kcal * f), protein: round1(e.protein * f), carbs: round1(e.carbs * f),
           fat: round1(e.fat * f), fiber: round1((e.fiber || 0) * f),
         }));
         n++;
       });
       close();
-      if (n) { persist(); renderAll(); showToast('↻ ' + n + ' item(ns) repetido(s) em ' + label); }
+      if (n) { ui.dietDate = dst; persist(); renderAll(); showToast('↻ ' + n + ' item(ns) repetido(s) em ' + fmtDateLabel(dst)); }
     });
   }
   bg.addEventListener('click', e => { if (e.target === bg) close(); });

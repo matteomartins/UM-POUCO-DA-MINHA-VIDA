@@ -5450,14 +5450,22 @@ function dietTotals() {
 function openRepeatModal(mealKey) {
   const label = (MEAL_TYPES.find(([k]) => k === mealKey) || [])[1] || mealKey;
   const itemsOf = d => DB.dietLog.filter(e => e.date === d && e.mealType === mealKey);
-  let dst = ui.dietDate; // pra ONDE copia — editável, não fica preso ao dia que você está vendo
-  let src = shiftDate(dst, -1); // de ONDE copia
-  for (let i = 1; i <= 14; i++) {
-    const d = shiftDate(dst, -i);
-    if (d < METAS_START) break;
-    if (itemsOf(d).length) { src = d; break; }
+  let dst, src;
+  if (ui.dietDate < todayStr()) {
+    // você está vendo um dia passado: o normal é querer repetir O QUE ESTÁ VENDO pra hoje
+    src = ui.dietDate;
+    dst = todayStr();
+  } else {
+    // você está vendo hoje: busca pra trás o dia mais recente que tenha essa refeição
+    dst = ui.dietDate;
+    src = shiftDate(dst, -1);
+    for (let i = 1; i <= 14; i++) {
+      const d = shiftDate(dst, -i);
+      if (d < METAS_START) break;
+      if (itemsOf(d).length) { src = d; break; }
+    }
+    if (src < METAS_START) src = METAS_START;
   }
-  if (src < METAS_START) src = METAS_START;
   const root = document.getElementById('view-dieta');
   const bg = document.createElement('div');
   bg.className = 'rep-bg';

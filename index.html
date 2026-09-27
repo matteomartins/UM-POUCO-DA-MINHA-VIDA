@@ -1132,6 +1132,9 @@
   #view-dieta .rep-btns button { flex:1; padding:10px 12px; border-radius:10px; border:1px solid #d9d6cc; background:#fff; font-size:13px; font-weight:800; cursor:pointer; font-family:inherit; }
   #view-dieta .rep-btns .rep-go { background:#2F7D4F; border-color:#2F7D4F; color:#fff; }
   #view-dieta .rep-btns .rep-go:disabled { opacity:.4; cursor:default; }
+  #view-dieta .rep-chip { flex-shrink:0; padding:5px 10px; border-radius:8px; border:1px solid #2F7D4F; background:#fff; color:#2F7D4F; font-size:11.5px; font-weight:800; cursor:pointer; font-family:inherit; }
+  #view-dieta .rep-chip:disabled { opacity:.35; cursor:default; }
+  #view-dieta #dstMealSel { flex:1; min-width:0; padding:6px 8px; border:1px solid #d9d6cc; border-radius:8px; font-size:13px; font-family:inherit; background:#fff; }
   #view-dieta .icon-btn:hover { color: #C4573F; }
   #view-dieta [data-del-entry], #view-dieta [data-del-food] {display:none;}
   #view-dieta .card.edit-mode [data-del-entry], #view-dieta .card.edit-mode [data-del-food] {display:inline-block;}
@@ -5450,6 +5453,7 @@ function dietTotals() {
 function openRepeatModal(mealKey) {
   const label = (MEAL_TYPES.find(([k]) => k === mealKey) || [])[1] || mealKey;
   const itemsOf = d => DB.dietLog.filter(e => e.date === d && e.mealType === mealKey);
+  let dstMeal = mealKey; // refeição de destino — pode virar outro horário do dia
   let dst, src;
   if (ui.dietDate < todayStr()) {
     // você está vendo um dia passado: o normal é querer repetir O QUE ESTÁ VENDO pra hoje
@@ -5479,8 +5483,9 @@ function openRepeatModal(mealKey) {
     const items = itemsOf(src);
     const already = itemsOf(dst).length;
     const sameDay = src === dst;
+    const dstLabel = (MEAL_TYPES.find(([k]) => k === dstMeal) || [])[1] || dstMeal;
     bg.innerHTML = `<div class="rep-modal">
-      <h3>↻ Repetir ${esc(label)}</h3>
+      <h3>↻ Repetir ${esc(label)}${dstMeal !== mealKey ? ' → ' + esc(dstLabel) : ''}</h3>
       <div class="rep-field">
         <span>De (copiar de):</span>
         <button type="button" class="rep-nav" id="repPrev"${src <= METAS_START ? ' disabled' : ''}>‹</button>
@@ -5493,8 +5498,13 @@ function openRepeatModal(mealKey) {
         <button type="button" class="rep-nav" id="dstPrev"${dst <= METAS_START ? ' disabled' : ''}>‹</button>
         <input type="date" id="dstDate" value="${dst}" min="${METAS_START}" max="${todayStr()}">
         <button type="button" class="rep-nav" id="dstNext"${dst >= todayStr() ? ' disabled' : ''}>›</button>
+        <button type="button" class="rep-chip"${dst === todayStr() ? ' disabled' : ''} id="dstHojeBtn">Hoje</button>
       </div>
-      <div class="rep-rel">${esc(fmtDateLabel(dst))} · ${rel(src)}${already ? ` · já tem ${already} item(ns) aí, os novos são somados` : ''}${sameDay ? ' · <b style="color:#c0392b">mesmo dia dos dois lados — isso duplica</b>' : ''}</div>
+      <div class="rep-field" style="margin-top:6px">
+        <span>Em que refeição:</span>
+        <select id="dstMealSel">${MEAL_TYPES.map(([k, l]) => `<option value="${k}"${k === dstMeal ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      </div>
+      <div class="rep-rel">${esc(fmtDateLabel(dst))} · ${rel(src)}${already ? ` · já tem ${already} item(ns) aí, os novos são somados` : ''}${sameDay && dstMeal === mealKey ? ' · <b style="color:#c0392b">mesmo dia e mesma refeição dos dois lados — isso duplica</b>' : ''}</div>
       <div class="rep-list">${items.length ? items.map((e, i) => `<label class="rep-row">
           <input type="checkbox" data-i="${i}" checked>
           <span class="rep-name">${esc(e.name)}</span>
@@ -5502,7 +5512,7 @@ function openRepeatModal(mealKey) {
           <input type="number" class="rep-new" data-i="${i}" min="0" step="any" inputmode="decimal" placeholder="${e.grams}" title="gramas dessa vez (vazio = igual)">
         </label>`).join('') : '<div class="rep-none">Nada registrado nessa refeição nesse dia. Use as setas ‹ › do "De" pra escolher outro dia.</div>'}</div>
       <div class="rep-hint">Deixe o campo em branco pra repetir <b>igual</b>. Se digitar outras gramas, as calorias e os macros são recalculados.</div>
-      <div class="rep-btns"><button type="button" class="rep-go"${items.length && !sameDay ? '' : ' disabled'}>Repetir</button><button type="button" class="rep-cancel">Cancelar</button></div>
+      <div class="rep-btns"><button type="button" class="rep-go"${items.length && !(sameDay && dstMeal === mealKey) ? '' : ' disabled'}>Repetir</button><button type="button" class="rep-cancel">Cancelar</button></div>
     </div>`;
     const q = s => bg.querySelector(s);
     q('.rep-cancel').addEventListener('click', close);
@@ -5520,6 +5530,9 @@ function openRepeatModal(mealKey) {
       if (v < METAS_START) v = METAS_START; if (v > todayStr()) v = todayStr();
       dst = v; draw();
     });
+    const dstHoje = q('#dstHojeBtn');
+    if (dstHoje) dstHoje.addEventListener('click', () => { dst = todayStr(); draw(); });
+    q('#dstMealSel').addEventListener('change', e => { dstMeal = e.target.value; draw(); });
     const go = q('.rep-go');
     if (go) go.addEventListener('click', () => {
       let n = 0;
@@ -5531,14 +5544,15 @@ function openRepeatModal(mealKey) {
         if (!(g > 0) || !(Number(e.grams) > 0)) return;
         const f = g / Number(e.grams);
         DB.dietLog.push(Object.assign({}, e, {
-          id: uid(), date: dst, mealType: mealKey, grams: round1(g),
+          id: uid(), date: dst, mealType: dstMeal, grams: round1(g),
           kcal: round1(e.kcal * f), protein: round1(e.protein * f), carbs: round1(e.carbs * f),
           fat: round1(e.fat * f), fiber: round1((e.fiber || 0) * f),
         }));
         n++;
       });
       close();
-      if (n) { ui.dietDate = dst; persist(); renderAll(); showToast('↻ ' + n + ' item(ns) repetido(s) em ' + fmtDateLabel(dst)); }
+      const dstLabelFinal = (MEAL_TYPES.find(([k]) => k === dstMeal) || [])[1] || dstMeal;
+      if (n) { ui.dietDate = dst; persist(); renderAll(); showToast('↻ ' + n + ' item(ns) repetido(s) em ' + fmtDateLabel(dst) + ' · ' + dstLabelFinal); }
     });
   }
   bg.addEventListener('click', e => { if (e.target === bg) close(); });

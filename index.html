@@ -5710,7 +5710,9 @@ function metaRowHtml(h) {
   const isCount = h.type === 'count';
   const v = habitVal(d, h.id);
   const done = habitDone(d, h.id, h);
-  const s = habitStats(h, d);
+  // se é hoje e ainda não marcou, mostra a sequência de ontem (ainda viva) em vez de zerar o foguinho —
+  // o dia só "quebra" de verdade se passar sem marcar; marcar hoje estende a partir daí normalmente.
+  const s = habitStats(h, (!done && d === todayStr()) ? shiftDate(d, -1) : d);
   const tgt = Number(h.target) || 0;
   const tier = fireTier(s.streak);
   const flame = tier >= 3 ? '🔥🔥🔥' : tier >= 2 ? '🔥🔥' : '🔥';
@@ -7904,7 +7906,9 @@ function metaRowHtml(h) {
   const isCount = h.type === 'count';
   const v = habitVal(d, h.id);
   const done = habitDone(d, h.id, h);
-  const s = habitStats(h, d);
+  // se é hoje e ainda não marcou, mostra a sequência de ontem (ainda viva) em vez de zerar o foguinho —
+  // o dia só "quebra" de verdade se passar sem marcar; marcar hoje estende a partir daí normalmente.
+  const s = habitStats(h, (!done && d === todayStr()) ? shiftDate(d, -1) : d);
   const tgt = Number(h.target) || 0;
   const tier = fireTier(s.streak);
   const flame = tier >= 3 ? '🔥🔥🔥' : tier >= 2 ? '🔥🔥' : '🔥';

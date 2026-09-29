@@ -1107,6 +1107,9 @@
   #view-dieta .btn.secondary:hover { background: #E6E4D9; }
   #view-dieta .icon-btn { background: none; border: none; color: #B3B1A6; cursor: pointer; padding: 4px; font-size: 14px; }
   #view-dieta .icon-btn:disabled { opacity: .3; cursor: default; }
+  #view-dieta .gram-edit-btn { background:none; border:1px dashed #cfcabf; border-radius:6px; padding:2px 6px; font-size:12px; font-family:inherit; color:#4A4D45; cursor:pointer; white-space:nowrap; }
+  #view-dieta .gram-edit-btn:hover { border-color:#2F7D4F; color:#2F7D4F; }
+  #view-dieta .gram-edit-input { width:64px; padding:3px 6px; font-size:12px; border:1px solid #2F7D4F; border-radius:6px; font-family:inherit; }
   #view-dieta .meals-nav { border:1px solid #d9d6cc; background:#fff; color:#1E5631; border-radius:6px; width:26px; height:24px; font-size:16px; font-weight:800; line-height:1; cursor:pointer; padding:0; }
   #view-dieta .meals-nav:disabled { opacity:.3; cursor:default; }
   #view-dieta .rep-btn { padding:4px 10px; border-radius:8px; border:1px solid #cfe0d4; background:#f2f8f4; color:#1E5631; font-size:11.5px; font-weight:800; cursor:pointer; font-family:inherit; white-space:nowrap; }
@@ -5578,8 +5581,8 @@ function mealsTableHtml(entries) {
         ${list.length ? `<table>
           <thead><tr><th>Alimento</th><th>g</th><th>Kcal</th><th>P</th><th>C</th><th>G</th><th>Fibra</th><th></th><th></th></tr></thead>
           <tbody>
-            ${list.map(e => `<tr>
-              <td>${esc(e.name)}</td><td>${e.grams}</td><td class="scoreboard">${e.kcal}</td>
+            ${list.map(e => `<tr data-entry-row="${e.id}">
+              <td>${esc(e.name)}</td><td><button type="button" class="gram-edit-btn" data-edit-grams="${e.id}" title="editar porção">${e.grams} g ✎</button></td><td class="scoreboard">${e.kcal}</td>
               <td class="scoreboard">${e.protein}</td><td class="scoreboard">${e.carbs}</td><td class="scoreboard">${e.fat}</td>
               <td class="scoreboard">${e.fiber || 0}</td>
               <td style="font-size:10px;color:${sourceColor(e.source)}">${sourceLabel(e.source)}</td>
@@ -6373,6 +6376,36 @@ function attachDietHandlers() {
   document.querySelectorAll('[data-del-entry]').forEach(btn => btn.addEventListener('click', () => {
     DB.dietLog = DB.dietLog.filter(e => e.id !== btn.dataset.delEntry);
     persist(); renderAll();
+  }));
+
+  document.querySelectorAll('[data-edit-grams]').forEach(btn => btn.addEventListener('click', () => {
+    const entry = DB.dietLog.find(e => e.id === btn.dataset.editGrams);
+    if (!entry) return;
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.min = '0'; inp.step = 'any'; inp.inputMode = 'decimal';
+    inp.className = 'gram-edit-input';
+    inp.value = entry.grams;
+    btn.replaceWith(inp);
+    inp.focus(); inp.select();
+    let done = false;
+    const commit = () => {
+      if (done) return; done = true;
+      const g = Number(inp.value);
+      if (g > 0 && g !== Number(entry.grams)) {
+        const f = g / Number(entry.grams);
+        entry.grams = round1(g);
+        entry.kcal = round1(entry.kcal * f); entry.protein = round1(entry.protein * f);
+        entry.carbs = round1(entry.carbs * f); entry.fat = round1(entry.fat * f);
+        entry.fiber = round1((entry.fiber || 0) * f);
+        persist();
+      }
+      renderAll();
+    };
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { done = true; renderAll(); }
+    });
   }));
 
   const saveCF = document.getElementById('saveCustomFoodBtn');
@@ -7774,8 +7807,8 @@ function mealsTableHtml(entries) {
         <table>
           <thead><tr><th>Alimento</th><th>g</th><th>Kcal</th><th>P</th><th>C</th><th>G</th><th>Fibra</th><th></th><th></th></tr></thead>
           <tbody>
-            ${list.map(e => `<tr>
-              <td>${esc(e.name)}</td><td>${e.grams}</td><td class="scoreboard">${e.kcal}</td>
+            ${list.map(e => `<tr data-entry-row="${e.id}">
+              <td>${esc(e.name)}</td><td><button type="button" class="gram-edit-btn" data-edit-grams="${e.id}" title="editar porção">${e.grams} g ✎</button></td><td class="scoreboard">${e.kcal}</td>
               <td class="scoreboard">${e.protein}</td><td class="scoreboard">${e.carbs}</td><td class="scoreboard">${e.fat}</td>
               <td class="scoreboard">${e.fiber || 0}</td>
               <td style="font-size:10px;color:${sourceColor(e.source)}">${sourceLabel(e.source)}</td>
@@ -8532,6 +8565,36 @@ function attachDietHandlers() {
   document.querySelectorAll('[data-del-entry]').forEach(btn => btn.addEventListener('click', () => {
     DB.dietLog = DB.dietLog.filter(e => e.id !== btn.dataset.delEntry);
     persist(); renderAll();
+  }));
+
+  document.querySelectorAll('[data-edit-grams]').forEach(btn => btn.addEventListener('click', () => {
+    const entry = DB.dietLog.find(e => e.id === btn.dataset.editGrams);
+    if (!entry) return;
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.min = '0'; inp.step = 'any'; inp.inputMode = 'decimal';
+    inp.className = 'gram-edit-input';
+    inp.value = entry.grams;
+    btn.replaceWith(inp);
+    inp.focus(); inp.select();
+    let done = false;
+    const commit = () => {
+      if (done) return; done = true;
+      const g = Number(inp.value);
+      if (g > 0 && g !== Number(entry.grams)) {
+        const f = g / Number(entry.grams);
+        entry.grams = round1(g);
+        entry.kcal = round1(entry.kcal * f); entry.protein = round1(entry.protein * f);
+        entry.carbs = round1(entry.carbs * f); entry.fat = round1(entry.fat * f);
+        entry.fiber = round1((entry.fiber || 0) * f);
+        persist();
+      }
+      renderAll();
+    };
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { done = true; renderAll(); }
+    });
   }));
 
   const saveCF = document.getElementById('saveCustomFoodBtn');

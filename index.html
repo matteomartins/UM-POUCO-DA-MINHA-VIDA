@@ -10177,18 +10177,52 @@ window.init_faculdade = function(){
 
   // ===== Cortitas: rotações/pasantías curtas presenciais (hospital, especialidade, cursada, inscrição, asignação) =====
   const CORTITAS = [
+    { hosp:'Htal. Elizalde', esp:'Toxicologia', curIni:'2026-09-08', curFim:'2026-11-03', insc:['2026-07-30','2026-07-31'], asig:'2026-08-03' },
+    { hosp:'Htal. Santojanni', esp:'Cirugia', curIni:'2026-08-31', curFim:'2026-10-16', insc:['2026-08-24','2026-08-25'], asig:'2026-08-26' },
+    { hosp:'Sta. Barbara', esp:'Nutricion', curIni:'2026-09-07', curFim:'2026-09-18', insc:['2026-08-31','2026-09-01'], asig:null },
+    { hosp:'Htal. Ramos Mejía', esp:'Otorrino', curIni:'2026-09-07', curFim:'2026-09-18', insc:['2026-09-01'], asig:null },
+    { hosp:'Sta. Barbara', esp:'Cirugia', curIni:'2026-09-07', curFim:'2026-11-13', insc:['2026-09-01'], asig:null },
+    { hosp:'P. De Elizalde', esp:'Toxicologia', curIni:'2026-09-08', curFim:'2026-11-03', insc:['2026-09-01'], asig:null },
+    { hosp:'Sta. Barbara', esp:'Neurologia', curIni:'2026-09-14', curFim:'2026-10-02', insc:['2026-09-07','2026-09-08'], asig:'2026-09-09' },
+    { hosp:'Htal. Milstein', esp:'Ginecología', curIni:'2026-09-14', curFim:'2026-10-16', insc:['2026-09-07','2026-09-08'], asig:'2026-09-09' },
+    { hosp:'Htal. Larcade', esp:'Neurocirugía', curIni:'2026-09-14', curFim:'2026-09-25', insc:['2026-09-07','2026-09-08'], asig:'2026-09-09' },
+    { hosp:'Htal. Larcade', esp:'Diag. por Imágenes', curIni:'2026-09-14', curFim:'2026-09-25', insc:['2026-09-07','2026-09-08'], asig:'2026-09-09' },
+    { hosp:'Sta. Barbara', esp:'Diag. por Imágenes', curIni:'2026-09-21', curFim:'2026-10-02', insc:['2026-09-14','2026-09-15'], asig:null },
+    { hosp:'Htal. San Isidro', esp:'Oftalmo', curIni:'2026-09-21', curFim:'2026-10-02', insc:['2026-09-14','2026-09-15'], asig:null },
+    { hosp:'Marie Curie', esp:'Ginecologia', curIni:'2026-09-28', curFim:'2026-10-30', insc:['2026-09-21','2026-09-22'], asig:'2026-09-23' },
+    { hosp:'Sta. Barbara', esp:'Infecto', curIni:'2026-09-28', curFim:'2026-10-23', insc:['2026-09-21','2026-09-22'], asig:'2026-09-23' },
+    { hosp:'Sta. Barbara', esp:'Neumo', curIni:'2026-09-28', curFim:'2026-10-09', insc:['2026-09-21','2026-09-22'], asig:'2026-09-23' },
+    { hosp:'Htal. de Clínicas', esp:'Traumato', curIni:'2026-09-28', curFim:'2026-10-16', insc:['2026-09-21','2026-09-22'], asig:'2026-09-23' },
+    { hosp:'De Clinicas', esp:'Toxicologia', curIni:'2026-09-28', curFim:'2026-11-03', insc:['2026-09-22','2026-09-23'], asig:null },
     { hosp:'Htal Larcade', esp:'Traumato', curIni:'2026-10-05', curFim:'2026-10-23', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
     { hosp:'Htal Eva Perón', esp:'Neurocirugía', curIni:'2026-10-05', curFim:'2026-10-16', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
     { hosp:'Htal de Clínicas', esp:'Psiquiatría', curIni:'2026-10-05', curFim:'2026-10-30', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
+    { hosp:'Sta. Barbara', esp:'Nutricion', curIni:'2026-10-05', curFim:'2026-10-16', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
+    { hosp:'Htal. Ramos Mejía', esp:'Ginecologia', curIni:'2026-10-05', curFim:'2026-11-06', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
+    { hosp:'Htal. Borda', esp:'Medicina Legal', curIni:'2026-10-05', curFim:'2026-12-04', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
     { hosp:'Htal Morón', esp:'Cirugía', curIni:'2026-10-12', curFim:'2026-12-18', insc:['2026-10-05','2026-10-06'], asig:'2026-10-07' },
     { hosp:'Santa Lucía', esp:'Oftalmología', curIni:'2026-10-12', curFim:'2026-10-23', insc:['2026-10-05','2026-10-06'], asig:'2026-10-07' },
+    { hosp:'Sta. Barbara', esp:'Neurologia', curIni:'2026-10-12', curFim:'2026-10-30', insc:['2026-10-05','2026-10-06'], asig:'2026-10-07' },
     { hosp:'Htal Rivadavia', esp:'Traumato', curIni:'2026-10-19', curFim:'2026-11-06', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14' },
     { hosp:'Sagrada Familia', esp:'Neurología', curIni:'2026-10-19', curFim:'2026-11-06', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14' },
+    { hosp:'Sta. Barbara', esp:'Diag. por Imágenes', curIni:'2026-10-19', curFim:'2026-10-30', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14' },
+    { hosp:'Htal. Durand', esp:'Oftalmologia', curIni:'2026-10-19', curFim:'2026-10-30', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14' },
     { hosp:'Htal de Clínicas', esp:'Traumatología', curIni:'2026-10-26', curFim:'2026-11-13', insc:['2026-10-19','2026-10-20'], asig:'2026-10-21' },
+    { hosp:'Sta. Barbara', esp:'Infecto', curIni:'2026-10-26', curFim:'2026-11-20', insc:['2026-10-19','2026-10-20'], asig:'2026-10-21' },
+    { hosp:'Htal. Santojanni', esp:'Obstetricia', curIni:'2026-10-26', curFim:'2026-11-27', insc:['2026-10-19','2026-10-20'], asig:'2026-10-21' },
+    { hosp:'Alvarez', esp:'Ginecologia', curIni:'2026-11-02', curFim:'2026-12-04', insc:['2026-10-26','2026-10-27'], asig:'2026-10-28' },
+    { hosp:'Sta. Barbara', esp:'Nutricion', curIni:'2026-11-02', curFim:'2026-11-13', insc:['2026-10-26','2026-10-27'], asig:'2026-10-28' },
+    { hosp:'Sta. Barbara', esp:'Neumo', curIni:'2026-11-02', curFim:'2026-11-13', insc:['2026-10-26','2026-10-27'], asig:'2026-10-28' },
+    { hosp:'Htal. Italiano', esp:'Oftalmologia', curIni:'2026-11-02', curFim:'2026-11-13', insc:['2026-10-26','2026-10-27'], asig:'2026-10-28' },
+    { hosp:'Htal. Durand', esp:'Urologia', curIni:'2026-11-02', curFim:'2026-11-13', insc:['2026-10-26','2026-10-27'], asig:'2026-10-28' },
     { hosp:'Htal Rivadavia', esp:'Otorrino', curIni:'2026-11-09', curFim:'2026-11-20', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04' },
     { hosp:'Htal Milstein', esp:'Otorrino', curIni:'2026-11-09', curFim:'2026-11-20', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04' },
     { hosp:'Htal Ituzaingó', esp:'Psiquiatría', curIni:'2026-11-09', curFim:'2026-12-04', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04' },
+    { hosp:'Sta. Barbara', esp:'Neurologia', curIni:'2026-11-09', curFim:'2026-11-27', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04' },
+    { hosp:'Sta. Barbara', esp:'Diag. por Imágenes', curIni:'2026-11-16', curFim:'2026-11-27', insc:['2026-11-09','2026-11-10'], asig:'2026-11-11' },
     { hosp:'Htal Español', esp:'Infecto', curIni:'2026-11-23', curFim:'2026-12-18', insc:['2026-11-16','2026-11-17'], asig:'2026-11-18' },
+    { hosp:'Sta. Barbara', esp:'Nutricion', curIni:'2026-11-30', curFim:'2026-12-11', insc:['2026-11-23','2026-11-24'], asig:'2026-11-25' },
+    { hosp:'Sta. Barbara', esp:'Neurologia', curIni:'2026-11-30', curFim:'2026-12-18', insc:['2026-11-23','2026-11-24'], asig:'2026-11-25' },
   ];
   function dmy(iso){ const [y,m,d]=iso.split('-'); return d+'/'+m; }
   const escCort = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -10199,12 +10233,13 @@ window.init_faculdade = function(){
     const hoje = _n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0');
     const sorted = CORTITAS.slice().sort((a,b)=> a.insc[0].localeCompare(b.insc[0]));
     el.innerHTML = sorted.map(c => {
-      const pasou = c.asig < hoje;
+      const refFim = c.asig || c.insc[c.insc.length - 1];
+      const pasou = refFim < hoje;
       return `<div class="cort-card${pasou ? ' pasou' : ''}">
         <div class="cort-head"><span class="cort-esp">${escCort(c.esp)}</span><span class="cort-hosp">${escCort(c.hosp)}</span></div>
         <div class="cort-row"><b>Cursada:</b> ${dmy(c.curIni)} al ${dmy(c.curFim)} · L-V 12-17h</div>
         <div class="cort-row"><b>Inscripción:</b> ${c.insc.map(dmy).join(' y ')}</div>
-        <div class="cort-row"><b>Asignación:</b> ${dmy(c.asig)}${pasou ? ' <span class="cort-tag">ya pasó</span>' : ''}</div>
+        <div class="cort-row"><b>Asignación:</b> ${c.asig ? dmy(c.asig) : '— (no registrada)'}${pasou ? ' <span class="cort-tag">ya pasó</span>' : ''}</div>
       </div>`;
     }).join('');
   }

@@ -10194,7 +10194,8 @@ window.init_faculdade = function(){
   function renderCortitas(){
     const el = document.getElementById('facCortitasList');
     if(!el) return;
-    const hoje = todayStr();
+    const _n = new Date();
+    const hoje = _n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0');
     const sorted = CORTITAS.slice().sort((a,b)=> a.insc[0].localeCompare(b.insc[0]));
     el.innerHTML = sorted.map(c => {
       const pasou = c.asig < hoje;

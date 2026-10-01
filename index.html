@@ -10191,6 +10191,7 @@ window.init_faculdade = function(){
     { hosp:'Htal Español', esp:'Infecto', curIni:'2026-11-23', curFim:'2026-12-18', insc:['2026-11-16','2026-11-17'], asig:'2026-11-18' },
   ];
   function dmy(iso){ const [y,m,d]=iso.split('-'); return d+'/'+m; }
+  const escCort = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   function renderCortitas(){
     const el = document.getElementById('facCortitasList');
     if(!el) return;
@@ -10200,7 +10201,7 @@ window.init_faculdade = function(){
     el.innerHTML = sorted.map(c => {
       const pasou = c.asig < hoje;
       return `<div class="cort-card${pasou ? ' pasou' : ''}">
-        <div class="cort-head"><span class="cort-esp">${esc(c.esp)}</span><span class="cort-hosp">${esc(c.hosp)}</span></div>
+        <div class="cort-head"><span class="cort-esp">${escCort(c.esp)}</span><span class="cort-hosp">${escCort(c.hosp)}</span></div>
         <div class="cort-row"><b>Cursada:</b> ${dmy(c.curIni)} al ${dmy(c.curFim)} · L-V 12-17h</div>
         <div class="cort-row"><b>Inscripción:</b> ${c.insc.map(dmy).join(' y ')}</div>
         <div class="cort-row"><b>Asignación:</b> ${dmy(c.asig)}${pasou ? ' <span class="cort-tag">ya pasó</span>' : ''}</div>

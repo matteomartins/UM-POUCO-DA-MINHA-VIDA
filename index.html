@@ -10237,7 +10237,8 @@ window.init_faculdade = function(){
     { hosp:'De Clinicas', esp:'Toxicologia', curIni:'2026-09-28', curFim:'2026-11-03', insc:['2026-09-22','2026-09-23'], asig:null },
     { hosp:'Htal Larcade', esp:'Traumato', curIni:'2026-10-05', curFim:'2026-10-23', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30', hor:'L-V 12-17h' },
     { hosp:'Htal Eva Perón', esp:'Neurocirugía', curIni:'2026-10-05', curFim:'2026-10-16', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30', hor:'L-V 12-17h' },
-    { hosp:'Htal de Clínicas', esp:'Psiquiatría', curIni:'2026-10-05', curFim:'2026-10-30', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30', nota:'Vespertina (U.A. Borda) · 1er día lun 05/10 12:30 hs, Aula Magna (PB) — asistencia importante', hor:'L-V 12-17h' },
+    { hosp:'Htal de Clínicas', esp:'Psiquiatría', curIni:'2026-10-05', curFim:'2026-10-30', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30', hor:'L-V 12-17h' },
+    { hosp:'Htal Borda', esp:'Psiquiatría', curIni:'2026-10-05', curFim:'2026-10-30', insc:['2026-09-30','2026-10-01'], asig:'2026-10-02', hor:'L-V 12-17h', nota:'Vespertina (U.A. Borda) · 1er día lun 05/10 12:30 hs, Aula Magna (PB) — asistencia importante' },
     { hosp:'Sta. Barbara', esp:'Nutricion', curIni:'2026-10-05', curFim:'2026-10-16', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
     { hosp:'Htal. Ramos Mejía', esp:'Ginecologia', curIni:'2026-10-05', curFim:'2026-11-06', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
     { hosp:'Htal. Borda', esp:'Medicina Legal', curIni:'2026-10-05', curFim:'2026-12-04', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
@@ -10271,7 +10272,7 @@ window.init_faculdade = function(){
     { hosp:'Sta. Barbara', esp:'Neurologia', curIni:'2026-11-30', curFim:'2026-12-18', insc:['2026-11-23','2026-11-24'], asig:'2026-11-25' },
   ];
   // cursadas confirmadas (hosp + esp + inicio de la cursada). Agregar acá cada nueva que me asignen.
-  const MIAS = [ { hosp:'Htal de Clínicas', esp:'Psiquiatría', curIni:'2026-10-05' } ];
+  const MIAS = [ { hosp:'Htal Borda', esp:'Psiquiatría', curIni:'2026-10-05' } ];
   function dmy(iso){ const [y,m,d]=iso.split('-'); return d+'/'+m; }
   const escCort = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   // ===== Provas (parciais, recuperatorios e finais) — mesmas datas da Agenda =====

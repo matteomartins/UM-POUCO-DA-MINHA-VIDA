@@ -1915,7 +1915,7 @@ async function storageGetWithRetry(key){
     </section>
 
     <section class="fac-sec" id="facSecCortitas" style="display:none">
-      <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Separadas en quirúrgicas y clínicas, cada grupo ordenado por fecha de inscripción. O que já passou a inscrição fica esmaecido.</p>
+      <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Separadas en quirúrgicas, clínicas y otras (med. familiar, med. legal, toxicología), cada grupo ordenado por fecha de inscripción. O que já passou a inscrição fica esmaecido.</p>
       <div class="fac-cortitas-list" id="facCortitasList"></div>
     </section>
   </div>
@@ -10243,6 +10243,8 @@ window.init_faculdade = function(){
     const norm = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     // quirurgicas: cirugia, neurocirugia, traumato, ortopedia, otorrino, oftalmo, urologia, gineco, obstetricia
     const esQuir = c => /cirug|trauma|ortop|otorrino|oftalm|(^|[^a-z])urolog|ginecolog|obstetric/.test(norm(c.esp));
+    // otras (ni clinicas ni quirurgicas): medicina familiar, medicina legal, toxicologia
+    const esOtra = c => /familiar|legal|toxicolog/.test(norm(c.esp));
     const card = c => {
       const refFim = c.asig || c.insc[c.insc.length - 1];
       const pasou = refFim < hoje;
@@ -10255,7 +10257,7 @@ window.init_faculdade = function(){
     };
     const sorted = CORTITAS.slice().sort((a,b)=> a.insc[0].localeCompare(b.insc[0]));
     const grupo = (titulo, lista) => `<div class="cort-group-title">${titulo} <small>${lista.length}</small></div><div class="cort-grid">${lista.map(card).join('')}</div>`;
-    el.innerHTML = grupo('🔪 Quirúrgicas', sorted.filter(esQuir)) + grupo('🩺 Clínicas', sorted.filter(c => !esQuir(c)));
+    el.innerHTML = grupo('🔪 Quirúrgicas', sorted.filter(esQuir)) + grupo('🩺 Clínicas', sorted.filter(c => !esQuir(c) && !esOtra(c))) + grupo('📋 Otras', sorted.filter(esOtra));
   }
   renderCortitas();
 

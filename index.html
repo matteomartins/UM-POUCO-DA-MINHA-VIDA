@@ -1575,6 +1575,20 @@
   #view-faculdade .fac-tabs{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:20px; }
   #view-faculdade .fac-tab-btn{ background:none; border:1px solid var(--fac-line); border-radius:20px; padding:7px 16px; font-size:12.5px; font-weight:700; cursor:pointer; color:var(--fac-muted); }
   #view-faculdade .fac-tab-btn.active{ background:var(--fac-brand); color:#fff; border-color:var(--fac-brand); }
+  #view-faculdade .cort-layout{ display:grid; grid-template-columns:250px minmax(0,1fr); gap:18px; align-items:start; }
+  #view-faculdade .cort-main{ min-width:0; }
+  #view-faculdade .exam-side{ position:sticky; top:10px; border:1px solid var(--fac-line); border-radius:12px; background:#fff; padding:12px 12px 10px; }
+  #view-faculdade .exam-title{ font-size:14px; font-weight:800; color:var(--fac-brand); margin-bottom:8px; }
+  #view-faculdade .exam-item{ border-left:4px solid var(--fac-brand); background:#faf8f3; border-radius:6px; padding:7px 9px; margin-bottom:7px; }
+  #view-faculdade .exam-item.farm{ border-left-color:#2F7D4F; }
+  #view-faculdade .exam-item.prox{ background:#fff3d6; box-shadow:0 0 0 1px #e0a82e inset; }
+  #view-faculdade .exam-item.pasada{ opacity:.45; }
+  #view-faculdade .exam-date{ font-size:11px; font-weight:800; color:var(--fac-muted); text-transform:uppercase; letter-spacing:.3px; display:flex; justify-content:space-between; gap:6px; }
+  #view-faculdade .exam-cd{ color:#b23b2e; }
+  #view-faculdade .exam-name{ font-size:12.5px; font-weight:700; color:var(--fac-ink); line-height:1.3; margin-top:2px; }
+  #view-faculdade .exam-mat{ font-size:10.5px; color:var(--fac-muted); font-weight:700; }
+  #view-faculdade .exam-past summary{ font-size:11.5px; font-weight:700; color:var(--fac-muted); cursor:pointer; margin:6px 0; }
+  @media (max-width:760px){ #view-faculdade .cort-layout{ grid-template-columns:1fr; } #view-faculdade .exam-side{ position:static; } }
   #view-faculdade .cort-bar{ display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
   #view-faculdade .cort-fbtn{ background:#fff; border:1px solid var(--fac-line); border-radius:20px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; color:var(--fac-muted); font-family:inherit; }
   #view-faculdade .cort-fbtn.active{ background:var(--fac-brand); border-color:var(--fac-brand); color:#fff; }
@@ -1926,9 +1940,14 @@ async function storageGetWithRetry(key){
     </section>
 
     <section class="fac-sec" id="facSecCortitas" style="display:none">
-      <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Tres columnas (clínicas, quirúrgicas y otras), cada una ordenada por fecha de inscripción. "Ya pasó" = inscripción, asignación e inicio de cursada ya pasaron. Toca la ☆ para destacar las que más te interesan.</p>
-      <div class="cort-bar"><button type="button" class="cort-fbtn" id="cortHideBtn"></button><button type="button" class="cort-fbtn" id="cortStarOnlyBtn">⭐ Solo destacadas</button></div>
-      <div class="fac-cortitas-list" id="facCortitasList"></div>
+      <div class="cort-layout">
+        <aside class="exam-side"><div class="exam-title">📝 Próximas pruebas</div><div id="cortExamList"></div></aside>
+        <div class="cort-main">
+        <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Tres columnas (clínicas, quirúrgicas y otras), cada una ordenada por fecha de inscripción. "Ya pasó" = inscripción, asignación e inicio de cursada ya pasaron. Toca la ☆ para destacar las que más te interesan.</p>
+        <div class="cort-bar"><button type="button" class="cort-fbtn" id="cortHideBtn"></button><button type="button" class="cort-fbtn" id="cortStarOnlyBtn">⭐ Solo destacadas</button></div>
+        <div class="fac-cortitas-list" id="facCortitasList"></div>
+        </div>
+      </div>
     </section>
   </div>
 </div>
@@ -10247,6 +10266,52 @@ window.init_faculdade = function(){
   ];
   function dmy(iso){ const [y,m,d]=iso.split('-'); return d+'/'+m; }
   const escCort = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // ===== Provas (parciais, recuperatorios e finais) — mesmas datas da Agenda =====
+  const EXAMES = [
+    { d:'2026-08-28', ti:'PARCIAL — Respiratorio', m:'b' },
+    { d:'2026-09-07', ti:'1er PARCIAL Farmacología II', m:'f' },
+    { d:'2026-09-16', ti:'PARCIAL — Cardiovascular', m:'b' },
+    { d:'2026-10-07', ti:'PARCIAL — Digestivo', m:'b' },
+    { d:'2026-10-14', ti:'RECUPERATORIO — Digestivo', m:'b' },
+    { d:'2026-10-19', ti:'2do PARCIAL Farmacología II', m:'f' },
+    { d:'2026-10-26', ti:'RECUPERATORIO 2do parcial Farmaco', m:'f' },
+    { d:'2026-11-04', ti:'PARCIAL — Renal, Endocrino y Metabolismo', m:'b' },
+    { d:'2026-11-12', ti:'RECUPERATORIO — Renal, Endocrino y Metabolismo', m:'b' },
+    { d:'2026-11-16', ti:'3er PARCIAL Farmacología II', m:'f' },
+    { d:'2026-11-30', ti:'RECUPERATORIO 3er parcial (1ra) / 1er y 2do (2da instancia)', m:'f' },
+    { d:'2026-12-01', ti:'PARCIAL — Sangre y Colagenopatías', m:'b' },
+    { d:'2026-12-01', ti:'RECUPERATORIO 3er parcial (2da instancia)', m:'f' },
+    { d:'2026-12-09', ti:'RECUPERATORIO — Sangre y Colagenopatías', m:'b' },
+    { d:'2026-12-09', ti:'FINAL Farmacología II — opción 1', m:'f' },
+    { d:'2026-12-10', ti:'Último recup.: Respiratorio y Cardiovascular', m:'b' },
+    { d:'2026-12-11', ti:'Último recup.: Digestivo', m:'b' },
+    { d:'2026-12-14', ti:'Último recup.: Renal / Sangre y Colagenopatías', m:'b' },
+    { d:'2026-12-16', ti:'FINAL Farmacología II — opción 2', m:'f' },
+    { d:'2026-12-18', ti:'Primer Final de Medicina Interna B', m:'b' },
+  ];
+  function renderExamenes(){
+    const el = document.getElementById('cortExamList');
+    if(!el) return;
+    const _n = new Date();
+    const hoje = _n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0');
+    const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const utc = iso => { const [y,m,d] = iso.split('-').map(Number); return Date.UTC(y, m-1, d); };
+    const list = EXAMES.slice().sort((a,b) => a.d.localeCompare(b.d));
+    const prox = list.filter(e => e.d >= hoje), pas = list.filter(e => e.d < hoje);
+    const item = (e, i) => {
+      const dif = Math.round((utc(e.d) - utc(hoje)) / 86400000);
+      const cd = dif === 0 ? 'hoy' : dif === 1 ? 'mañana' : dif > 0 ? 'en ' + dif + ' días' : 'hace ' + (-dif) + ' días';
+      const wd = DIAS[new Date(utc(e.d)).getUTCDay()];
+      return `<div class="exam-item${e.m === 'f' ? ' farm' : ''}${i === 0 && dif >= 0 ? ' prox' : ''}${dif < 0 ? ' pasada' : ''}">
+        <div class="exam-date"><span>${wd} ${dmy(e.d)}</span><span class="exam-cd">${cd}</span></div>
+        <div class="exam-name">${escCort(e.ti)}</div>
+        <div class="exam-mat">${e.m === 'f' ? 'Fármaco II' : 'Interna B'}</div>
+      </div>`;
+    };
+    el.innerHTML = (prox.length ? prox.map(item).join('') : '<div class="cort-empty">— no quedan pruebas —</div>')
+      + (pas.length ? `<details class="exam-past"><summary>Ya pasaron (${pas.length})</summary>${pas.slice().reverse().map(item).join('')}</details>` : '');
+  }
+
   // preferencias da aba Cortitas (destacadas + filtros), guardadas em faculdade_cortitas_ui
   let cortUi = { stars: [], hidePassed: false, onlyStar: false };
   function saveCortUi(){ storageSetWithRetry('faculdade_cortitas_ui', JSON.stringify(cortUi)); }
@@ -10305,6 +10370,7 @@ window.init_faculdade = function(){
     });
   })();
   renderCortitas();
+  renderExamenes();
   storageGetWithRetry('faculdade_cortitas_ui').then(r => {
     if(r && r.value !== undefined){
       try {

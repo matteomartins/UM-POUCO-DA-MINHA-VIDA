@@ -1926,7 +1926,7 @@ async function storageGetWithRetry(key){
     </section>
 
     <section class="fac-sec" id="facSecCortitas" style="display:none">
-      <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Tres columnas (quirúrgicas, clínicas y otras), cada una ordenada por fecha de inscripción. "Ya pasó" = inscripción, asignación e inicio de cursada ya pasaron. Toca la ☆ para destacar las que más te interesan.</p>
+      <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Tres columnas (clínicas, quirúrgicas y otras), cada una ordenada por fecha de inscripción. "Ya pasó" = inscripción, asignación e inicio de cursada ya pasaron. Toca la ☆ para destacar las que más te interesan.</p>
       <div class="cort-bar"><button type="button" class="cort-fbtn" id="cortHideBtn"></button><button type="button" class="cort-fbtn" id="cortStarOnlyBtn">⭐ Solo destacadas</button></div>
       <div class="fac-cortitas-list" id="facCortitasList"></div>
     </section>
@@ -10278,8 +10278,8 @@ window.init_faculdade = function(){
     const nPasaron = todas.filter(yaPaso).length;
     const visibles = todas.filter(c => !(cortUi.hidePassed && yaPaso(c)) && !(cortUi.onlyStar && !cortUi.stars.includes(cortKey(c))));
     const col = (titulo, lista) => `<div class="cort-col"><div class="cort-group-title">${titulo} <small>${lista.length}</small></div><div class="cort-grid">${lista.length ? lista.map(card).join('') : '<div class="cort-empty">— nada por acá —</div>'}</div></div>`;
-    el.innerHTML = col('🔪 Quirúrgicas', visibles.filter(esQuir))
-      + col('🩺 Clínicas', visibles.filter(c => !esQuir(c) && !esOtra(c)))
+    el.innerHTML = col('🩺 Clínicas', visibles.filter(c => !esQuir(c) && !esOtra(c)))
+      + col('🔪 Quirúrgicas', visibles.filter(esQuir))
       + col('📋 Otras', visibles.filter(esOtra));
     const hb = document.getElementById('cortHideBtn');
     if(hb){

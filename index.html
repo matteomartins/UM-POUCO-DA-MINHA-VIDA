@@ -1949,7 +1949,7 @@ async function storageGetWithRetry(key){
       <div class="cort-layout">
         <aside class="exam-side"><div class="exam-title">📝 Pruebas</div><div id="cortExamList"></div></aside>
         <div class="cort-main">
-        <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Tres columnas (clínicas, quirúrgicas y otras), cada una ordenada por fecha de inscripción. "Ya pasó" = inscripción, asignación e inicio de cursada ya pasaron. "No puedo" = se pisa en fechas y horario con una cursada que ya tengo confirmada. Toca la ☆ para destacar las que más te interesan.</p>
+        <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Tres columnas (clínicas, quirúrgicas y otras), cada una ordenada por fecha de inscripción. "Ya pasó" = inscripción, asignación e inicio de cursada ya pasaron. "No puedo" = se pisa en fechas y horario con una cursada que ya tengo confirmada, o es de una especialidad que ya tengo (no se repite). Toca la ☆ para destacar las que más te interesan.</p>
         <div class="cort-bar"><button type="button" class="cort-fbtn" id="cortHideBtn"></button><button type="button" class="cort-fbtn" id="cortStarOnlyBtn">⭐ Solo destacadas</button><span class="cort-hnc" id="cortHncInfo"></span></div>
         <div class="fac-cortitas-list" id="facCortitasList"></div>
         </div>
@@ -10344,7 +10344,9 @@ window.init_faculdade = function(){
     const horas = c => { const m = String(c.hor || 'L-V 12-17h').match(/(\d+)(?::(\d+))?-(\d+)(?::(\d+))?h/); return m ? [+m[1] + (+m[2] || 0) / 60, +m[3] + (+m[4] || 0) / 60] : [12, 17]; };
     const misCursadas = CORTITAS.filter(esMia);
     const choca = c => esMia(c) ? null : (misCursadas.find(m => c.curIni <= m.curFim && c.curFim >= m.curIni && horas(c)[0] < horas(m)[1] && horas(c)[1] > horas(m)[0]) || null);
-    const descartada = c => yaPaso(c) || !!choca(c);
+    // misma especialidad que una cursada mia: no se repite, sale de la lista
+    const repetida = c => !esMia(c) && misCursadas.some(m => norm(m.esp) === norm(c.esp));
+    const descartada = c => yaPaso(c) || !!choca(c) || repetida(c);
     const card = c => {
       const pasou = descartada(c);
       const ch = choca(c);
@@ -10356,6 +10358,7 @@ window.init_faculdade = function(){
         <div class="cort-row"><b>Inscripción:</b> ${c.insc.map(dmy).join(' y ')}</div>
         <div class="cort-row"><b>Asignación:</b> ${c.asig ? dmy(c.asig) : '— (no registrada)'}${yaPaso(c) ? ' <span class="cort-tag">ya pasó</span>' : ''}</div>
         ${esMia(c) ? '<div class="cort-row"><span class="cort-tag ok">✅ mi cursada confirmada</span></div>' : ''}
+        ${!yaPaso(c) && repetida(c) ? `<div class="cort-row"><span class="cort-tag">🚫 no puedo: ya tengo ${escCort(c.esp)} (no se repite)</span></div>` : ''}
         ${!yaPaso(c) && ch ? `<div class="cort-row"><span class="cort-tag">⛔ no puedo: choca con ${escCort(ch.esp)} (${dmy(ch.curIni)}–${dmy(ch.curFim)}, ${escCort(ch.hor || 'L-V 12-17h').replace(/^L-V /, '')})${c.hor ? '' : ' — según el horario ASUMIDO 12-17h, confirmalo'}</span></div>` : ''}
         ${c.nota ? `<div class="cort-row cort-nota">📌 ${escCort(c.nota)}</div>` : ''}
       </div>`;

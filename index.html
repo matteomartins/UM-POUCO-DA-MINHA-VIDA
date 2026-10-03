@@ -1612,6 +1612,8 @@
   #view-faculdade .cort-esp{ font-weight:800; color:var(--fac-brand); font-size:14px; }
   #view-faculdade .cort-hosp{ font-size:11px; color:var(--fac-muted); font-weight:700; }
   #view-faculdade .cort-row{ font-size:12px; color:var(--fac-ink); margin-top:3px; }
+  #view-faculdade .cort-hnc{ display:inline-block; font-size:10.5px; font-weight:800; color:#a15c00; background:#ffe9bf; border-radius:6px; padding:1px 6px; }
+  #view-faculdade .cort-bar .cort-hnc{ align-self:center; font-size:11px; padding:4px 9px; }
   #view-faculdade .cort-nota{ background:#fff3d6; border-radius:6px; padding:4px 7px; font-weight:600; }
   #view-faculdade .cort-card.mia{ border-color:#2F7D4F; background:#eef7f1; box-shadow:0 0 0 1px #2F7D4F inset; }
   #view-faculdade .cort-tag.ok{ color:#2F7D4F; }
@@ -1948,7 +1950,7 @@ async function storageGetWithRetry(key){
         <aside class="exam-side"><div class="exam-title">📝 Pruebas</div><div id="cortExamList"></div></aside>
         <div class="cort-main">
         <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Tres columnas (clínicas, quirúrgicas y otras), cada una ordenada por fecha de inscripción. "Ya pasó" = inscripción, asignación e inicio de cursada ya pasaron. "No puedo" = se pisa en fechas y horario con una cursada que ya tengo confirmada. Toca la ☆ para destacar las que más te interesan.</p>
-        <div class="cort-bar"><button type="button" class="cort-fbtn" id="cortHideBtn"></button><button type="button" class="cort-fbtn" id="cortStarOnlyBtn">⭐ Solo destacadas</button></div>
+        <div class="cort-bar"><button type="button" class="cort-fbtn" id="cortHideBtn"></button><button type="button" class="cort-fbtn" id="cortStarOnlyBtn">⭐ Solo destacadas</button><span class="cort-hnc" id="cortHncInfo"></span></div>
         <div class="fac-cortitas-list" id="facCortitasList"></div>
         </div>
       </div>
@@ -10233,23 +10235,23 @@ window.init_faculdade = function(){
     { hosp:'Sta. Barbara', esp:'Neumo', curIni:'2026-09-28', curFim:'2026-10-09', insc:['2026-09-21','2026-09-22'], asig:'2026-09-23' },
     { hosp:'Htal. de Clínicas', esp:'Traumato', curIni:'2026-09-28', curFim:'2026-10-16', insc:['2026-09-21','2026-09-22'], asig:'2026-09-23' },
     { hosp:'De Clinicas', esp:'Toxicologia', curIni:'2026-09-28', curFim:'2026-11-03', insc:['2026-09-22','2026-09-23'], asig:null },
-    { hosp:'Htal Larcade', esp:'Traumato', curIni:'2026-10-05', curFim:'2026-10-23', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
-    { hosp:'Htal Eva Perón', esp:'Neurocirugía', curIni:'2026-10-05', curFim:'2026-10-16', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
-    { hosp:'Htal de Clínicas', esp:'Psiquiatría', curIni:'2026-10-05', curFim:'2026-10-30', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30', nota:'Vespertina (U.A. Borda) · 1er día lun 05/10 12:30 hs, Aula Magna (PB) — asistencia importante' },
+    { hosp:'Htal Larcade', esp:'Traumato', curIni:'2026-10-05', curFim:'2026-10-23', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30', hor:'L-V 12-17h' },
+    { hosp:'Htal Eva Perón', esp:'Neurocirugía', curIni:'2026-10-05', curFim:'2026-10-16', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30', hor:'L-V 12-17h' },
+    { hosp:'Htal de Clínicas', esp:'Psiquiatría', curIni:'2026-10-05', curFim:'2026-10-30', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30', nota:'Vespertina (U.A. Borda) · 1er día lun 05/10 12:30 hs, Aula Magna (PB) — asistencia importante', hor:'L-V 12-17h' },
     { hosp:'Sta. Barbara', esp:'Nutricion', curIni:'2026-10-05', curFim:'2026-10-16', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
     { hosp:'Htal. Ramos Mejía', esp:'Ginecologia', curIni:'2026-10-05', curFim:'2026-11-06', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
     { hosp:'Htal. Borda', esp:'Medicina Legal', curIni:'2026-10-05', curFim:'2026-12-04', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
-    { hosp:'Htal Morón', esp:'Cirugía', curIni:'2026-10-12', curFim:'2026-12-18', insc:['2026-10-05','2026-10-06'], asig:'2026-10-07' },
-    { hosp:'Santa Lucía', esp:'Oftalmología', curIni:'2026-10-12', curFim:'2026-10-23', insc:['2026-10-05','2026-10-06'], asig:'2026-10-07' },
+    { hosp:'Htal Morón', esp:'Cirugía', curIni:'2026-10-12', curFim:'2026-12-18', insc:['2026-10-05','2026-10-06'], asig:'2026-10-07', hor:'L-V 12-17h' },
+    { hosp:'Santa Lucía', esp:'Oftalmología', curIni:'2026-10-12', curFim:'2026-10-23', insc:['2026-10-05','2026-10-06'], asig:'2026-10-07', hor:'L-V 12-17h' },
     { hosp:'Sta. Barbara', esp:'Neurologia', curIni:'2026-10-12', curFim:'2026-10-30', insc:['2026-10-05','2026-10-06'], asig:'2026-10-07' },
-    { hosp:'Clín. Modelo de Lanús', esp:'Cirugía', curIni:'2026-10-12', curFim:'2026-12-18', insc:['2026-10-05','2026-10-06'], asig:'2026-10-07' },
-    { hosp:'Htal Rivadavia', esp:'Traumato', curIni:'2026-10-19', curFim:'2026-11-06', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14' },
-    { hosp:'Sagrada Familia', esp:'Neurología', curIni:'2026-10-19', curFim:'2026-11-06', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14' },
+    { hosp:'Clín. Modelo de Lanús', esp:'Cirugía', curIni:'2026-10-12', curFim:'2026-12-18', insc:['2026-10-05','2026-10-06'], asig:'2026-10-07', hor:'L-V 12-17h' },
+    { hosp:'Htal Rivadavia', esp:'Traumato', curIni:'2026-10-19', curFim:'2026-11-06', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14', hor:'L-V 12-17h' },
+    { hosp:'Sagrada Familia', esp:'Neurología', curIni:'2026-10-19', curFim:'2026-11-06', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14', hor:'L-V 12-17h' },
     { hosp:'Sta. Barbara', esp:'Diag. por Imágenes', curIni:'2026-10-19', curFim:'2026-10-30', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14' },
     { hosp:'Htal. Durand', esp:'Oftalmologia', curIni:'2026-10-19', curFim:'2026-10-30', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14' },
-    { hosp:'Htal de Clínicas', esp:'Dermatología', curIni:'2026-10-19', curFim:'2026-11-06', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14' },
-    { hosp:'Htal Vacarezza', esp:'Neumología', curIni:'2026-10-19', curFim:'2026-10-30', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14' },
-    { hosp:'Htal de Clínicas', esp:'Traumatología', curIni:'2026-10-26', curFim:'2026-11-13', insc:['2026-10-19','2026-10-20'], asig:'2026-10-21' },
+    { hosp:'Htal de Clínicas', esp:'Dermatología', curIni:'2026-10-19', curFim:'2026-11-06', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14', hor:'L-V 12-17h' },
+    { hosp:'Htal Vacarezza', esp:'Neumología', curIni:'2026-10-19', curFim:'2026-10-30', insc:['2026-10-12','2026-10-13'], asig:'2026-10-14', hor:'L-V 12-17h' },
+    { hosp:'Htal de Clínicas', esp:'Traumatología', curIni:'2026-10-26', curFim:'2026-11-13', insc:['2026-10-19','2026-10-20'], asig:'2026-10-21', hor:'L-V 12-17h' },
     { hosp:'Sta. Barbara', esp:'Infecto', curIni:'2026-10-26', curFim:'2026-11-20', insc:['2026-10-19','2026-10-20'], asig:'2026-10-21' },
     { hosp:'Htal. Santojanni', esp:'Obstetricia', curIni:'2026-10-26', curFim:'2026-11-27', insc:['2026-10-19','2026-10-20'], asig:'2026-10-21' },
     { hosp:'Alvarez', esp:'Ginecologia', curIni:'2026-11-02', curFim:'2026-12-04', insc:['2026-10-26','2026-10-27'], asig:'2026-10-28' },
@@ -10259,12 +10261,12 @@ window.init_faculdade = function(){
     { hosp:'Htal. Durand', esp:'Urologia', curIni:'2026-11-02', curFim:'2026-11-13', insc:['2026-10-26','2026-10-27'], asig:'2026-10-28' },
     { hosp:'Facultad', esp:'Med. Legal', curIni:'2026-11-02', curFim:'2026-12-04', insc:['2026-10-26','2026-10-27'], asig:'2026-10-28', hor:'L-V 17-20h' },
     { hosp:'Htal Español', esp:'Med. Familiar', curIni:'2026-11-02', curFim:'2026-12-04', insc:['2026-10-26','2026-10-27'], asig:'2026-10-28', hor:'L-V 17-21h' },
-    { hosp:'Htal Rivadavia', esp:'Otorrino', curIni:'2026-11-09', curFim:'2026-11-20', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04' },
-    { hosp:'Htal Milstein', esp:'Otorrino', curIni:'2026-11-09', curFim:'2026-11-20', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04' },
-    { hosp:'Htal Ituzaingó', esp:'Psiquiatría', curIni:'2026-11-09', curFim:'2026-12-04', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04' },
+    { hosp:'Htal Rivadavia', esp:'Otorrino', curIni:'2026-11-09', curFim:'2026-11-20', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04', hor:'L-V 12-17h' },
+    { hosp:'Htal Milstein', esp:'Otorrino', curIni:'2026-11-09', curFim:'2026-11-20', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04', hor:'L-V 12-17h' },
+    { hosp:'Htal Ituzaingó', esp:'Psiquiatría', curIni:'2026-11-09', curFim:'2026-12-04', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04', hor:'L-V 12-17h' },
     { hosp:'Sta. Barbara', esp:'Neurologia', curIni:'2026-11-09', curFim:'2026-11-27', insc:['2026-11-02','2026-11-03'], asig:'2026-11-04' },
     { hosp:'Sta. Barbara', esp:'Diag. por Imágenes', curIni:'2026-11-16', curFim:'2026-11-27', insc:['2026-11-09','2026-11-10'], asig:'2026-11-11' },
-    { hosp:'Htal Español', esp:'Infecto', curIni:'2026-11-23', curFim:'2026-12-18', insc:['2026-11-16','2026-11-17'], asig:'2026-11-18' },
+    { hosp:'Htal Español', esp:'Infecto', curIni:'2026-11-23', curFim:'2026-12-18', insc:['2026-11-16','2026-11-17'], asig:'2026-11-18', hor:'L-V 12-17h' },
     { hosp:'Sta. Barbara', esp:'Nutricion', curIni:'2026-11-30', curFim:'2026-12-11', insc:['2026-11-23','2026-11-24'], asig:'2026-11-25' },
     { hosp:'Sta. Barbara', esp:'Neurologia', curIni:'2026-11-30', curFim:'2026-12-18', insc:['2026-11-23','2026-11-24'], asig:'2026-11-25' },
   ];
@@ -10349,11 +10351,11 @@ window.init_faculdade = function(){
       return `<div class="cort-card${pasou ? ' pasou' : ''}${dest ? ' dest' : ''}${esMia(c) ? ' mia' : ''}">
         <button type="button" class="cort-star" data-ck="${escCort(cortKey(c))}" title="${dest ? 'quitar destaque' : 'destacar'}">${dest ? '★' : '☆'}</button>
         <div class="cort-head"><span class="cort-esp">${escCort(c.esp)}</span><span class="cort-hosp">${escCort(c.hosp)}</span></div>
-        <div class="cort-row"><b>Cursada:</b> ${dmy(c.curIni)} al ${dmy(c.curFim)} · ${escCort(c.hor || 'L-V 12-17h')}</div>
+        <div class="cort-row"><b>Cursada:</b> ${dmy(c.curIni)} al ${dmy(c.curFim)} · ${c.hor ? escCort(c.hor) : 'L-V 12-17h <span class="cort-hnc">⚠ horario sin confirmar</span>'}</div>
         <div class="cort-row"><b>Inscripción:</b> ${c.insc.map(dmy).join(' y ')}</div>
         <div class="cort-row"><b>Asignación:</b> ${c.asig ? dmy(c.asig) : '— (no registrada)'}${yaPaso(c) ? ' <span class="cort-tag">ya pasó</span>' : ''}</div>
         ${esMia(c) ? '<div class="cort-row"><span class="cort-tag ok">✅ mi cursada confirmada</span></div>' : ''}
-        ${!yaPaso(c) && ch ? `<div class="cort-row"><span class="cort-tag">⛔ no puedo: choca con ${escCort(ch.esp)} (${dmy(ch.curIni)}–${dmy(ch.curFim)}, ${horas(ch)[0]}-${horas(ch)[1]}h)</span></div>` : ''}
+        ${!yaPaso(c) && ch ? `<div class="cort-row"><span class="cort-tag">⛔ no puedo: choca con ${escCort(ch.esp)} (${dmy(ch.curIni)}–${dmy(ch.curFim)}, ${horas(ch)[0]}-${horas(ch)[1]}h)${c.hor ? '' : ' — según el horario ASUMIDO 12-17h, confirmalo'}</span></div>` : ''}
         ${c.nota ? `<div class="cort-row cort-nota">📌 ${escCort(c.nota)}</div>` : ''}
       </div>`;
     };
@@ -10369,6 +10371,8 @@ window.init_faculdade = function(){
       hb.classList.toggle('active', cortUi.hidePassed);
       hb.textContent = cortUi.hidePassed ? '👁 Mostrar las que ya pasaron o no puedo (' + nPasaron + ' ocultas)' : '🙈 Ocultar las que ya pasaron o no puedo (' + nPasaron + ')';
     }
+    const hi = document.getElementById('cortHncInfo');
+    if(hi){ const nn = CORTITAS.filter(c => !c.hor).length; hi.textContent = '⚠ ' + nn + ' pasantías con horario sin confirmar (asumo L-V 12-17h)'; }
     const sb = document.getElementById('cortStarOnlyBtn');
     if(sb){
       sb.classList.toggle('active', cortUi.onlyStar);

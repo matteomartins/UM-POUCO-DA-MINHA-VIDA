@@ -1612,6 +1612,7 @@
   #view-faculdade .cort-esp{ font-weight:800; color:var(--fac-brand); font-size:14px; }
   #view-faculdade .cort-hosp{ font-size:11px; color:var(--fac-muted); font-weight:700; }
   #view-faculdade .cort-row{ font-size:12px; color:var(--fac-ink); margin-top:3px; }
+  #view-faculdade .cort-nota{ background:#fff3d6; border-radius:6px; padding:4px 7px; font-weight:600; }
   #view-faculdade .cort-tag{ font-size:10px; font-weight:800; color:#b23b2e; text-transform:uppercase; }
   #view-faculdade .fac-intro{ font-size:12.5px; line-height:1.6; color:var(--fac-muted); margin:0 0 20px; }
   #view-faculdade .fac-intro a{ color:var(--fac-brand); font-weight:700; }
@@ -10232,7 +10233,7 @@ window.init_faculdade = function(){
     { hosp:'De Clinicas', esp:'Toxicologia', curIni:'2026-09-28', curFim:'2026-11-03', insc:['2026-09-22','2026-09-23'], asig:null },
     { hosp:'Htal Larcade', esp:'Traumato', curIni:'2026-10-05', curFim:'2026-10-23', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
     { hosp:'Htal Eva Perón', esp:'Neurocirugía', curIni:'2026-10-05', curFim:'2026-10-16', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
-    { hosp:'Htal de Clínicas', esp:'Psiquiatría', curIni:'2026-10-05', curFim:'2026-10-30', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
+    { hosp:'Htal de Clínicas', esp:'Psiquiatría', curIni:'2026-10-05', curFim:'2026-10-30', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30', nota:'Vespertina (U.A. Borda) · 1er día lun 05/10 12:30 hs, Aula Magna (PB) — asistencia importante' },
     { hosp:'Sta. Barbara', esp:'Nutricion', curIni:'2026-10-05', curFim:'2026-10-16', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
     { hosp:'Htal. Ramos Mejía', esp:'Ginecologia', curIni:'2026-10-05', curFim:'2026-11-06', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
     { hosp:'Htal. Borda', esp:'Medicina Legal', curIni:'2026-10-05', curFim:'2026-12-04', insc:['2026-09-28','2026-09-29'], asig:'2026-09-30' },
@@ -10340,6 +10341,7 @@ window.init_faculdade = function(){
         <div class="cort-row"><b>Cursada:</b> ${dmy(c.curIni)} al ${dmy(c.curFim)} · ${escCort(c.hor || 'L-V 12-17h')}</div>
         <div class="cort-row"><b>Inscripción:</b> ${c.insc.map(dmy).join(' y ')}</div>
         <div class="cort-row"><b>Asignación:</b> ${c.asig ? dmy(c.asig) : '— (no registrada)'}${pasou ? ' <span class="cort-tag">ya pasó</span>' : ''}</div>
+        ${c.nota ? `<div class="cort-row cort-nota">📌 ${escCort(c.nota)}</div>` : ''}
       </div>`;
     };
     const todas = CORTITAS.slice().sort((a,b)=> a.insc[0].localeCompare(b.insc[0]));

@@ -1575,8 +1575,19 @@
   #view-faculdade .fac-tabs{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:20px; }
   #view-faculdade .fac-tab-btn{ background:none; border:1px solid var(--fac-line); border-radius:20px; padding:7px 16px; font-size:12.5px; font-weight:700; cursor:pointer; color:var(--fac-muted); }
   #view-faculdade .fac-tab-btn.active{ background:var(--fac-brand); color:#fff; border-color:var(--fac-brand); }
-  #view-faculdade .fac-cortitas-list{ display:block; }
-  #view-faculdade .cort-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; }
+  #view-faculdade .cort-bar{ display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
+  #view-faculdade .cort-fbtn{ background:#fff; border:1px solid var(--fac-line); border-radius:20px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; color:var(--fac-muted); font-family:inherit; }
+  #view-faculdade .cort-fbtn.active{ background:var(--fac-brand); border-color:var(--fac-brand); color:#fff; }
+  #view-faculdade .fac-cortitas-list{ display:grid; grid-template-columns:repeat(3,minmax(250px,1fr)); gap:16px; align-items:start; overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:8px; }
+  #view-faculdade .cort-col{ min-width:0; scroll-snap-align:start; }
+  #view-faculdade .cort-grid{ display:flex; flex-direction:column; gap:10px; }
+  #view-faculdade .cort-empty{ font-size:12px; color:var(--fac-muted); font-style:italic; padding:8px 2px; }
+  #view-faculdade .cort-card{ position:relative; }
+  #view-faculdade .cort-card .cort-head{ padding-right:26px; }
+  #view-faculdade .cort-star{ position:absolute; top:6px; right:8px; border:none; background:none; font-size:18px; line-height:1; cursor:pointer; color:#c9c6bb; padding:2px; }
+  #view-faculdade .cort-card.dest{ border-color:#e0a82e; background:#fff8e1; box-shadow:0 0 0 1px #e0a82e inset; }
+  #view-faculdade .cort-card.dest .cort-star{ color:#e0a82e; }
+  @media (max-width:760px){ #view-faculdade .fac-cortitas-list{ grid-template-columns:repeat(3,84%); } }
   #view-faculdade .cort-group-title{ font-size:15px; font-weight:800; color:var(--fac-brand); margin:22px 0 10px; display:flex; align-items:center; gap:8px; border-bottom:2px solid var(--fac-line); padding-bottom:6px; }
   #view-faculdade .cort-group-title:first-child{ margin-top:6px; }
   #view-faculdade .cort-group-title small{ font-size:11px; font-weight:700; color:var(--fac-muted); }
@@ -1915,7 +1926,8 @@ async function storageGetWithRetry(key){
     </section>
 
     <section class="fac-sec" id="facSecCortitas" style="display:none">
-      <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Separadas en quirúrgicas, clínicas y otras (med. familiar, med. legal, toxicología), cada grupo ordenado por fecha de inscripción. O que já passou a inscrição fica esmaecido.</p>
+      <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Tres columnas (quirúrgicas, clínicas y otras), cada una ordenada por fecha de inscripción. "Ya pasó" = inscripción, asignación e inicio de cursada ya pasaron. Toca la ☆ para destacar las que más te interesan.</p>
+      <div class="cort-bar"><button type="button" class="cort-fbtn" id="cortHideBtn"></button><button type="button" class="cort-fbtn" id="cortStarOnlyBtn">⭐ Solo destacadas</button></div>
       <div class="fac-cortitas-list" id="facCortitasList"></div>
     </section>
   </div>
@@ -2549,7 +2561,7 @@ const BACKUP_KEYS = [
   'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog', 'dieta_habits', 'dieta_habitLog',
   'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog', 'treino_gymLog', 'treino_gymMinutes',
   'ideias_itens',
-  'faculdade_farmaco_status', 'faculdade_farmaco_collapsed', 'faculdade_medint_status', 'faculdade_notas_medint', 'faculdade_notas_guardias',
+  'faculdade_farmaco_status', 'faculdade_farmaco_collapsed', 'faculdade_cortitas_ui', 'faculdade_medint_status', 'faculdade_notas_medint', 'faculdade_notas_guardias',
 ];
 
 async function doGlobalExport(){
@@ -10235,6 +10247,10 @@ window.init_faculdade = function(){
   ];
   function dmy(iso){ const [y,m,d]=iso.split('-'); return d+'/'+m; }
   const escCort = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // preferencias da aba Cortitas (destacadas + filtros), guardadas em faculdade_cortitas_ui
+  let cortUi = { stars: [], hidePassed: false, onlyStar: false };
+  function saveCortUi(){ storageSetWithRetry('faculdade_cortitas_ui', JSON.stringify(cortUi)); }
+  const cortKey = c => c.hosp + '|' + c.esp + '|' + c.curIni;
   function renderCortitas(){
     const el = document.getElementById('facCortitasList');
     if(!el) return;
@@ -10245,21 +10261,59 @@ window.init_faculdade = function(){
     const esQuir = c => /cirug|trauma|ortop|otorrino|oftalm|(^|[^a-z])urolog|ginecolog|obstetric/.test(norm(c.esp));
     // otras (ni clinicas ni quirurgicas): medicina familiar, medicina legal, toxicologia
     const esOtra = c => /familiar|legal|toxicolog/.test(norm(c.esp));
+    // "ya paso" = inscripcion, asignacion e inicio de cursada ya pasaron (la fecha mas tardia de las tres)
+    const yaPaso = c => [c.curIni, c.asig || '', ...c.insc].sort().pop() < hoje;
     const card = c => {
-      const refFim = c.asig || c.insc[c.insc.length - 1];
-      const pasou = refFim < hoje;
-      return `<div class="cort-card${pasou ? ' pasou' : ''}">
+      const pasou = yaPaso(c);
+      const dest = cortUi.stars.includes(cortKey(c));
+      return `<div class="cort-card${pasou ? ' pasou' : ''}${dest ? ' dest' : ''}">
+        <button type="button" class="cort-star" data-ck="${escCort(cortKey(c))}" title="${dest ? 'quitar destaque' : 'destacar'}">${dest ? '★' : '☆'}</button>
         <div class="cort-head"><span class="cort-esp">${escCort(c.esp)}</span><span class="cort-hosp">${escCort(c.hosp)}</span></div>
         <div class="cort-row"><b>Cursada:</b> ${dmy(c.curIni)} al ${dmy(c.curFim)} · ${escCort(c.hor || 'L-V 12-17h')}</div>
         <div class="cort-row"><b>Inscripción:</b> ${c.insc.map(dmy).join(' y ')}</div>
         <div class="cort-row"><b>Asignación:</b> ${c.asig ? dmy(c.asig) : '— (no registrada)'}${pasou ? ' <span class="cort-tag">ya pasó</span>' : ''}</div>
       </div>`;
     };
-    const sorted = CORTITAS.slice().sort((a,b)=> a.insc[0].localeCompare(b.insc[0]));
-    const grupo = (titulo, lista) => `<div class="cort-group-title">${titulo} <small>${lista.length}</small></div><div class="cort-grid">${lista.map(card).join('')}</div>`;
-    el.innerHTML = grupo('🔪 Quirúrgicas', sorted.filter(esQuir)) + grupo('🩺 Clínicas', sorted.filter(c => !esQuir(c) && !esOtra(c))) + grupo('📋 Otras', sorted.filter(esOtra));
+    const todas = CORTITAS.slice().sort((a,b)=> a.insc[0].localeCompare(b.insc[0]));
+    const nPasaron = todas.filter(yaPaso).length;
+    const visibles = todas.filter(c => !(cortUi.hidePassed && yaPaso(c)) && !(cortUi.onlyStar && !cortUi.stars.includes(cortKey(c))));
+    const col = (titulo, lista) => `<div class="cort-col"><div class="cort-group-title">${titulo} <small>${lista.length}</small></div><div class="cort-grid">${lista.length ? lista.map(card).join('') : '<div class="cort-empty">— nada por acá —</div>'}</div></div>`;
+    el.innerHTML = col('🔪 Quirúrgicas', visibles.filter(esQuir))
+      + col('🩺 Clínicas', visibles.filter(c => !esQuir(c) && !esOtra(c)))
+      + col('📋 Otras', visibles.filter(esOtra));
+    const hb = document.getElementById('cortHideBtn');
+    if(hb){
+      hb.classList.toggle('active', cortUi.hidePassed);
+      hb.textContent = cortUi.hidePassed ? '👁 Mostrar las que ya pasaron (' + nPasaron + ' ocultas)' : '🙈 Ocultar las que ya pasaron (' + nPasaron + ')';
+    }
+    const sb = document.getElementById('cortStarOnlyBtn');
+    if(sb){
+      sb.classList.toggle('active', cortUi.onlyStar);
+      sb.textContent = '⭐ Solo destacadas (' + cortUi.stars.length + ')';
+    }
   }
+  (function(){
+    const hb = document.getElementById('cortHideBtn'), sb = document.getElementById('cortStarOnlyBtn'), list = document.getElementById('facCortitasList');
+    if(hb) hb.addEventListener('click', () => { cortUi.hidePassed = !cortUi.hidePassed; saveCortUi(); renderCortitas(); });
+    if(sb) sb.addEventListener('click', () => { cortUi.onlyStar = !cortUi.onlyStar; saveCortUi(); renderCortitas(); });
+    if(list) list.addEventListener('click', ev => {
+      const b = ev.target.closest('.cort-star');
+      if(!b) return;
+      const k = b.dataset.ck;
+      cortUi.stars = cortUi.stars.includes(k) ? cortUi.stars.filter(x => x !== k) : cortUi.stars.concat(k);
+      saveCortUi(); renderCortitas();
+    });
+  })();
   renderCortitas();
+  storageGetWithRetry('faculdade_cortitas_ui').then(r => {
+    if(r && r.value !== undefined){
+      try {
+        const v = JSON.parse(r.value) || {};
+        cortUi = { stars: Array.isArray(v.stars) ? v.stars : [], hidePassed: !!v.hidePassed, onlyStar: !!v.onlyStar };
+      } catch(e){}
+    }
+    renderCortitas();
+  });
 
   // ===== Guardias: la guía se carga aparte (faculdade-guardias.html) para no pesar el index =====
   let _grdLoaded = false, _grdLoading = false;

@@ -1613,6 +1613,8 @@
   #view-faculdade .cort-hosp{ font-size:11px; color:var(--fac-muted); font-weight:700; }
   #view-faculdade .cort-row{ font-size:12px; color:var(--fac-ink); margin-top:3px; }
   #view-faculdade .cort-nota{ background:#fff3d6; border-radius:6px; padding:4px 7px; font-weight:600; }
+  #view-faculdade .cort-card.mia{ border-color:#2F7D4F; background:#eef7f1; box-shadow:0 0 0 1px #2F7D4F inset; }
+  #view-faculdade .cort-tag.ok{ color:#2F7D4F; }
   #view-faculdade .cort-tag{ font-size:10px; font-weight:800; color:#b23b2e; text-transform:uppercase; }
   #view-faculdade .fac-intro{ font-size:12.5px; line-height:1.6; color:var(--fac-muted); margin:0 0 20px; }
   #view-faculdade .fac-intro a{ color:var(--fac-brand); font-weight:700; }
@@ -1945,7 +1947,7 @@ async function storageGetWithRetry(key){
       <div class="cort-layout">
         <aside class="exam-side"><div class="exam-title">📝 Pruebas</div><div id="cortExamList"></div></aside>
         <div class="cort-main">
-        <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Tres columnas (clínicas, quirúrgicas y otras), cada una ordenada por fecha de inscripción. "Ya pasó" = inscripción, asignación e inicio de cursada ya pasaron. Toca la ☆ para destacar las que más te interesan.</p>
+        <p class="fac-intro">Pasantías/rotaciones cortas presenciales — hospital, especialidad, fecha de cursada e inscripción. Tres columnas (clínicas, quirúrgicas y otras), cada una ordenada por fecha de inscripción. "Ya pasó" = inscripción, asignación e inicio de cursada ya pasaron. "No puedo" = se pisa en fechas y horario con una cursada que ya tengo confirmada. Toca la ☆ para destacar las que más te interesan.</p>
         <div class="cort-bar"><button type="button" class="cort-fbtn" id="cortHideBtn"></button><button type="button" class="cort-fbtn" id="cortStarOnlyBtn">⭐ Solo destacadas</button></div>
         <div class="fac-cortitas-list" id="facCortitasList"></div>
         </div>
@@ -10266,6 +10268,8 @@ window.init_faculdade = function(){
     { hosp:'Sta. Barbara', esp:'Nutricion', curIni:'2026-11-30', curFim:'2026-12-11', insc:['2026-11-23','2026-11-24'], asig:'2026-11-25' },
     { hosp:'Sta. Barbara', esp:'Neurologia', curIni:'2026-11-30', curFim:'2026-12-18', insc:['2026-11-23','2026-11-24'], asig:'2026-11-25' },
   ];
+  // cursadas confirmadas (hosp + esp + inicio de la cursada). Agregar acá cada nueva que me asignen.
+  const MIAS = [ { hosp:'Htal de Clínicas', esp:'Psiquiatría', curIni:'2026-10-05' } ];
   function dmy(iso){ const [y,m,d]=iso.split('-'); return d+'/'+m; }
   const escCort = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   // ===== Provas (parciais, recuperatorios e finais) — mesmas datas da Agenda =====
@@ -10332,21 +10336,30 @@ window.init_faculdade = function(){
     const esOtra = c => /familiar|legal|toxicolog/.test(norm(c.esp));
     // "ya paso" = inscripcion, asignacion e inicio de cursada ya pasaron (la fecha mas tardia de las tres)
     const yaPaso = c => [c.curIni, c.asig || '', ...c.insc].sort().pop() < hoje;
+    // cursadas que ya tengo confirmadas: bloquean sus fechas Y su horario (otra pasantia que se pise no se puede hacer)
+    const esMia = c => MIAS.some(m => m.hosp === c.hosp && m.esp === c.esp && m.curIni === c.curIni);
+    const horas = c => { const m = String(c.hor || 'L-V 12-17h').match(/(\d+)-(\d+)h/); return m ? [+m[1], +m[2]] : [12, 17]; };
+    const misCursadas = CORTITAS.filter(esMia);
+    const choca = c => esMia(c) ? null : (misCursadas.find(m => c.curIni <= m.curFim && c.curFim >= m.curIni && horas(c)[0] < horas(m)[1] && horas(c)[1] > horas(m)[0]) || null);
+    const descartada = c => yaPaso(c) || !!choca(c);
     const card = c => {
-      const pasou = yaPaso(c);
+      const pasou = descartada(c);
+      const ch = choca(c);
       const dest = cortUi.stars.includes(cortKey(c));
-      return `<div class="cort-card${pasou ? ' pasou' : ''}${dest ? ' dest' : ''}">
+      return `<div class="cort-card${pasou ? ' pasou' : ''}${dest ? ' dest' : ''}${esMia(c) ? ' mia' : ''}">
         <button type="button" class="cort-star" data-ck="${escCort(cortKey(c))}" title="${dest ? 'quitar destaque' : 'destacar'}">${dest ? '★' : '☆'}</button>
         <div class="cort-head"><span class="cort-esp">${escCort(c.esp)}</span><span class="cort-hosp">${escCort(c.hosp)}</span></div>
         <div class="cort-row"><b>Cursada:</b> ${dmy(c.curIni)} al ${dmy(c.curFim)} · ${escCort(c.hor || 'L-V 12-17h')}</div>
         <div class="cort-row"><b>Inscripción:</b> ${c.insc.map(dmy).join(' y ')}</div>
-        <div class="cort-row"><b>Asignación:</b> ${c.asig ? dmy(c.asig) : '— (no registrada)'}${pasou ? ' <span class="cort-tag">ya pasó</span>' : ''}</div>
+        <div class="cort-row"><b>Asignación:</b> ${c.asig ? dmy(c.asig) : '— (no registrada)'}${yaPaso(c) ? ' <span class="cort-tag">ya pasó</span>' : ''}</div>
+        ${esMia(c) ? '<div class="cort-row"><span class="cort-tag ok">✅ mi cursada confirmada</span></div>' : ''}
+        ${!yaPaso(c) && ch ? `<div class="cort-row"><span class="cort-tag">⛔ no puedo: choca con ${escCort(ch.esp)} (${dmy(ch.curIni)}–${dmy(ch.curFim)}, ${horas(ch)[0]}-${horas(ch)[1]}h)</span></div>` : ''}
         ${c.nota ? `<div class="cort-row cort-nota">📌 ${escCort(c.nota)}</div>` : ''}
       </div>`;
     };
     const todas = CORTITAS.slice().sort((a,b)=> a.insc[0].localeCompare(b.insc[0]));
-    const nPasaron = todas.filter(yaPaso).length;
-    const visibles = todas.filter(c => !(cortUi.hidePassed && yaPaso(c)) && !(cortUi.onlyStar && !cortUi.stars.includes(cortKey(c))));
+    const nPasaron = todas.filter(descartada).length;
+    const visibles = todas.filter(c => !(cortUi.hidePassed && descartada(c)) && !(cortUi.onlyStar && !cortUi.stars.includes(cortKey(c))));
     const col = (titulo, lista) => `<div class="cort-col"><div class="cort-group-title">${titulo} <small>${lista.length}</small></div><div class="cort-grid">${lista.length ? lista.map(card).join('') : '<div class="cort-empty">— nada por acá —</div>'}</div></div>`;
     el.innerHTML = col('🩺 Clínicas', visibles.filter(c => !esQuir(c) && !esOtra(c)))
       + col('🔪 Quirúrgicas', visibles.filter(esQuir))
@@ -10354,7 +10367,7 @@ window.init_faculdade = function(){
     const hb = document.getElementById('cortHideBtn');
     if(hb){
       hb.classList.toggle('active', cortUi.hidePassed);
-      hb.textContent = cortUi.hidePassed ? '👁 Mostrar las que ya pasaron (' + nPasaron + ' ocultas)' : '🙈 Ocultar las que ya pasaron (' + nPasaron + ')';
+      hb.textContent = cortUi.hidePassed ? '👁 Mostrar las que ya pasaron o no puedo (' + nPasaron + ' ocultas)' : '🙈 Ocultar las que ya pasaron o no puedo (' + nPasaron + ')';
     }
     const sb = document.getElementById('cortStarOnlyBtn');
     if(sb){

@@ -1625,6 +1625,9 @@
   #view-faculdade .cort-row{ font-size:12px; color:var(--fac-ink); margin-top:3px; }
   #view-faculdade .cort-hnc{ display:inline-block; font-size:10.5px; font-weight:800; color:#a15c00; background:#ffe9bf; border-radius:6px; padding:1px 6px; }
   #view-faculdade .cort-bar .cort-hnc{ align-self:center; font-size:11px; padding:4px 9px; }
+  #view-faculdade .fac-count{ font-size:12px; font-weight:800; color:var(--fac-muted); margin:0 0 6px; }
+  #view-faculdade .fac-subgrp{ font-size:12.5px; font-weight:800; color:var(--fac-brand); margin:12px 0 4px; padding-bottom:3px; border-bottom:1px solid var(--fac-line); }
+  #view-faculdade .fac-subgrp small{ font-size:11px; font-weight:700; color:var(--fac-muted); margin-left:4px; }
   #view-faculdade .cort-nota{ background:#fff3d6; border-radius:6px; padding:4px 7px; font-weight:600; }
   #view-faculdade .cort-card.mia{ border-color:#2F7D4F; background:#eef7f1; box-shadow:0 0 0 1px #2F7D4F inset; }
   #view-faculdade .cort-tag.ok{ color:#2F7D4F; }
@@ -10153,30 +10156,28 @@ window.init_faculdade = function(){
       { x:'Hígado graso asociado a alteraciones metabólicas (MASLD)', w:'Dr. Juan Daroqui' },
       { x:'Tumores hepáticos (benignos y malignos)', w:'Dra. Viviana Falasco' },
     ]},
-    { mod: 'Renal', clases: [
-      { x:'Alteraciones equilibrio ácido base', w:'Dra. Viviana Falasco' },
-      { x:'Acidosis respiratoria. Acidosis metabólica', w:'Dra. Viviana Falasco' },
-      { x:'Alcalosis metabólica y respiratoria. Ejercicios del medio interno', w:'Dra. Viviana Falasco' },
-      { x:'Enfermedad renal crónica', w:'Dra. Sofia Rique' },
-      { x:'Injuria renal aguda', w:'Dr. Miguel Falasco' },
-      { x:'Infección urinaria', w:'Dra. Guadalupe Pesagno' },
-      { x:'Glomerulopatía primaria y secundaria', w:'Dra. Eliana Quevedo' },
-      { x:'Alteraciones hidroelectrolíticas. Trastornos del sodio', w:'Dra. Sofia Rique' },
-    ]},
-    { mod: 'Endocrino y Metabolismo', clases: [
-      { x:'Cetoacidosis diabética', w:'Dra. Maisonave' },
-      { x:'Diabetes', w:'Dr. Luis Lopez' },
-      { x:'Coma hipoglucémico y estados hiperosmolares hiperglucémicos', w:'Dr. Lautaro Ancona' },
-      { x:'Obesidad', w:'Dra. Viviana Falasco' },
-      { x:'Dislipemias', w:'Dr. Miguel Falasco' },
-      { x:'Patología hipofisaria', w:'Dra. Marina Bernat' },
-      { x:'Hipertiroidismo. Crisis hipertiroidea', w:'Dra. Graciela Fernández' },
-      { x:'Hipo e hiper paratiroidismo', w:'Dr. Miguel Falasco' },
-      { x:'Nódulo tiroideo y CA de tiroides', w:'Dra. Julieta Gonzalez' },
-      { x:'Insuficiencia suprarrenal aguda y crónica', w:'Dra. Silvia Falasco' },
-      { x:'Hiperaldosteronismo 1° y 2°. HTA de origen endocrino (feocromocitoma)', w:'Dra. Carolina de Llano' },
-      { x:'Cushing 1° y 2°', w:'Dra. Silvia Falasco' },
-      { x:'Hipotiroidismo. Coma mixedematoso', w:'Dr. Aníbal Aristizabal' },
+    { mod: 'Renal, Endocrino y Metabolismo', clases: [
+      { x:'Alteraciones equilibrio ácido base', w:'Dra. Viviana Falasco', g:'Renal' },
+      { x:'Acidosis respiratoria. Acidosis metabólica', w:'Dra. Viviana Falasco', g:'Renal' },
+      { x:'Alcalosis metabólica y respiratoria. Ejercicios del medio interno', w:'Dra. Viviana Falasco', g:'Renal' },
+      { x:'Enfermedad renal crónica', w:'Dra. Sofia Rique', g:'Renal' },
+      { x:'Injuria renal aguda', w:'Dr. Miguel Falasco', g:'Renal' },
+      { x:'Infección urinaria', w:'Dra. Guadalupe Pesagno', g:'Renal' },
+      { x:'Glomerulopatía primaria y secundaria', w:'Dra. Eliana Quevedo', g:'Renal' },
+      { x:'Alteraciones hidroelectrolíticas. Trastornos del sodio', w:'Dra. Sofia Rique', g:'Renal' },
+      { x:'Patología hipofisaria', w:'Dra. Marina Bernat', g:'Endocrino' },
+      { x:'Hipertiroidismo. Crisis hipertiroidea', w:'Dra. Graciela Fernández', g:'Endocrino' },
+      { x:'Hipo e hiper paratiroidismo', w:'Dr. Miguel Falasco', g:'Endocrino' },
+      { x:'Nódulo tiroideo y CA de tiroides', w:'Dra. Julieta Gonzalez', g:'Endocrino' },
+      { x:'Insuficiencia suprarrenal aguda y crónica', w:'Dra. Silvia Falasco', g:'Endocrino' },
+      { x:'Hiperaldosteronismo 1° y 2°. HTA de origen endocrino (feocromocitoma)', w:'Dra. Carolina de Llano', g:'Endocrino' },
+      { x:'Cushing 1° y 2°', w:'Dra. Silvia Falasco', g:'Endocrino' },
+      { x:'Hipotiroidismo. Coma mixedematoso', w:'Dr. Aníbal Aristizabal', g:'Endocrino' },
+      { x:'Cetoacidosis diabética', w:'Dra. Maisonave', g:'Metabolismo' },
+      { x:'Diabetes', w:'Dr. Luis Lopez', g:'Metabolismo' },
+      { x:'Coma hipoglucémico y estados hiperosmolares hiperglucémicos', w:'Dr. Lautaro Ancona', g:'Metabolismo' },
+      { x:'Obesidad', w:'Dra. Viviana Falasco', g:'Metabolismo' },
+      { x:'Dislipemias', w:'Dr. Miguel Falasco', g:'Metabolismo' },
     ]},
     { mod: 'Sangre y Colagenopatías', clases: [] },
   ];
@@ -10196,11 +10197,18 @@ window.init_faculdade = function(){
       if(!m.clases.length){
         rows = `<div class="fac-vid miss"><span class="fac-spacer"></span><span class="note" style="font-style:italic">— a cátedra ainda não disponibilizou as aulas deste módulo</span></div>`;
       } else {
-        rows = m.clases.map((c, ci) => {
+        const cntLine = `<div class="fac-count">${m.clases.length} clases</div>`;
+        let prevG = null;
+        rows = cntLine + m.clases.map((c, ci) => {
+          let head = '';
+          if(c.g && c.g !== prevG){
+            head = `<div class="fac-subgrp">${c.g} <small>${m.clases.filter(x => x.g === c.g).length} clases</small></div>`;
+          }
+          prevG = c.g || null;
           const key = 'medint-' + mi + '-' + ci;
           const has = inPend(() => PEND.byClase(key));
           const done = !!medintSeen[mi + '-' + ci];
-          return `<div class="fac-vid${done ? ' done' : ''}">`
+          return head + `<div class="fac-vid${done ? ' done' : ''}">`
             + `<input type="checkbox" data-mk="${mi}-${ci}"${done ? ' checked' : ''} title="marcar como estudada">`
             + `<span><span class="name">${c.x}</span>${c.w ? ` <span class="dur">· ${c.w}</span>` : ''}</span>`
             + `<button class="fac-addpend${has ? ' in' : ''}" data-medint-addclase="${mi}-${ci}"`

@@ -189,6 +189,9 @@
     --farmaco:#3b5fa8;
     --farmaco-bg:#eaf0fb;
     --farmaco-strong:#2a4785;
+    --psiq:#b5651d;
+    --psiq-bg:#fbefe2;
+    --psiq-strong:#8a4a12;
     --medb:#a8394a;
     --medb-bg:#fbeaec;
     --medb-strong:#7e2735;
@@ -306,6 +309,11 @@
   #view-agenda .entry.farmaco .time {color:var(--farmaco);}
   #view-agenda .entry.farmaco-strong {border-color:var(--farmaco-strong);background:var(--farmaco-strong);}
   #view-agenda .entry.farmaco-strong .time, #view-agenda .entry.farmaco-strong .title {color:#fff;}
+
+  #view-agenda .entry.psiq {border-color:var(--psiq);background:var(--psiq-bg);}
+  #view-agenda .entry.psiq .time {color:var(--psiq);}
+  #view-agenda .entry.psiq-strong {border-color:var(--psiq-strong);background:var(--psiq-strong);}
+  #view-agenda .entry.psiq-strong .time, #view-agenda .entry.psiq-strong .title {color:#fff;}
 
   #view-agenda .entry.academia {border-color:#d9a400;background:#fff4bf;}
   #view-agenda .entry.academia .time {color:#9a6f00;}
@@ -588,6 +596,8 @@
 #view-agenda .cuadri-wrap .pill .pill-who{display:block;font-size:8.5px;font-weight:400;opacity:.7;margin-top:1px;}
 #view-agenda .cuadri-wrap .pill.farmaco {background:var(--farmaco-bg);color:var(--farmaco);border-left:2px solid var(--farmaco);}
 #view-agenda .cuadri-wrap .pill.farmaco-strong {background:var(--farmaco-strong);color:#fff;border-left:2px solid var(--farmaco-strong);}
+#view-agenda .cuadri-wrap .pill.psiq {background:var(--psiq-bg);color:var(--psiq);border-left:2px solid var(--psiq);}
+#view-agenda .cuadri-wrap .pill.psiq-strong {background:var(--psiq-strong);color:#fff;border-left:2px solid var(--psiq-strong);}
 #view-agenda .cuadri-wrap .pill.medb {background:var(--medb-bg);color:var(--medb);border-left:2px solid var(--medb);}
 #view-agenda .cuadri-wrap .pill.medb-strong {background:var(--medb-strong);color:#fff;border-left:2px solid var(--medb-strong);}
 #view-agenda .cuadri-wrap .pill.pessoal {background:var(--pessoal-bg);color:var(--pessoal);border-left:2px solid var(--pessoal);}
@@ -1582,6 +1592,7 @@
   #view-faculdade .exam-title{ font-size:14px; font-weight:800; color:var(--fac-brand); margin-bottom:8px; }
   #view-faculdade .exam-item{ border-left:4px solid var(--fac-brand); background:#faf8f3; border-radius:6px; padding:7px 9px; margin-bottom:7px; }
   #view-faculdade .exam-item.farm{ border-left-color:#2F7D4F; }
+  #view-faculdade .exam-item.psq{ border-left-color:#b5651d; }
   #view-faculdade .exam-item.prox{ background:#fff3d6; box-shadow:0 0 0 1px #e0a82e inset; }
   #view-faculdade .exam-item.pasada{ opacity:.45; }
   #view-faculdade .exam-date{ font-size:11px; font-weight:800; color:var(--fac-muted); text-transform:uppercase; letter-spacing:.3px; display:flex; justify-content:space-between; gap:6px; }
@@ -1982,6 +1993,7 @@ async function storageGetWithRetry(key){
   <div class="legend">
     <span><i class="dot" style="background:var(--farmaco)"></i>Farmacología II</span>
     <span><i class="dot" style="background:var(--medb)"></i>Medicina Interna B</span>
+    <span><i class="dot" style="background:var(--psiq)"></i>Psiquiatría</span>
     <span><i class="dot" style="background:var(--rotina)"></i>Rotina</span>
     <span><i class="dot" style="background:#c9a227"></i>Exercício</span>
     <span><i class="dot" style="background:var(--pessoal)"></i>Pessoal</span>
@@ -2008,6 +2020,7 @@ async function storageGetWithRetry(key){
       <div class="legend">
         <span><i class="dot" style="background:var(--farmaco)"></i>Farmacología II</span>
         <span><i class="dot" style="background:var(--medb)"></i>Medicina Interna B</span>
+        <span><i class="dot" style="background:var(--psiq)"></i>Psiquiatría</span>
         <span><i class="dot" style="background:var(--pessoal)"></i>Pessoal</span>
       </div>
     </header>
@@ -3913,7 +3926,7 @@ function renderCuadri(){
     for(let day=1; day<=daysInMonth; day++){
       const dateStr = `${year}-${cuadriPad(monthIdx+1)}-${cuadriPad(day)}`;
       const isToday = dateStr===cuadriTodayStr;
-      const dayEvents = cuadriEvents.concat(userEvents.filter(e=>e.scope==='cuadri' || (e.scope!=='mensal' && !['pessoal','evento','rotina','saopaulo'].includes(e.c)))).filter(e=>e.d===dateStr);
+      const dayEvents = cuadriEvents.concat(userEvents.filter(e=>e.scope==='cuadri' || (e.scope!=='mensal' && !['pessoal','evento','rotina','saopaulo','inscricao','asignacion'].includes(e.c)))).filter(e=>e.d===dateStr);
       html += `<div class="cell${isToday?' today':''}"><div class="daynum">${day}</div>`;
       dayEvents.forEach(e=>{
         const isUser = e.id !== undefined;
@@ -4201,7 +4214,7 @@ function renderDays(){
     const t0 = new Date(today); t0.setHours(0,0,0,0);
     // eventos pontuais das DUAS listas (academicEvents fixos + userEvents): provas, consultas/turnos,
     // shows, jogos e o que o usuário adicionou. Fora: aula normal, rotina, inscrições/asignaciones.
-    const SURFACE_CLASSES = ['evento','pessoal','saopaulo','medb-strong','farmaco-strong'];
+    const SURFACE_CLASSES = ['evento','pessoal','saopaulo','medb-strong','farmaco-strong','psiq-strong'];
     // cortes de cabelo (rotina de 14 em 14 dias) entram; Academia nao (e rotina do dia a dia)
     const hairPool = [];
     for(let i=0;i<60;i++){
@@ -10362,6 +10375,7 @@ window.init_faculdade = function(){
     { d:'2026-12-10', ti:'Último recup.: Respiratorio y Cardiovascular', m:'b' },
     { d:'2026-12-14', ti:'Último recup.: Renal / Sangre y Colagenopatías', m:'b' },
     { d:'2026-12-16', ti:'FINAL Farmacología II — opción 2', m:'f', fin:true, insc:'08/12 y 09/12' },
+    { d:'2026-10-30', ti:'FINAL — Psiquiatría', m:'p', fin:true },
     { d:'2026-12-18', ti:'Primer Final de Medicina Interna B', m:'b', fin:true },
   ];
   function renderExamenes(){
@@ -10378,10 +10392,10 @@ window.init_faculdade = function(){
       const dif = Math.round((utc(e.d) - utc(hoje)) / 86400000);
       const cd = dif === 0 ? 'hoy' : dif === 1 ? 'mañana' : dif > 0 ? 'en ' + dif + ' días' : 'hace ' + (-dif) + ' días';
       const wd = DIAS[new Date(utc(e.d)).getUTCDay()];
-      return `<div class="exam-item${e.m === 'f' ? ' farm' : ''}${i === 0 && dif >= 0 ? ' prox' : ''}${dif < 0 ? ' pasada' : ''}">
+      return `<div class="exam-item${e.m === 'f' ? ' farm' : e.m === 'p' ? ' psq' : ''}${i === 0 && dif >= 0 ? ' prox' : ''}${dif < 0 ? ' pasada' : ''}">
         <div class="exam-date"><span>${wd} ${dmy(e.d)}</span><span class="exam-cd">${cd}</span></div>
         <div class="exam-name">${escCort(e.ti)}</div>
-        <div class="exam-mat">${e.m === 'f' ? 'Fármaco II' : 'Interna B'}${e.insc ? ' · inscripción ' + e.insc : ''}</div>
+        <div class="exam-mat">${e.m === 'f' ? 'Fármaco II' : e.m === 'p' ? 'Psiquiatría' : 'Interna B'}${e.insc ? ' · inscripción ' + e.insc : ''}</div>
       </div>`;
     };
     const finHtml = `<div class="exam-sub">🎓 Finales</div>` + finales.map(e => item(e, -1)).join('') + `<div class="exam-sub">📝 Parciales y recuperatorios</div>`;

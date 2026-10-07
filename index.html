@@ -3323,7 +3323,6 @@ const academicEvents = [
 
   {d:"2026-10-05",t:"08:00",ti:"Hígado graso asociado a alteraciones metabólicas (MASLD)",w:"Dr. Juan Daroqui",c:"medb"},
   {d:"2026-10-07",t:"",ti:"PARCIAL — Digestivo",c:"medb-strong"},
-  {d:"2026-10-14",t:"",ti:"RECUPERATORIO — Digestivo",c:"medb-strong"},
   {d:"2026-10-08",t:"08:00",ti:"Cetoacidosis diabética",w:"Dra. Maisonave",c:"medb"},
   {d:"2026-10-09",t:"08:00",ti:"Diabetes",w:"Dr. Luis Lopez",c:"medb"},
   {d:"2026-10-13",t:"08:00",ti:"Alteraciones equilibrio ácido base",w:"Dra. Viviana Falasco",c:"medb"},
@@ -3848,7 +3847,6 @@ function renderCuadri(){
     {d:"2026-10-02",t:"10:30",ti:"Colangitis biliar primaria y colangitis esclerosante. Hepatitis autoinmune. Colangitis c/IgG4",w:"Dr. Gonzalo Rodriguez",c:"medb"},
     {d:"2026-10-05",t:"08:00",ti:"Hígado graso asociado a alteraciones metabólicas (MASLD)",w:"Dr. Juan Daroqui",c:"medb"},
     {d:"2026-10-05",t:"17:30",ti:"Clase 8 — Antineoplásicos, Antirretrovirales, Antivirales",c:"farmaco"},    {d:"2026-10-07",t:"",ti:"PARCIAL — Digestivo",c:"medb-strong"},
-    {d:"2026-10-14",t:"",ti:"RECUPERATORIO — Digestivo",c:"medb-strong"},
     {d:"2026-10-08",t:"08:00",ti:"Cetoacidosis diabética",w:"Dra. Maisonave",c:"medb"},
     {d:"2026-10-09",t:"08:00",ti:"Diabetes",w:"Dr. Luis Lopez",c:"medb"},
     {d:"2026-10-13",t:"08:00",ti:"Alteraciones equilibrio ácido base",w:"Dra. Viviana Falasco",c:"medb"},
@@ -3894,7 +3892,6 @@ function renderCuadri(){
     {d:"2026-12-09",t:"",ti:"FINAL Farmacología II — opción 1",c:"farmaco-strong"},
     {d:"2026-12-09",t:"",ti:"Inscripción Final — opção 2",c:"farmaco"},
     {d:"2026-12-10",t:"",ti:"Último recup.: Respiratorio y Cardiovascular",c:"medb-strong"},
-    {d:"2026-12-11",t:"",ti:"Último recup.: Digestivo",c:"medb-strong"},
     {d:"2026-12-14",t:"",ti:"Último recup.: Renal / Sangre y Colagenopatías",c:"medb-strong"},
     {d:"2026-12-16",t:"",ti:"FINAL Farmacología II — opção 2",c:"farmaco-strong"},
     {d:"2026-12-18",t:"",ti:"Primer Final de Medicina Interna B",c:"medb-strong"},
@@ -4217,7 +4214,7 @@ function renderDays(){
       }
     }
     const upcoming = allEvents.filter(e=>!/^\s*academia/i.test(e.ti||'')).concat(hairPool)
-      .filter(e=>{ const ed = new Date(e.d+'T00:00:00'); return ed >= t0 && SURFACE_CLASSES.includes(e.c); })
+      .filter(e=>{ const ed = new Date(e.d+'T00:00:00'); return ed >= t0 && SURFACE_CLASSES.includes(e.c) && !/^\s*(in[ií]cio cursada|psiquiatr[ií]a:)/i.test(e.ti||''); })
       .sort((a,b)=> a.d.localeCompare(b.d) || (a.t||'').localeCompare(b.t||''))
       .slice(0,8);
     if(upcoming.length){
@@ -10143,20 +10140,22 @@ window.init_faculdade = function(){
       { x:'Hígado graso asociado a alteraciones metabólicas (MASLD)', w:'Dr. Juan Daroqui' },
       { x:'Tumores hepáticos (benignos y malignos)', w:'Dra. Viviana Falasco' },
     ]},
-    { mod: 'Renal, Endocrino y Metabolismo', clases: [
-      { x:'Cetoacidosis diabética', w:'Dra. Maisonave' },
-      { x:'Diabetes', w:'Dr. Luis Lopez' },
+    { mod: 'Renal', clases: [
       { x:'Alteraciones equilibrio ácido base', w:'Dra. Viviana Falasco' },
       { x:'Acidosis respiratoria. Acidosis metabólica', w:'Dra. Viviana Falasco' },
       { x:'Alcalosis metabólica y respiratoria. Ejercicios del medio interno', w:'Dra. Viviana Falasco' },
       { x:'Enfermedad renal crónica', w:'Dra. Sofia Rique' },
-      { x:'Coma hipoglucémico y estados hiperosmolares hiperglucémicos', w:'Dr. Lautaro Ancona' },
       { x:'Injuria renal aguda', w:'Dr. Miguel Falasco' },
       { x:'Infección urinaria', w:'Dra. Guadalupe Pesagno' },
-      { x:'Obesidad', w:'Dra. Viviana Falasco' },
       { x:'Glomerulopatía primaria y secundaria', w:'Dra. Eliana Quevedo' },
-      { x:'Dislipemias', w:'Dr. Miguel Falasco' },
       { x:'Alteraciones hidroelectrolíticas. Trastornos del sodio', w:'Dra. Sofia Rique' },
+    ]},
+    { mod: 'Endocrino y Metabolismo', clases: [
+      { x:'Cetoacidosis diabética', w:'Dra. Maisonave' },
+      { x:'Diabetes', w:'Dr. Luis Lopez' },
+      { x:'Coma hipoglucémico y estados hiperosmolares hiperglucémicos', w:'Dr. Lautaro Ancona' },
+      { x:'Obesidad', w:'Dra. Viviana Falasco' },
+      { x:'Dislipemias', w:'Dr. Miguel Falasco' },
       { x:'Patología hipofisaria', w:'Dra. Marina Bernat' },
       { x:'Hipertiroidismo. Crisis hipertiroidea', w:'Dra. Graciela Fernández' },
       { x:'Hipo e hiper paratiroidismo', w:'Dr. Miguel Falasco' },
@@ -10349,7 +10348,6 @@ window.init_faculdade = function(){
     { d:'2026-09-07', ti:'1er PARCIAL Farmacología II', m:'f' },
     { d:'2026-09-16', ti:'PARCIAL — Cardiovascular', m:'b' },
     { d:'2026-10-07', ti:'PARCIAL — Digestivo', m:'b' },
-    { d:'2026-10-14', ti:'RECUPERATORIO — Digestivo', m:'b' },
     { d:'2026-10-19', ti:'2do PARCIAL Farmacología II', m:'f' },
     { d:'2026-10-26', ti:'RECUPERATORIO 2do parcial Farmaco', m:'f' },
     { d:'2026-11-04', ti:'PARCIAL — Renal, Endocrino y Metabolismo (1er día)', m:'b' },
@@ -10362,7 +10360,6 @@ window.init_faculdade = function(){
     { d:'2026-12-09', ti:'RECUPERATORIO — Sangre y Colagenopatías', m:'b' },
     { d:'2026-12-09', ti:'FINAL Farmacología II — opción 1', m:'f', fin:true, insc:'01/12 y 02/12' },
     { d:'2026-12-10', ti:'Último recup.: Respiratorio y Cardiovascular', m:'b' },
-    { d:'2026-12-11', ti:'Último recup.: Digestivo', m:'b' },
     { d:'2026-12-14', ti:'Último recup.: Renal / Sangre y Colagenopatías', m:'b' },
     { d:'2026-12-16', ti:'FINAL Farmacología II — opción 2', m:'f', fin:true, insc:'08/12 y 09/12' },
     { d:'2026-12-18', ti:'Primer Final de Medicina Interna B', m:'b', fin:true },

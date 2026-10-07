@@ -189,9 +189,9 @@
     --farmaco:#3b5fa8;
     --farmaco-bg:#eaf0fb;
     --farmaco-strong:#2a4785;
-    --psiq:#b5651d;
-    --psiq-bg:#fbefe2;
-    --psiq-strong:#8a4a12;
+    --psiq:#26262d;
+    --psiq-bg:#26262d;
+    --psiq-strong:#000000;
     --medb:#a8394a;
     --medb-bg:#fbeaec;
     --medb-strong:#7e2735;
@@ -311,7 +311,8 @@
   #view-agenda .entry.farmaco-strong .time, #view-agenda .entry.farmaco-strong .title {color:#fff;}
 
   #view-agenda .entry.psiq {border-color:var(--psiq);background:var(--psiq-bg);}
-  #view-agenda .entry.psiq .time {color:var(--psiq);}
+  #view-agenda .entry.psiq .time, #view-agenda .entry.psiq .title {color:#fff;}
+  #view-agenda .entry.psiq .who, #view-agenda .entry.psiq-strong .who {color:#c9c9d1;}
   #view-agenda .entry.psiq-strong {border-color:var(--psiq-strong);background:var(--psiq-strong);}
   #view-agenda .entry.psiq-strong .time, #view-agenda .entry.psiq-strong .title {color:#fff;}
 
@@ -596,7 +597,7 @@
 #view-agenda .cuadri-wrap .pill .pill-who{display:block;font-size:8.5px;font-weight:400;opacity:.7;margin-top:1px;}
 #view-agenda .cuadri-wrap .pill.farmaco {background:var(--farmaco-bg);color:var(--farmaco);border-left:2px solid var(--farmaco);}
 #view-agenda .cuadri-wrap .pill.farmaco-strong {background:var(--farmaco-strong);color:#fff;border-left:2px solid var(--farmaco-strong);}
-#view-agenda .cuadri-wrap .pill.psiq {background:var(--psiq-bg);color:var(--psiq);border-left:2px solid var(--psiq);}
+#view-agenda .cuadri-wrap .pill.psiq {background:var(--psiq-bg);color:#fff;border-left:2px solid #5a5a66;}
 #view-agenda .cuadri-wrap .pill.psiq-strong {background:var(--psiq-strong);color:#fff;border-left:2px solid var(--psiq-strong);}
 #view-agenda .cuadri-wrap .pill.medb {background:var(--medb-bg);color:var(--medb);border-left:2px solid var(--medb);}
 #view-agenda .cuadri-wrap .pill.medb-strong {background:var(--medb-strong);color:#fff;border-left:2px solid var(--medb-strong);}
@@ -1592,7 +1593,7 @@
   #view-faculdade .exam-title{ font-size:14px; font-weight:800; color:var(--fac-brand); margin-bottom:8px; }
   #view-faculdade .exam-item{ border-left:4px solid var(--fac-brand); background:#faf8f3; border-radius:6px; padding:7px 9px; margin-bottom:7px; }
   #view-faculdade .exam-item.farm{ border-left-color:#2F7D4F; }
-  #view-faculdade .exam-item.psq{ border-left-color:#b5651d; }
+  #view-faculdade .exam-item.psq{ border-left-color:#111; }
   #view-faculdade .exam-item.prox{ background:#fff3d6; box-shadow:0 0 0 1px #e0a82e inset; }
   #view-faculdade .exam-item.pasada{ opacity:.45; }
   #view-faculdade .exam-date{ font-size:11px; font-weight:800; color:var(--fac-muted); text-transform:uppercase; letter-spacing:.3px; display:flex; justify-content:space-between; gap:6px; }

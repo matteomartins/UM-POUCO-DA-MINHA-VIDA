@@ -1959,7 +1959,7 @@ async function storageGetWithRetry(key){
     </header>
 
     <section class="fac-sec" id="facSecFarmaco">
-      <p class="fac-intro">Todos los videos de Farmacología II: los oficiales de la cátedra (<b>Moodle</b>) al lado de la playlist extra de YouTube <b>"Farmaco 2 - Cat 1" (Butters)</b>, organizados por clase del cronograma. Cuando falta un video, se marca explícitamente. Marcá el casillero cuando ya lo viste. <a href="https://campus.fmed.uba.ar/course/view.php?id=1250" target="_blank" rel="noopener">Fuente de la columna Moodle ↗</a> <span style="opacity:.7">(verificado no campus em 01/09/2026 — Sangre e Inotrópicos ganharam vídeo desde a versão do PDF)</span></p>
+      <p class="fac-intro">Todos los videos de Farmacología II: los oficiales de la cátedra (<b>Moodle</b>) al lado de la playlist extra de YouTube <b>"Farmaco 2 - Cat 1" (Butters)</b>, organizados por clase del cronograma. Cuando falta un video, se marca explícitamente. Marcá el casillero cuando ya lo viste. <a href="https://campus.fmed.uba.ar/course/view.php?id=1250" target="_blank" rel="noopener">Fuente de la columna Moodle ↗</a> <span style="opacity:.7">(verificado no campus em 11/10/2026 — novos vídeos: Betalactámicos ×3, Aminoglucósidos e Macrólidos; guías de Quinolonas, Antifúngicos, Macrólidos, Otros Bacteriostáticos, Antineoplásicos e Antivirales)</span></p>
       <div class="fac-startool"><button type="button" class="fac-onlystar" data-star-scope="f" title="mostrar só as que marquei com ★">☆ só as que vou ver</button><span class="fac-starcount" data-star-count="f"></span></div>
       <div class="fac-farmaco-list" id="facFarmacoList"></div>
     </section>
@@ -9858,7 +9858,9 @@ window.init_faculdade = function(){
       guias:[ { x:'Generalidades de Antibióticos', r:128187 }, { x:'Cuadros para completar sobre antibióticos', r:128186 }, { x:'Betalactámicos y Glicopéptidos', r:128192 } ],
       moodle:{ items:[
         { x:'Generalidades de Antibióticos — Facundo Díaz Kozak', u:'iao90MsGAB8' },
-        { x:'Betalactámicos', miss:true, note:'sin video en Moodle (solo guía TP)' },
+        { x:'Generalidades de beta lactámicos — Facundo Díaz Kozak', u:'_i_UsKwRd9g' },
+        { x:'Familia de beta lactámicos — Parte 1 — Facundo Díaz Kozak', u:'t-6Guyce8Cc' },
+        { x:'Familia de beta lactámicos — Parte 2 — Facundo Díaz Kozak', u:'zfAsd_oJnw8' },
         { x:'Glicopéptidos — Denisse Potz', u:'R2ND_GwMI1M' },
       ]},
       yt:{ total:'1h57min', items:[
@@ -9869,10 +9871,10 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 6', t:'Antimicobacterianos, Aminoglucósidos, Quinolonas',
-      guias:[ { x:'Antimicobacterianos', r:128379 }, { x:'Aminoglucósidos', r:128380 } ],
+      guias:[ { x:'Antimicobacterianos', r:128379 }, { x:'Aminoglucósidos', r:128380 }, { x:'Quinolonas', r:128388 } ],
       moodle:{ items:[
         { x:'Antimicobacterianos (tuberculosis)', d:'22 min', u:'huiUWkWAjik' },
-        { x:'Aminoglucósidos', miss:true, note:'sin video en Moodle (solo PDF)' },
+        { x:'Aminoglucósidos — Agustina Schirripa', u:'IP8D3AkiDD0' },
         { x:'Quinolonas — Sofía Origgi', u:'ahsX-Z8zVjg' },
       ]},
       yt:{ total:'2h51min', items:[
@@ -9884,9 +9886,11 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 7', t:'Antifúngicos, Macrólidos/Bacteriostáticos, Antifolatos, Nitrocompuestos',
+      guias:[ { x:'Antifúngicos', r:128573 }, { x:'Macrólidos', r:128572 }, { x:'Otros Bacteriostáticos', r:128591 } ],
       moodle:{ items:[
         { x:'Antifúngicos', miss:true, note:'sin video en Moodle' },
-        { x:'Macrólidos y Otros Bacteriostáticos', miss:true, note:'sin video en Moodle' },
+        { x:'Macrólidos — Sofía Salvia', u:'VCNRR3BifpY' },
+        { x:'Otros Bacteriostáticos', miss:true, note:'sin video en Moodle (solo guía TP)' },
         { x:'Antifolatos', miss:true, note:'sin video en Moodle' },
         { x:'Nitrocompuestos', miss:true, note:'sin video en Moodle (solo PDF junto con Antifolatos)' },
       ]},
@@ -9899,6 +9903,7 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 8', t:'Antineoplásicos, Antirretrovirales, Antivirales',
+      guias:[ { x:'Antineoplásicos', r:128800 }, { x:'Antivirales y Antirretrovirales', r:128801 } ],
       moodle:{ items:[
         { x:'Antineoplásicos — Maximiliano Ink', u:'eeuTZhPbPcw' },
         { x:'Antirretrovirales', d:'59 min', u:'GxGSeEI1iq4' },

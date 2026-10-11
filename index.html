@@ -1676,6 +1676,18 @@
   #view-faculdade .fac-vid.miss .note{ color:#b23b2e; font-weight:700; }
   #view-faculdade .fac-vid input[type=checkbox]{ margin:2px 0 0; flex-shrink:0; width:14px; height:14px; accent-color:var(--fac-brand); cursor:pointer; }
   #view-faculdade .fac-vid .fac-spacer{ flex:0 0 14px; width:14px; }
+  /* ★ "vou ver" — marcador de planejamento, independente de visto/pendência */
+  #view-faculdade .fac-star{ flex-shrink:0; background:none; border:none; cursor:pointer; font-size:16px; line-height:1.2; color:#c9bcb6; padding:0 3px; align-self:flex-start; }
+  #view-faculdade .fac-star:hover{ color:#e0a100; }
+  #view-faculdade .fac-star.on{ color:#e0a100; }
+  #view-faculdade .fac-vid.star{ background:#fff6d6; box-shadow:inset 3px 0 0 #e0a100; border-radius:4px; padding-left:5px; }
+  #view-faculdade .fac-startool{ display:flex; align-items:center; gap:10px; margin:0 0 10px; }
+  #view-faculdade .fac-onlystar{ background:none; border:1px solid #d9cfca; color:var(--fac-brand); border-radius:999px; font-size:12px; font-weight:800; cursor:pointer; padding:4px 12px; }
+  #view-faculdade .fac-onlystar:hover{ background:#efe2de; }
+  #view-faculdade .fac-onlystar.on{ background:#e0a100; border-color:#e0a100; color:#fff; }
+  #view-faculdade .fac-starcount{ font-size:12px; color:var(--fac-muted); font-weight:700; }
+  #view-faculdade .fac-farmaco-list.only-star .fac-vid:not(.star){ display:none; }
+  #view-faculdade .fac-farmaco-list.only-star .nostar{ display:none; }
   #view-faculdade .fac-vid.done a, #view-faculdade .fac-vid.done .name{ opacity:.45; }
   #view-faculdade .fac-notas{ width:100%; min-height:340px; border:1px solid var(--fac-line); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; line-height:1.6; background:#fff; resize:vertical; }
   #view-faculdade .fac-save-btn{ margin-top:10px; padding:9px 18px; border:none; border-radius:8px; background:var(--fac-brand); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; }
@@ -1948,11 +1960,13 @@ async function storageGetWithRetry(key){
 
     <section class="fac-sec" id="facSecFarmaco">
       <p class="fac-intro">Todos los videos de Farmacología II: los oficiales de la cátedra (<b>Moodle</b>) al lado de la playlist extra de YouTube <b>"Farmaco 2 - Cat 1" (Butters)</b>, organizados por clase del cronograma. Cuando falta un video, se marca explícitamente. Marcá el casillero cuando ya lo viste. <a href="https://campus.fmed.uba.ar/course/view.php?id=1250" target="_blank" rel="noopener">Fuente de la columna Moodle ↗</a> <span style="opacity:.7">(verificado no campus em 01/09/2026 — Sangre e Inotrópicos ganharam vídeo desde a versão do PDF)</span></p>
+      <div class="fac-startool"><button type="button" class="fac-onlystar" data-star-scope="f" title="mostrar só as que marquei com ★">☆ só as que vou ver</button><span class="fac-starcount" data-star-count="f"></span></div>
       <div class="fac-farmaco-list" id="facFarmacoList"></div>
     </section>
 
     <section class="fac-sec" id="facSecMedint" style="display:none">
       <p class="fac-intro">Aulas de <b>Medicina Interna B</b> por módulo. O <b>+</b> joga a aula (ou o módulo inteiro) nas pendências; ao agendar no cronograma ela entra com a cor de Medicina Interna.</p>
+      <div class="fac-startool"><button type="button" class="fac-onlystar" data-star-scope="m" title="mostrar só as que marquei com ★">☆ só as que vou ver</button><span class="fac-starcount" data-star-count="m"></span></div>
       <div class="fac-farmaco-list" id="facMedintList"></div>
     </section>
 
@@ -2603,7 +2617,7 @@ const BACKUP_KEYS = [
   'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog', 'dieta_habits', 'dieta_habitLog',
   'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog', 'treino_gymLog', 'treino_gymMinutes',
   'ideias_itens',
-  'faculdade_farmaco_status', 'faculdade_farmaco_collapsed', 'faculdade_cortitas_ui', 'faculdade_medint_status', 'faculdade_notas_medint', 'faculdade_notas_guardias',
+  'faculdade_farmaco_status', 'faculdade_farmaco_collapsed', 'faculdade_cortitas_ui', 'faculdade_medint_status', 'faculdade_planejadas', 'faculdade_notas_medint', 'faculdade_notas_guardias',
 ];
 
 async function doGlobalExport(){
@@ -9981,6 +9995,46 @@ window.init_faculdade = function(){
 
   const listEl = document.getElementById('facFarmacoList');
   let seen = {};
+  // ★ "vou ver": chaves 'f:<key do vídeo>' e 'm:<mod-clase>'; flags de filtro '_only_f' / '_only_m'
+  let STAR = {};
+  const saveStar = () => storageSetWithRetry('faculdade_planejadas', JSON.stringify(STAR));
+  const starBtn = sk => `<button type="button" class="fac-star${STAR[sk] ? ' on' : ''}" data-star="${sk}" title="${STAR[sk] ? "tirar de 'vou ver'" : "marcar como 'vou ver'"}">${STAR[sk] ? '★' : '☆'}</button>`;
+  function applyStarFilter(){
+    [['f', listEl], ['m', document.getElementById('facMedintList')]].forEach(([sc, el]) => {
+      if(!el) return;
+      const only = !!STAR['_only_' + sc];
+      el.classList.toggle('only-star', only);
+      const btn = document.querySelector('.fac-onlystar[data-star-scope="' + sc + '"]');
+      if(btn){ btn.classList.toggle('on', only); btn.textContent = (only ? '★' : '☆') + ' só as que vou ver'; }
+      const n = Object.keys(STAR).filter(k => k.startsWith(sc + ':') && STAR[k]).length;
+      const cnt = document.querySelector('[data-star-count="' + sc + '"]');
+      if(cnt) cnt.textContent = n ? n + ' marcada' + (n > 1 ? 's' : '') : 'nenhuma marcada ainda';
+      // esconde clases/parciais/subgrupos sem nenhuma ★ (só no modo filtro)
+      el.querySelectorAll('.fac-clase, .fac-parcial-group').forEach(g => g.classList.toggle('nostar', only && !g.querySelector('.fac-vid.star')));
+      el.querySelectorAll('.fac-subgrp').forEach(h => {
+        let nx = h.nextElementSibling, has = false;
+        while(nx && !nx.classList.contains('fac-subgrp')){ if(nx.classList.contains('star')) has = true; nx = nx.nextElementSibling; }
+        h.classList.toggle('nostar', only && !has);
+      });
+    });
+  }
+  function bindStars(el){
+    el.querySelectorAll('.fac-star').forEach(b => b.addEventListener('click', e => {
+      e.stopPropagation();
+      const sk = b.dataset.star;
+      if(STAR[sk]) delete STAR[sk]; else STAR[sk] = true;
+      const on = !!STAR[sk];
+      b.classList.toggle('on', on); b.textContent = on ? '★' : '☆';
+      b.title = on ? "tirar de 'vou ver'" : "marcar como 'vou ver'";
+      b.closest('.fac-vid').classList.toggle('star', on);
+      saveStar(); applyStarFilter();
+    }));
+  }
+  document.querySelectorAll('.fac-onlystar').forEach(b => b.addEventListener('click', () => {
+    const k = '_only_' + b.dataset.starScope;
+    if(STAR[k]) delete STAR[k]; else STAR[k] = true;
+    saveStar(); applyStarFilter();
+  }));
   let _facLoaded = false;
   let _facSyncing = false;
   // estado de colapsar (só guarda o que está FECHADO; padrão = aberto). Sobrevive a re-render e a recarregar a página.
@@ -10009,9 +10063,10 @@ window.init_faculdade = function(){
     const dur = it.d ? ` <span class="dur">· ${it.d}</span>` : '';
     const tag = it.alt ? ` <span class="tag">(versión alternativa — mismo tema)</span>`
              : it.bonus ? ` <span class="tag">(${it.bonus})</span>` : '';
-    return `<div class="fac-vid${isDone ? ' done' : ''}">`
+    return `<div class="fac-vid${isDone ? ' done' : ''}${STAR['f:' + key] ? ' star' : ''}">`
       + `<input type="checkbox" data-k="${key}"${isDone ? ' checked' : ''} title="marcar como visto">`
       + `<span><a href="https://youtu.be/${it.u}" target="_blank" rel="noopener"><span class="name">${it.x}</span></a>${dur}${tag}</span>`
+      + starBtn('f:' + key)
       + addPendBtnVid(key, it.x, claseLabel, it.u, it.d)
       + `</div>`;
   }
@@ -10086,6 +10141,7 @@ window.init_faculdade = function(){
                    setor: 'faculdade', subj: 'farmaco', vidKey: b.dataset.facAddpend, link: 'https://youtu.be/' + b.dataset.u });
       });
     });
+    bindStars(listEl); applyStarFilter();
     listEl.querySelectorAll('[data-fac-addclase]').forEach(b => {
       b.addEventListener('click', () => {
         if(b.classList.contains('in') || !window.PEND) return;
@@ -10209,9 +10265,10 @@ window.init_faculdade = function(){
           const key = 'medint-' + mi + '-' + ci;
           const has = inPend(() => PEND.byClase(key));
           const done = !!medintSeen[mi + '-' + ci];
-          return head + `<div class="fac-vid${done ? ' done' : ''}">`
+          return head + `<div class="fac-vid${done ? ' done' : ''}${STAR['m:' + mi + '-' + ci] ? ' star' : ''}">`
             + `<input type="checkbox" data-mk="${mi}-${ci}"${done ? ' checked' : ''} title="marcar como estudada">`
             + `<span><span class="name">${c.x}</span>${c.w ? ` <span class="dur">· ${c.w}</span>` : ''}</span>`
+            + starBtn('m:' + mi + '-' + ci)
             + `<button class="fac-addpend${has ? ' in' : ''}" data-medint-addclase="${mi}-${ci}"`
             + ` title="${has ? 'já está nas pendências' : 'adicionar às pendências'}">${has ? '✓' : '+'}</button>`
             + `</div>`;
@@ -10233,6 +10290,7 @@ window.init_faculdade = function(){
       });
     });
 
+    bindStars(medintListEl); applyStarFilter();
     medintListEl.querySelectorAll('input[data-mk]').forEach(cb => {
       cb.addEventListener('change', () => setMedintDone(cb.dataset.mk, cb.checked, false));
     });
@@ -10588,6 +10646,10 @@ window.init_faculdade = function(){
     addBtn.addEventListener('click', add);
   }
 
+  storageGetWithRetry('faculdade_planejadas').then(r => {
+    if(r && r.value !== undefined){ try { STAR = JSON.parse(r.value) || {}; } catch(e){ STAR = {}; } }
+    if(_facLoaded){ render(); renderMedint(); } else applyStarFilter();
+  });
   storageGetWithRetry('faculdade_medint_status').then(r => {
     if(r && r.value !== undefined){ try { medintSeen = JSON.parse(r.value) || {}; } catch(e){ medintSeen = {}; } }
     if(_facLoaded) renderMedint();

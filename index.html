@@ -1715,6 +1715,12 @@
   #view-faculdade .plano-it input{ margin:2px 0 0; flex-shrink:0; accent-color:var(--fac-brand); cursor:pointer; }
   #view-faculdade .plano-it .t{ flex:1; min-width:0; word-break:break-word; }
   #view-faculdade .plano-it.done .t{ text-decoration:line-through; opacity:.5; }
+  #view-faculdade .plano-grip{ cursor:grab; color:#b8aaa3; font-size:13px; line-height:1.2; touch-action:none; user-select:none; -webkit-user-select:none; flex-shrink:0; padding:0 1px; }
+  #view-faculdade .plano-grip:hover{ color:var(--fac-brand); }
+  #view-faculdade .plano-it.arrastando{ opacity:.35; }
+  #view-faculdade .plano-it.plano-ghost{ position:fixed; z-index:9999; pointer-events:none; margin:0; opacity:.95; box-shadow:0 6px 18px rgba(0,0,0,.22); cursor:grabbing; }
+  #view-faculdade .plano-day.alvo{ background:#eef7f1; border-color:#2F7D4F; box-shadow:0 0 0 2px #2F7D4F inset; }
+  #view-faculdade .plano-it.alvo-antes{ box-shadow:0 -2px 0 0 #2F7D4F; }
   #view-faculdade .plano-vazio{ font-size:11px; color:var(--fac-muted); font-style:italic; margin:0 8px 6px; }
   #view-faculdade .plano-add{ display:flex; gap:4px; padding:2px 8px 8px; }
   #view-faculdade .plano-add input{ flex:1; min-width:0; border:1px solid var(--fac-line); border-radius:7px; padding:3px 7px; font-size:11px; font-family:inherit; }
@@ -10138,7 +10144,7 @@ window.init_faculdade = function(){
     const dias = PLAN.days.map(d => {
       const its = PLAN.items[d] || [];
       const ex = exames.filter(e => e.d === d).map(e => `<div class="plano-exam">📝 ${escAttr(e.ti)}</div>`).join('');
-      const itens = its.length ? its.map(x => `<div class="plano-it ${x.s}${x.done ? ' done' : ''}"><input type="checkbox" data-pdone="${d}|${x.id}"${x.done ? ' checked' : ''} title="estudei"><span class="t">${escAttr(x.t)}</span><button type="button" class="plano-ix" data-pdel="${d}|${x.id}" title="tirar deste dia">×</button></div>`).join('')
+      const itens = its.length ? its.map(x => `<div class="plano-it ${x.s}${x.done ? ' done' : ''}" data-pitem="${x.id}"><span class="plano-grip" data-pdrag="${d}|${x.id}" title="arraste pra outro dia (ou pra reordenar)">⠿</span><input type="checkbox" data-pdone="${d}|${x.id}"${x.done ? ' checked' : ''} title="estudei"><span class="t">${escAttr(x.t)}</span><button type="button" class="plano-ix" data-pdel="${d}|${x.id}" title="tirar deste dia">×</button></div>`).join('')
         : (ex ? '' : '<div class="plano-vazio">nada planejado</div>');
       return `<div class="plano-day${d === ativo ? ' active' : ''}${d === hoje ? ' hoje' : ''}${d < hoje ? ' passou' : ''}" data-pday="${d}">
         <div class="plano-dh" data-pact="${d}"><span class="plano-dn">${fmtDia(d)}${d === hoje ? '<span class="plano-hoje">hoje</span>' : ''}</span><button type="button" class="plano-dx" data-pdelday="${d}" title="remover este dia">×</button></div>
@@ -10218,6 +10224,69 @@ window.init_faculdade = function(){
       const [d, id] = c.dataset.pdone.split('|');
       const it = (PLAN.items[d] || []).find(x => x.id === id);
       if(it){ it.done = c.checked; savePlan(); c.closest('.plano-it').classList.toggle('done', c.checked); }
+    });
+    // ---- arrastar item entre dias / reordenar dentro do dia (pointer events: funciona com mouse e com toque) ----
+    el.addEventListener('pointerdown', e => {
+      const grip = e.target.closest('[data-pdrag]');
+      if(!grip || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      e.preventDefault();
+      const [dOrig, id] = grip.dataset.pdrag.split('|');
+      const itEl = grip.closest('.plano-it');
+      const r = itEl.getBoundingClientRect();
+      const ghost = itEl.cloneNode(true);
+      ghost.classList.add('plano-ghost'); ghost.style.width = r.width + 'px';
+      const dx = e.clientX - r.left, dy = e.clientY - r.top;
+      document.getElementById('view-faculdade').appendChild(ghost);
+      itEl.classList.add('arrastando');
+      let alvoDia = null, antesId = null, raf = 0, lastY = e.clientY;
+      const limpaMarcas = () => {
+        el.querySelectorAll('.plano-day.alvo').forEach(x => x.classList.remove('alvo'));
+        el.querySelectorAll('.plano-it.alvo-antes').forEach(x => x.classList.remove('alvo-antes'));
+      };
+      const mover = ev => {
+        lastY = ev.clientY;
+        ghost.style.left = (ev.clientX - dx) + 'px'; ghost.style.top = (ev.clientY - dy) + 'px';
+        limpaMarcas(); alvoDia = null; antesId = null;
+        const sob = document.elementFromPoint(ev.clientX, ev.clientY);
+        const dia = sob && sob.closest ? sob.closest('.plano-day') : null;
+        if(dia && el.contains(dia)){
+          alvoDia = dia.dataset.pday; dia.classList.add('alvo');
+          const outros = [...dia.querySelectorAll('.plano-it')].filter(x => x !== itEl);
+          const antes = outros.find(x => { const b = x.getBoundingClientRect(); return ev.clientY < b.top + b.height / 2; });
+          if(antes){ antesId = antes.dataset.pitem; antes.classList.add('alvo-antes'); }
+        }
+      };
+      const auto = () => {
+        const b = el.getBoundingClientRect();
+        if(lastY < b.top + 36) el.scrollTop -= 10; else if(lastY > b.bottom - 36) el.scrollTop += 10;
+        raf = requestAnimationFrame(auto);
+      };
+      mover(e); raf = requestAnimationFrame(auto);
+      const fim = ev => {
+        document.removeEventListener('pointermove', mover);
+        document.removeEventListener('pointerup', fim);
+        document.removeEventListener('pointercancel', fim);
+        cancelAnimationFrame(raf); ghost.remove(); itEl.classList.remove('arrastando'); limpaMarcas();
+        if(ev.type === 'pointercancel' || !alvoDia) return;
+        const orig = PLAN.items[dOrig] || [];
+        const it = orig.find(x => x.id === id);
+        if(!it) return;
+        const dest = PLAN.items[alvoDia] = PLAN.items[alvoDia] || [];
+        if(alvoDia !== dOrig && it.s !== 'c' && dest.some(x => x.k === it.k)){
+          if(typeof showToast === 'function') showToast('Já está em ' + fmtDia(alvoDia)); return;
+        }
+        PLAN.items[dOrig] = orig.filter(x => x.id !== id);
+        const base = alvoDia === dOrig ? PLAN.items[dOrig] : dest;
+        const pos = antesId ? base.findIndex(x => x.id === antesId) : -1;
+        if(pos >= 0) base.splice(pos, 0, it); else base.push(it);
+        PLAN.items[alvoDia] = base;
+        planActive = alvoDia;
+        planMudou();
+        if(alvoDia !== dOrig && typeof showToast === 'function') showToast('📅 Movido pra ' + fmtDia(alvoDia));
+      };
+      document.addEventListener('pointermove', mover);
+      document.addEventListener('pointerup', fim);
+      document.addEventListener('pointercancel', fim);
     });
     el.addEventListener('keydown', e => {
       if(e.key === 'Enter' && e.target.matches('[data-ptxt]')){ e.preventDefault(); el.querySelector('[data-ptxtadd="' + e.target.dataset.ptxt + '"]').click(); }

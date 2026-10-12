@@ -628,6 +628,11 @@
 #view-agenda .form-saved-msg{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:var(--pessoal);margin-top:6px;display:none;}
 #view-agenda .entry{position:relative;}
 #view-agenda .entry-actions{display:none;gap:2px;flex-shrink:0;align-self:flex-start;}
+#view-agenda .entry-grip{cursor:grab;color:#9a8f89;opacity:.45;font-size:13px;line-height:1.2;touch-action:none;user-select:none;-webkit-user-select:none;flex-shrink:0;align-self:flex-start;padding:0 3px;}
+#view-agenda .entry:hover .entry-grip{opacity:1;}
+#view-agenda .entry.arrastando{opacity:.35;}
+#view-agenda .entry.ag-ghost{position:fixed;z-index:9999;pointer-events:none;margin:0;opacity:.95;box-shadow:0 6px 18px rgba(0,0,0,.28);cursor:grabbing;}
+#view-agenda .day-card.alvo{outline:2px solid #2F7D4F;outline-offset:-2px;}
 #view-agenda.crono-editing .entry-actions{display:flex;}
 #view-agenda .entry-edit,#view-agenda .entry-del{
   background:none;border:none;cursor:pointer;font-size:12px;padding:1px 4px;color:var(--muted);
@@ -4191,6 +4196,64 @@ function openEventEditor(ref){
   q('.agm-ti').focus();
 }
 
+// ---------- Arrastar um evento pra outro dia (pointer events: mouse e toque) ----------
+function moverEntryParaDia(ref, novo){
+  if(!ref || !novo) return;
+  if(ref.kind === 'user'){
+    const ev = userEvents.find(e => e.id === ref.id);
+    if(!ev || ev.d === novo) return;
+    ev.d = novo; saveUserEvents();
+  } else {
+    if(ref.cur.d === novo) return;
+    upsertOverride(ref.key, ref.d0, { t: ref.cur.t, ti: ref.cur.ti, w: ref.cur.w, c: ref.cur.c, d2: novo !== ref.d0 ? novo : undefined });
+  }
+  refreshAgenda();
+}
+function bindAgendaDrag(container){
+  if(container._dragBound) return;
+  container._dragBound = true;
+  container.addEventListener('pointerdown', e => {
+    const grip = e.target.closest('.entry-grip');
+    if(!grip || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const ref = (container._refs || [])[Number(grip.dataset.ref)];
+    if(!ref) return;
+    e.preventDefault();
+    const entry = grip.closest('.entry');
+    const r = entry.getBoundingClientRect();
+    const ghost = entry.cloneNode(true);
+    ghost.classList.add('ag-ghost'); ghost.style.width = r.width + 'px';
+    const dx = e.clientX - r.left, dy = e.clientY - r.top;
+    document.getElementById('view-agenda').appendChild(ghost);
+    entry.classList.add('arrastando');
+    let alvo = null, raf = 0, lastY = e.clientY;
+    const limpa = () => container.querySelectorAll('.day-card.alvo').forEach(x => x.classList.remove('alvo'));
+    const mover = ev => {
+      lastY = ev.clientY;
+      ghost.style.left = (ev.clientX - dx) + 'px'; ghost.style.top = (ev.clientY - dy) + 'px';
+      limpa(); alvo = null;
+      const sob = document.elementFromPoint(ev.clientX, ev.clientY);
+      const card = sob && sob.closest ? sob.closest('.day-card') : null;
+      if(card && container.contains(card) && card.dataset.day){ alvo = card.dataset.day; card.classList.add('alvo'); }
+    };
+    const auto = () => {
+      if(lastY < 70) window.scrollBy(0, -14); else if(lastY > window.innerHeight - 70) window.scrollBy(0, 14);
+      raf = requestAnimationFrame(auto);
+    };
+    mover(e); raf = requestAnimationFrame(auto);
+    const fim = ev => {
+      document.removeEventListener('pointermove', mover);
+      document.removeEventListener('pointerup', fim);
+      document.removeEventListener('pointercancel', fim);
+      cancelAnimationFrame(raf); ghost.remove(); entry.classList.remove('arrastando'); limpa();
+      if(ev.type === 'pointercancel' || !alvo) return;
+      moverEntryParaDia(ref, alvo);
+    };
+    document.addEventListener('pointermove', mover);
+    document.addEventListener('pointerup', fim);
+    document.addEventListener('pointercancel', fim);
+  });
+}
+
 function renderDays(){
   const endDate = new Date(today); endDate.setDate(endDate.getDate()+29);
   document.getElementById("rangeLabel").textContent =
@@ -4247,7 +4310,7 @@ function renderDays(){
     const dayEvents = allEvents.filter(e=>e.d===dateStr);
     const all = [...routine, ...dayEvents].sort((a,b)=> sortVal(a)-sortVal(b));
 
-    html += `<div class="day-card${isToday?' today':''}${isTomorrow?' tomorrow':''}">`;
+    html += `<div class="day-card${isToday?' today':''}${isTomorrow?' tomorrow':''}" data-day="${dateStr}">`;
     html += `<div class="day-top"><div class="day-title"><span class="day-weekday">${weekdayNames[d.getDay()]}</span><span class="day-num">${d.getDate()} ${monthNames[d.getMonth()]}</span></div>`;
     html += `<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">`;
     if(isToday) html += `<span class="badge hoje">hoje</span>`;
@@ -4262,11 +4325,12 @@ function renderDays(){
       else if(e._base) ref = { kind:'base', key:e._base.key, d0:e._base.d, overridden:!!e._base.overridden, cur:{ d:dateStr, t:e.t||'', ti:e.ti, w:e.w||'', c:e.c } };
       const refIdx = ref ? (entryRefs.push(ref) - 1) : -1;
       const editBtns = ref ? `<span class="entry-actions"><button class="entry-edit" data-ref="${refIdx}" title="editar">✎</button><button class="entry-del" data-ref="${refIdx}" title="excluir">✕</button></span>` : "";
+      const gripBtn = (ref && e.c !== 'rotina') ? `<span class="entry-grip" data-ref="${refIdx}" title="arraste pra outro dia">⠿</span>` : "";
       const past = (isToday && e.t && timeVal(e.t) < nowVal) ? ' past' : '';
       if(e.c==="saopaulo"){
-        html += `<div class="entry saopaulo${past}"><span class="time">⭐${e.t?" "+e.t:""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
+        html += `<div class="entry saopaulo${past}"><span class="time">⭐${e.t?" "+e.t:""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${gripBtn}${editBtns}</div>`;
       } else {
-        html += `<div class="entry ${/^\s*academia/i.test(e.ti||'') ? 'academia' : e.c}${past}"><span class="time">${e.t||""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${editBtns}</div>`;
+        html += `<div class="entry ${/^\s*academia/i.test(e.ti||'') ? 'academia' : e.c}${past}"><span class="time">${e.t||""}</span><div class="body"><div class="title">${e.ti}</div>${e.w?`<div class="who">${e.w}</div>`:""}</div>${gripBtn}${editBtns}</div>`;
       }
     });
 
@@ -4321,6 +4385,8 @@ function renderDays(){
   daysContainer.querySelectorAll('.entry-del').forEach(btn=>{
     btn.addEventListener('click', ()=> quickDeleteEvent(entryRefs[Number(btn.dataset.ref)]));
   });
+  daysContainer._refs = entryRefs;
+  bindAgendaDrag(daysContainer);
 
   daysContainer.querySelectorAll('.day-add').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -10131,7 +10197,7 @@ window.init_faculdade = function(){
     planAddDay(day);
     const arr = PLAN.items[day] = PLAN.items[day] || [];
     if(it.s !== 'c' && arr.some(x => x.k === it.k)) return false;
-    arr.push({ id: 'pi' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), k: it.k, t: it.t, s: it.s, done: false });
+    arr.push({ id: 'pi' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), k: it.k, t: it.t, s: it.s, done: false, ag: false });
     return true;
   }
   function planRender(){
@@ -10154,13 +10220,55 @@ window.init_faculdade = function(){
     }).join('');
     el.innerHTML = `<div class="plano-head" data-ptoggle><span class="plano-title">📅 Plano de estudo</span><span class="plano-chev">⌄</span></div>
       <div class="plano-body">
-        <div class="plano-hint">Clique num dia pra ativá-lo${ativo ? ' (agora: <b>' + fmtDia(ativo) + '</b>)' : ''} e use o <b>📅</b> nas aulas pra jogar nele. Vale pra Farmaco II e Interna.</div>
+        <div class="plano-hint">Clique num dia pra ativá-lo${ativo ? ' (agora: <b>' + fmtDia(ativo) + '</b>)' : ''} e use o <b>📅</b> nas aulas pra jogar nele. Vale pra Farmaco II e Interna. Tudo que entra aqui vai pra <b>Agenda</b> (só nessa direção).</div>
         ${dias || '<div class="plano-vazio">Nenhum dia ainda — adicione abaixo.</div>'}
         <div class="plano-tools"><input type="date" id="planoNovoDia"><button type="button" data-pnovodia>＋ dia</button><button type="button" data-p7>＋ 7 dias</button></div>
       </div>`;
     el.classList.toggle('fechado', fechado);
   }
-  function planMudou(){ savePlan(); planRender(); refreshPlanBadges(); }
+  function planMudou(){ _planTrusted = true; savePlan(); planRender(); refreshPlanBadges(); planSyncSoon(); }
+
+  // ---- Plano -> Agenda (mão única): cada item do plano vira um evento da Agenda (Mensal) no mesmo dia. ----
+  // O que está na Agenda NUNCA volta pro plano. Evento do plano na Agenda: id 'pl_<id do item>', fromPlano:true.
+  //  · item novo -> cria o evento (uma vez só: se você apagar o evento na Agenda, ele não é recriado)
+  //  · item movido de dia no plano -> move o evento; item removido do plano -> remove o evento
+  //  · se você mexer no evento direto na Agenda (dia, horário, título), o plano não desfaz isso
+  let _planTrusted = false, _syncT = null, _syncBusy = false, _syncAgain = false;
+  function planSyncSoon(){ clearTimeout(_syncT); _syncT = setTimeout(planSyncAgenda, 600); }
+  async function planSyncAgenda(){
+    if(_syncBusy){ _syncAgain = true; return; }
+    _syncBusy = true;
+    try {
+      const r = await storageGetWithRetry('agenda_user_events');
+      if(!r || r.value === undefined) return;            // leitura falhou: não arrisca sobrescrever a Agenda
+      let evs; try { evs = JSON.parse(r.value); } catch(e){ return; }
+      if(!Array.isArray(evs)) return;
+      const porId = new Map(evs.map(e => [e.id, e]));
+      const vivos = new Set();
+      let mudouAg = false, mudouPlano = false;
+      PLAN.days.forEach(d => (PLAN.items[d] || []).forEach(x => {
+        const eid = 'pl_' + x.id; vivos.add(eid);
+        const ev = porId.get(eid);
+        if(!x.ag){
+          if(!ev){ evs.push({ id: eid, d, t: '', ti: '📖 ' + x.t, c: x.s === 'f' ? 'farmaco' : (x.s === 'm' ? 'medb' : 'pessoal'), scope: 'mensal', fromPlano: true, plD: d }); mudouAg = true; }
+          x.ag = true; mudouPlano = true;
+        } else if(ev && ev.plD !== d){ ev.d = d; ev.plD = d; mudouAg = true; }
+      }));
+      if(_planTrusted){
+        const n0 = evs.length;
+        evs = evs.filter(e => !(e.fromPlano && !vivos.has(e.id)));
+        if(evs.length !== n0) mudouAg = true;
+      }
+      if(mudouAg){
+        await storageSetWithRetry('agenda_user_events', JSON.stringify(evs));
+        if(typeof window.refreshAgendaExternal === 'function') window.refreshAgendaExternal();
+      }
+      if(mudouPlano) savePlan();
+    } finally {
+      _syncBusy = false;
+      if(_syncAgain){ _syncAgain = false; planSyncSoon(); }
+    }
+  }
   function refreshPlanBadges(){
     const mapa = {};
     PLAN.days.forEach(d => (PLAN.items[d] || []).forEach(x => { if(x.s !== 'c'){ (mapa[x.k] = mapa[x.k] || []).push(d); } }));
@@ -10908,9 +11016,9 @@ window.init_faculdade = function(){
 
   storageGetWithRetry('faculdade_plano').then(r => {
     if(r && r.value !== undefined){
-      try { const p = JSON.parse(r.value) || {}; PLAN = { days: Array.isArray(p.days) ? p.days.slice().sort() : [], items: p.items && typeof p.items === 'object' ? p.items : {} }; } catch(e){}
+      try { const p = JSON.parse(r.value) || {}; PLAN = { days: Array.isArray(p.days) ? p.days.slice().sort() : [], items: p.items && typeof p.items === 'object' ? p.items : {} }; _planTrusted = true; } catch(e){}
     }
-    planSeedIfEmpty(); _planLoaded = true; planRender(); refreshPlanBadges();
+    planSeedIfEmpty(); _planLoaded = true; planRender(); refreshPlanBadges(); planSyncSoon();
   });
   storageGetWithRetry('faculdade_planejadas').then(r => {
     if(r && r.value !== undefined){ try { STAR = JSON.parse(r.value) || {}; } catch(e){ STAR = {}; } }

@@ -1579,7 +1579,7 @@
   /* ---------- Faculdade ---------- */
   #view-faculdade{ --fac-brand:#7a1f2c; --fac-ink:#2a2320; --fac-muted:#8a7f78; --fac-line:#e7ddd9; --fac-paper:#faf7f5; background:var(--fac-paper); min-height:100vh; }
   #view-faculdade *{ box-sizing:border-box; }
-  #view-faculdade .fac-wrap{ max-width:1000px; margin:0 auto; padding:64px 20px 60px; font-family:'Helvetica Neue',Arial,sans-serif; color:var(--fac-ink); }
+  #view-faculdade .fac-wrap{ max-width:1180px; margin:0 auto; padding:64px 20px 60px; font-family:'Helvetica Neue',Arial,sans-serif; color:var(--fac-ink); }
   #view-faculdade .fac-head{ text-align:center; margin-bottom:24px; }
   #view-faculdade h1{ margin:0; font-size:28px; font-weight:800; letter-spacing:.02em; color:var(--fac-brand); }
   #view-faculdade h1::after{ content:""; display:block; width:64px; height:3px; background:var(--fac-brand); border-radius:2px; margin:12px auto 0; }
@@ -1688,6 +1688,47 @@
   #view-faculdade .fac-starcount{ font-size:12px; color:var(--fac-muted); font-weight:700; }
   #view-faculdade .fac-farmaco-list.only-star .fac-vid:not(.star){ display:none; }
   #view-faculdade .fac-farmaco-list.only-star .nostar{ display:none; }
+  /* ===== Plano de estudo (mini calendário fixo à esquerda, Farmaco II + Med. Interna) ===== */
+  #view-faculdade .plano-layout{ display:grid; grid-template-columns:270px minmax(0,1fr); gap:18px; align-items:start; }
+  #view-faculdade .plano-main{ min-width:0; }
+  #view-faculdade .plano-side{ position:sticky; top:10px; border:1px solid var(--fac-line); border-radius:12px; background:#fff; padding:12px; max-height:calc(100vh - 24px); overflow-y:auto; }
+  #view-faculdade .plano-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; }
+  #view-faculdade .plano-title{ font-size:14px; font-weight:800; color:var(--fac-brand); }
+  #view-faculdade .plano-chev{ color:var(--fac-muted); font-size:14px; transition:transform .15s; }
+  #view-faculdade .plano-side.fechado .plano-chev{ transform:rotate(-90deg); }
+  #view-faculdade .plano-side.fechado .plano-body{ display:none; }
+  #view-faculdade .plano-hint{ font-size:11px; color:var(--fac-muted); margin:6px 0 10px; line-height:1.4; }
+  #view-faculdade .plano-hint b{ color:var(--fac-brand); }
+  #view-faculdade .plano-day{ border:1px solid var(--fac-line); border-radius:9px; margin-bottom:7px; background:#fffdfb; }
+  #view-faculdade .plano-day.active{ border-color:var(--fac-brand); box-shadow:0 0 0 1px var(--fac-brand) inset; }
+  #view-faculdade .plano-day.hoje .plano-dn{ color:var(--fac-brand); }
+  #view-faculdade .plano-day.passou{ opacity:.6; }
+  #view-faculdade .plano-dh{ display:flex; align-items:center; gap:6px; padding:6px 8px; cursor:pointer; font-size:12px; font-weight:800; }
+  #view-faculdade .plano-dn{ flex:1; }
+  #view-faculdade .plano-hoje{ font-size:9.5px; background:var(--fac-brand); color:#fff; border-radius:8px; padding:1px 6px; margin-left:4px; vertical-align:1px; }
+  #view-faculdade .plano-dx, #view-faculdade .plano-ix{ background:none; border:none; cursor:pointer; color:#b8aaa3; font-size:14px; line-height:1; padding:0 2px; }
+  #view-faculdade .plano-dx:hover, #view-faculdade .plano-ix:hover{ color:#b23b2e; }
+  #view-faculdade .plano-exam{ font-size:10.5px; font-weight:800; border-radius:6px; padding:3px 7px; margin:0 8px 6px; background:#fdecea; color:#b23b2e; line-height:1.3; }
+  #view-faculdade .plano-it{ display:flex; gap:5px; align-items:flex-start; font-size:11.5px; line-height:1.35; padding:3px 8px 3px 7px; margin:0 8px 3px; border-left:3px solid #2F7D4F; background:#f4faf6; border-radius:0 6px 6px 0; }
+  #view-faculdade .plano-it.m{ border-left-color:var(--fac-brand); background:#faf3f3; }
+  #view-faculdade .plano-it.c{ border-left-color:#8a7f78; background:#f6f3f1; }
+  #view-faculdade .plano-it input{ margin:2px 0 0; flex-shrink:0; accent-color:var(--fac-brand); cursor:pointer; }
+  #view-faculdade .plano-it .t{ flex:1; min-width:0; word-break:break-word; }
+  #view-faculdade .plano-it.done .t{ text-decoration:line-through; opacity:.5; }
+  #view-faculdade .plano-vazio{ font-size:11px; color:var(--fac-muted); font-style:italic; margin:0 8px 6px; }
+  #view-faculdade .plano-add{ display:flex; gap:4px; padding:2px 8px 8px; }
+  #view-faculdade .plano-add input{ flex:1; min-width:0; border:1px solid var(--fac-line); border-radius:7px; padding:3px 7px; font-size:11px; font-family:inherit; }
+  #view-faculdade .plano-add button, #view-faculdade .plano-tools button{ background:none; border:1px solid #d9cfca; color:var(--fac-brand); border-radius:7px; font-size:11px; font-weight:800; cursor:pointer; padding:3px 8px; }
+  #view-faculdade .plano-add button:hover, #view-faculdade .plano-tools button:hover{ background:#efe2de; }
+  #view-faculdade .plano-tools{ display:flex; gap:5px; flex-wrap:wrap; align-items:center; margin-top:10px; padding-top:10px; border-top:1px dashed var(--fac-line); }
+  #view-faculdade .plano-tools input[type=date]{ border:1px solid var(--fac-line); border-radius:7px; padding:2px 5px; font-size:11px; font-family:inherit; }
+  #view-faculdade .fac-planbtn{ flex-shrink:0; background:none; border:none; cursor:pointer; font-size:13px; line-height:1.3; padding:0 2px; align-self:flex-start; opacity:.45; filter:grayscale(1); }
+  #view-faculdade .fac-planbtn:hover, #view-faculdade .fac-planbtn.on{ opacity:1; filter:none; }
+  #view-faculdade .fac-planbadge{ font-size:10.5px; font-weight:800; color:#2F7D4F; margin-left:6px; white-space:nowrap; }
+  @media (max-width:760px){
+    #view-faculdade .plano-layout{ grid-template-columns:1fr; }
+    #view-faculdade .plano-side{ position:static; max-height:none; }
+  }
   #view-faculdade .fac-vid.done a, #view-faculdade .fac-vid.done .name{ opacity:.45; }
   #view-faculdade .fac-notas{ width:100%; min-height:340px; border:1px solid var(--fac-line); border-radius:10px; padding:12px; font-size:14px; font-family:inherit; line-height:1.6; background:#fff; resize:vertical; }
   #view-faculdade .fac-save-btn{ margin-top:10px; padding:9px 18px; border:none; border-radius:8px; background:var(--fac-brand); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; }
@@ -1958,6 +1999,9 @@ async function storageGetWithRetry(key){
       </div>
     </header>
 
+    <div class="plano-layout" id="facPlanoLayout">
+    <aside class="plano-side" id="facPlano"></aside>
+    <div class="plano-main">
     <section class="fac-sec" id="facSecFarmaco">
       <p class="fac-intro">Todos los videos de Farmacología II: los oficiales de la cátedra (<b>Moodle</b>) al lado de la playlist extra de YouTube <b>"Farmaco 2 - Cat 1" (Butters)</b>, organizados por clase del cronograma. Cuando falta un video, se marca explícitamente. Marcá el casillero cuando ya lo viste. <a href="https://campus.fmed.uba.ar/course/view.php?id=1250" target="_blank" rel="noopener">Fuente de la columna Moodle ↗</a> <span style="opacity:.7">(verificado no campus em 11/10/2026 — novos vídeos: Betalactámicos ×3, Aminoglucósidos e Macrólidos; guías de Quinolonas, Antifúngicos, Macrólidos, Otros Bacteriostáticos, Antineoplásicos e Antivirales)</span></p>
       <div class="fac-startool"><button type="button" class="fac-onlystar" data-star-scope="f" title="mostrar só as que marquei com ★">☆ só as que vou ver</button><span class="fac-starcount" data-star-count="f"></span></div>
@@ -1969,6 +2013,9 @@ async function storageGetWithRetry(key){
       <div class="fac-startool"><button type="button" class="fac-onlystar" data-star-scope="m" title="mostrar só as que marquei com ★">☆ só as que vou ver</button><span class="fac-starcount" data-star-count="m"></span></div>
       <div class="fac-farmaco-list" id="facMedintList"></div>
     </section>
+
+    </div>
+    </div>
 
     <section class="fac-sec" id="facSecGuardias" style="display:none">
       <div id="grdHost" class="grd-loading">Cargando guía de guardia…</div>
@@ -2617,7 +2664,7 @@ const BACKUP_KEYS = [
   'dieta_goals', 'dieta_customFoods', 'dieta_dietLog', 'dieta_waterLog', 'dieta_habits', 'dieta_habitLog',
   'treino_plan', 'treino_workoutLog', 'treino_measurements', 'treino_cargaLog', 'treino_cardioLog', 'treino_gymLog', 'treino_gymMinutes',
   'ideias_itens',
-  'faculdade_farmaco_status', 'faculdade_farmaco_collapsed', 'faculdade_cortitas_ui', 'faculdade_medint_status', 'faculdade_planejadas', 'faculdade_notas_medint', 'faculdade_notas_guardias',
+  'faculdade_farmaco_status', 'faculdade_farmaco_collapsed', 'faculdade_cortitas_ui', 'faculdade_medint_status', 'faculdade_planejadas', 'faculdade_plano', 'faculdade_notas_medint', 'faculdade_notas_guardias',
 ];
 
 async function doGlobalExport(){
@@ -10040,6 +10087,144 @@ window.init_faculdade = function(){
     if(STAR[k]) delete STAR[k]; else STAR[k] = true;
     saveStar(); applyStarFilter();
   }));
+
+  // ===== Plano de estudo: mini calendário compartilhado entre Farmaco II e Med. Interna (faculdade_plano) =====
+  // PLAN = { days:['AAAA-MM-DD',...], items:{ 'AAAA-MM-DD':[{id,k,t,s,done}] } } — s: 'f' farmaco · 'm' interna · 'c' texto livre
+  let PLAN = { days: [], items: {} };
+  let planActive = null;
+  let _planLoaded = false;
+  const DIAS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const isoOf = dt => dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+  const isoHoje = () => isoOf(new Date());
+  const dateOf = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); };
+  const addDiasIso = (iso, n) => { const dt = dateOf(iso); dt.setDate(dt.getDate() + n); return isoOf(dt); };
+  const fmtDia = iso => { const dt = dateOf(iso); return DIAS_PT[dt.getDay()] + ' ' + String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0'); };
+  const fmtCurto = iso => iso.slice(8, 10) + '/' + iso.slice(5, 7);
+  const escAttr = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const savePlan = () => storageSetWithRetry('faculdade_plano', JSON.stringify({ days: PLAN.days, items: PLAN.items }));
+
+  function planSeedIfEmpty(){
+    if(PLAN.days.length) return;
+    const hoje = isoHoje();
+    const prox = (typeof EXAMES !== 'undefined' ? EXAMES : []).filter(e => !e.fin && e.d >= hoje).map(e => e.d).sort()[0];
+    let fim = addDiasIso(hoje, 6);
+    if(prox && prox > hoje) fim = prox < addDiasIso(hoje, 13) ? prox : addDiasIso(hoje, 13);
+    for(let d = hoje; d <= fim; d = addDiasIso(d, 1)) PLAN.days.push(d);
+  }
+  function planAtivoValido(){
+    if(planActive && PLAN.days.includes(planActive)) return planActive;
+    const hoje = isoHoje();
+    planActive = PLAN.days.find(d => d >= hoje) || PLAN.days[PLAN.days.length - 1] || null;
+    return planActive;
+  }
+  function planAddDay(iso){
+    if(!iso || PLAN.days.includes(iso)) return false;
+    PLAN.days.push(iso); PLAN.days.sort();
+    return true;
+  }
+  function planAddItem(day, it){
+    if(!day){ day = isoHoje(); }
+    planAddDay(day);
+    const arr = PLAN.items[day] = PLAN.items[day] || [];
+    if(it.s !== 'c' && arr.some(x => x.k === it.k)) return false;
+    arr.push({ id: 'pi' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), k: it.k, t: it.t, s: it.s, done: false });
+    return true;
+  }
+  function planRender(){
+    const el = document.getElementById('facPlano');
+    if(!el) return;
+    const fechado = el.classList.contains('fechado');
+    const hoje = isoHoje();
+    const ativo = planAtivoValido();
+    const exames = typeof EXAMES !== 'undefined' ? EXAMES : [];
+    const dias = PLAN.days.map(d => {
+      const its = PLAN.items[d] || [];
+      const ex = exames.filter(e => e.d === d).map(e => `<div class="plano-exam">📝 ${escAttr(e.ti)}</div>`).join('');
+      const itens = its.length ? its.map(x => `<div class="plano-it ${x.s}${x.done ? ' done' : ''}"><input type="checkbox" data-pdone="${d}|${x.id}"${x.done ? ' checked' : ''} title="estudei"><span class="t">${escAttr(x.t)}</span><button type="button" class="plano-ix" data-pdel="${d}|${x.id}" title="tirar deste dia">×</button></div>`).join('')
+        : (ex ? '' : '<div class="plano-vazio">nada planejado</div>');
+      return `<div class="plano-day${d === ativo ? ' active' : ''}${d === hoje ? ' hoje' : ''}${d < hoje ? ' passou' : ''}" data-pday="${d}">
+        <div class="plano-dh" data-pact="${d}"><span class="plano-dn">${fmtDia(d)}${d === hoje ? '<span class="plano-hoje">hoje</span>' : ''}</span><button type="button" class="plano-dx" data-pdelday="${d}" title="remover este dia">×</button></div>
+        ${ex}${itens}
+        <div class="plano-add"><input type="text" data-ptxt="${d}" placeholder="+ item livre…" maxlength="120"><button type="button" data-ptxtadd="${d}">+</button></div>
+      </div>`;
+    }).join('');
+    el.innerHTML = `<div class="plano-head" data-ptoggle><span class="plano-title">📅 Plano de estudo</span><span class="plano-chev">⌄</span></div>
+      <div class="plano-body">
+        <div class="plano-hint">Clique num dia pra ativá-lo${ativo ? ' (agora: <b>' + fmtDia(ativo) + '</b>)' : ''} e use o <b>📅</b> nas aulas pra jogar nele. Vale pra Farmaco II e Interna.</div>
+        ${dias || '<div class="plano-vazio">Nenhum dia ainda — adicione abaixo.</div>'}
+        <div class="plano-tools"><input type="date" id="planoNovoDia"><button type="button" data-pnovodia>＋ dia</button><button type="button" data-p7>＋ 7 dias</button></div>
+      </div>`;
+    el.classList.toggle('fechado', fechado);
+  }
+  function planMudou(){ savePlan(); planRender(); refreshPlanBadges(); }
+  function refreshPlanBadges(){
+    const mapa = {};
+    PLAN.days.forEach(d => (PLAN.items[d] || []).forEach(x => { if(x.s !== 'c'){ (mapa[x.k] = mapa[x.k] || []).push(d); } }));
+    document.querySelectorAll('#view-faculdade [data-plan-badge]').forEach(b => {
+      const ds = mapa[b.dataset.planBadge] || [];
+      b.textContent = ds.length ? '📅 ' + ds.map(fmtCurto).join(', ') : '';
+    });
+    document.querySelectorAll('#view-faculdade .fac-planbtn').forEach(b => b.classList.toggle('on', !!mapa[b.dataset.pk]));
+  }
+  function planBtn(sk, titulo){
+    return `<button type="button" class="fac-planbtn" data-pk="${sk}" data-pt="${escAttr(titulo)}" data-ps="${sk.charAt(0)}" title="adicionar ao dia ativo do plano">📅</button>`;
+  }
+  const planBadge = sk => `<span class="fac-planbadge" data-plan-badge="${sk}"></span>`;
+  function bindPlanBtns(el){
+    el.querySelectorAll('.fac-planbtn').forEach(b => b.addEventListener('click', e => {
+      e.stopPropagation();
+      const dia = planAtivoValido() || isoHoje();
+      const ok = planAddItem(dia, { k: b.dataset.pk, t: b.dataset.pt, s: b.dataset.ps });
+      if(ok){ planActive = dia; planMudou(); if(typeof showToast === 'function') showToast('📅 Adicionado a ' + fmtDia(dia)); }
+      else if(typeof showToast === 'function') showToast('Já está em ' + fmtDia(dia));
+    }));
+  }
+  (function bindPlanoSidebar(){
+    const el = document.getElementById('facPlano');
+    if(!el) return;
+    if(window.matchMedia && window.matchMedia('(max-width:760px)').matches) el.classList.add('fechado');
+    el.addEventListener('click', e => {
+      const t = e.target;
+      if(t.closest('[data-ptoggle]')){ el.classList.toggle('fechado'); return; }
+      const del = t.closest('[data-pdel]');
+      if(del){ const [d, id] = del.dataset.pdel.split('|'); PLAN.items[d] = (PLAN.items[d] || []).filter(x => x.id !== id); planMudou(); return; }
+      const dd = t.closest('[data-pdelday]');
+      if(dd){
+        const d = dd.dataset.pdelday; const n = (PLAN.items[d] || []).length;
+        if(n && !confirm('Remover ' + fmtDia(d) + ' e os ' + n + ' item(ns) planejado(s) nele?')) return;
+        PLAN.days = PLAN.days.filter(x => x !== d); delete PLAN.items[d];
+        if(planActive === d) planActive = null;
+        planMudou(); return;
+      }
+      const tx = t.closest('[data-ptxtadd]');
+      if(tx){
+        const d = tx.dataset.ptxtadd; const inp = el.querySelector('[data-ptxt="' + d + '"]');
+        const v = inp.value.trim(); if(!v) return;
+        planAddItem(d, { k: 'c:' + Date.now(), t: v, s: 'c' }); planMudou(); return;
+      }
+      if(t.closest('[data-pnovodia]')){
+        const v = document.getElementById('planoNovoDia').value;
+        if(v && planAddDay(v)){ planActive = v; planMudou(); } return;
+      }
+      if(t.closest('[data-p7]')){
+        const ult = PLAN.days[PLAN.days.length - 1] || addDiasIso(isoHoje(), -1);
+        for(let i = 1; i <= 7; i++) planAddDay(addDiasIso(ult, i));
+        planMudou(); return;
+      }
+      const act = t.closest('[data-pact]');
+      if(act && !t.closest('button')){ planActive = act.dataset.pact; planRender(); }
+    });
+    el.addEventListener('change', e => {
+      const c = e.target.closest('[data-pdone]');
+      if(!c) return;
+      const [d, id] = c.dataset.pdone.split('|');
+      const it = (PLAN.items[d] || []).find(x => x.id === id);
+      if(it){ it.done = c.checked; savePlan(); c.closest('.plano-it').classList.toggle('done', c.checked); }
+    });
+    el.addEventListener('keydown', e => {
+      if(e.key === 'Enter' && e.target.matches('[data-ptxt]')){ e.preventDefault(); el.querySelector('[data-ptxtadd="' + e.target.dataset.ptxt + '"]').click(); }
+    });
+  })();
   let _facLoaded = false;
   let _facSyncing = false;
   // estado de colapsar (só guarda o que está FECHADO; padrão = aberto). Sobrevive a re-render e a recarregar a página.
@@ -10060,18 +10245,20 @@ window.init_faculdade = function(){
   }
 
   function vidRow(ci, col, i, it, claseLabel){
-    if(it.miss){
-      return `<div class="fac-vid miss"><span class="fac-spacer"></span><span><span class="name">${it.x}</span> <span class="note">— ${it.note || 'sin video en Moodle'}</span></span></div>`;
-    }
     const key = 'c' + ci + '-' + col + '-' + i;
+    const ptit = it.x + ' · Farmaco II ' + claseLabel + (col === 'y' ? ' (YouTube)' : '');
+    if(it.miss){
+      return `<div class="fac-vid miss"><span class="fac-spacer"></span><span><span class="name">${it.x}</span> <span class="note">— ${it.note || 'sin video en Moodle'}</span>${planBadge('f:' + key)}</span>${planBtn('f:' + key, ptit)}</div>`;
+    }
     const isDone = !!seen[key];
     const dur = it.d ? ` <span class="dur">· ${it.d}</span>` : '';
     const tag = it.alt ? ` <span class="tag">(versión alternativa — mismo tema)</span>`
              : it.bonus ? ` <span class="tag">(${it.bonus})</span>` : '';
     return `<div class="fac-vid${isDone ? ' done' : ''}${STAR['f:' + key] ? ' star' : ''}">`
       + `<input type="checkbox" data-k="${key}"${isDone ? ' checked' : ''} title="marcar como visto">`
-      + `<span><a href="https://youtu.be/${it.u}" target="_blank" rel="noopener"><span class="name">${it.x}</span></a>${dur}${tag}</span>`
+      + `<span><a href="https://youtu.be/${it.u}" target="_blank" rel="noopener"><span class="name">${it.x}</span></a>${dur}${tag}${planBadge('f:' + key)}</span>`
       + starBtn('f:' + key)
+      + planBtn('f:' + key, ptit)
       + addPendBtnVid(key, it.x, claseLabel, it.u, it.d)
       + `</div>`;
   }
@@ -10146,7 +10333,7 @@ window.init_faculdade = function(){
                    setor: 'faculdade', subj: 'farmaco', vidKey: b.dataset.facAddpend, link: 'https://youtu.be/' + b.dataset.u });
       });
     });
-    bindStars(listEl); applyStarFilter();
+    bindStars(listEl); bindPlanBtns(listEl); applyStarFilter(); refreshPlanBadges();
     listEl.querySelectorAll('[data-fac-addclase]').forEach(b => {
       b.addEventListener('click', () => {
         if(b.classList.contains('in') || !window.PEND) return;
@@ -10272,8 +10459,9 @@ window.init_faculdade = function(){
           const done = !!medintSeen[mi + '-' + ci];
           return head + `<div class="fac-vid${done ? ' done' : ''}${STAR['m:' + mi + '-' + ci] ? ' star' : ''}">`
             + `<input type="checkbox" data-mk="${mi}-${ci}"${done ? ' checked' : ''} title="marcar como estudada">`
-            + `<span><span class="name">${c.x}</span>${c.w ? ` <span class="dur">· ${c.w}</span>` : ''}</span>`
+            + `<span><span class="name">${c.x}</span>${c.w ? ` <span class="dur">· ${c.w}</span>` : ''}${planBadge('m:' + mi + '-' + ci)}</span>`
             + starBtn('m:' + mi + '-' + ci)
+            + planBtn('m:' + mi + '-' + ci, c.x + ' · Interna ' + m.mod)
             + `<button class="fac-addpend${has ? ' in' : ''}" data-medint-addclase="${mi}-${ci}"`
             + ` title="${has ? 'já está nas pendências' : 'adicionar às pendências'}">${has ? '✓' : '+'}</button>`
             + `</div>`;
@@ -10295,7 +10483,7 @@ window.init_faculdade = function(){
       });
     });
 
-    bindStars(medintListEl); applyStarFilter();
+    bindStars(medintListEl); bindPlanBtns(medintListEl); applyStarFilter(); refreshPlanBadges();
     medintListEl.querySelectorAll('input[data-mk]').forEach(cb => {
       cb.addEventListener('change', () => setMedintDone(cb.dataset.mk, cb.checked, false));
     });
@@ -10360,6 +10548,7 @@ window.init_faculdade = function(){
       document.querySelectorAll('#view-faculdade .fac-tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const s = btn.dataset.sec;
+      document.getElementById('facPlanoLayout').style.display = (s === 'farmaco' || s === 'medint') ? '' : 'none';
       document.getElementById('facSecFarmaco').style.display  = s === 'farmaco'  ? '' : 'none';
       document.getElementById('facSecMedint').style.display   = s === 'medint'   ? '' : 'none';
       document.getElementById('facSecGuardias').style.display = s === 'guardias' ? '' : 'none';
@@ -10651,6 +10840,12 @@ window.init_faculdade = function(){
     addBtn.addEventListener('click', add);
   }
 
+  storageGetWithRetry('faculdade_plano').then(r => {
+    if(r && r.value !== undefined){
+      try { const p = JSON.parse(r.value) || {}; PLAN = { days: Array.isArray(p.days) ? p.days.slice().sort() : [], items: p.items && typeof p.items === 'object' ? p.items : {} }; } catch(e){}
+    }
+    planSeedIfEmpty(); _planLoaded = true; planRender(); refreshPlanBadges();
+  });
   storageGetWithRetry('faculdade_planejadas').then(r => {
     if(r && r.value !== undefined){ try { STAR = JSON.parse(r.value) || {}; } catch(e){ STAR = {}; } }
     if(_facLoaded){ render(); renderMedint(); } else applyStarFilter();

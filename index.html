@@ -1247,6 +1247,23 @@
   #view-dieta .section-diet #metasCard .day-close { width: 100%; margin-top: 12px; }
   #view-dieta .section-diet #metasCard .day-closed-banner { margin-top: 12px; background: #E7F5E7; border: 1px solid #C4E4C4; color: #2F7D4F; border-radius: 11px; padding: 10px 12px; font-weight: 700; font-size: 13px; text-align: center; }
   #view-dieta .section-diet .card.card-add { background: #faf4f5; border-color: #ecdcde; }
+  /* ===== Falar o que comi (voz/texto -> itens) ===== */
+  #view-dieta .card-voice { background:#fffaf0; border-color:#f0e0b8; }
+  #view-dieta .v-hint { font-size:11.5px; color:#8a7f60; margin:2px 0 8px; line-height:1.45; }
+  #view-dieta #vText { width:100%; margin-top:8px; border:1px solid #e6d7ac; border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13.5px; resize:vertical; background:#fff; box-sizing:border-box; }
+  #view-dieta #vMicBtn.rec { background:#c4573f; border-color:#c4573f; }
+  #view-dieta .v-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding:7px 0; border-top:1px solid #f0e6c8; }
+  #view-dieta .v-row.ruim { background:#fdeeea; }
+  #view-dieta .v-q { flex:1 1 130px; min-width:110px; padding:5px 7px; border:1px solid #e6d7ac; border-radius:6px; font-size:12.5px; }
+  #view-dieta .v-sel { flex:2 1 220px; min-width:160px; padding:5px 6px; border:1px solid #e6d7ac; border-radius:6px; font-size:12.5px; background:#fff; }
+  #view-dieta .v-meal { padding:5px 4px; border:1px solid #e6d7ac; border-radius:6px; font-size:12px; background:#fff; }
+  #view-dieta .v-d { width:122px; padding:4px 5px; border:1px solid #e6d7ac; border-radius:6px; font-size:12px; background:#fff; }
+  #view-dieta .v-g { width:68px; padding:5px 6px; border:1px solid #e6d7ac; border-radius:6px; font-size:12.5px; }
+  #view-dieta .v-k { font-size:11.5px; color:#7a7d72; min-width:78px; }
+  #view-dieta .v-x { background:none; border:none; color:#b8aaa3; font-size:18px; cursor:pointer; line-height:1; }
+  #view-dieta .v-x:hover { color:#c4573f; }
+  #view-dieta .v-tot { font-size:12.5px; font-weight:700; margin:8px 0 6px; color:#5a5420; }
+  #view-dieta .v-warn { font-size:11.5px; color:#c4573f; margin:6px 0; }
   #view-dieta .section-diet .card.card-meals { background: #faf4f5; border-color: #ecdcde; }
   #view-dieta .section-diet .card.card-stats { background: #faf4f5; border-color: #ecdcde; }
 
@@ -5627,6 +5644,276 @@ function remainingKcalBannerHtml(consumed, goal, burned) {
   </div>`;
 }
 
+// ---------------------------------------------------------------------------
+// FALAR O QUE COMI — voz (reconhecimento do navegador) ou texto livre -> lista de itens pra conferir e lançar.
+// Sem IA: separa por vírgula/"e", acha quantidade (g, ml, un., dose...) e procura o alimento na SUA base:
+// o que você já comeu (histórico), seus cadastros e a tabela TACO. Sempre pede confirmação antes de lançar.
+// ---------------------------------------------------------------------------
+const V_UN = { zero:0, um:1, uma:1, dois:2, duas:2, tres:3, quatro:4, cinco:5, seis:6, sete:7, oito:8, nove:9, dez:10, onze:11, doze:12, treze:13, catorze:14, quatorze:14, quinze:15, dezesseis:16, dezessete:17, dezoito:18, dezenove:19 };
+const V_DZ = { vinte:20, trinta:30, quarenta:40, cinquenta:50, sessenta:60, setenta:70, oitenta:80, noventa:90 };
+const V_CT = { cem:100, cento:100, duzentos:200, duzentas:200, trezentos:300, trezentas:300, quatrocentos:400, quatrocentas:400, quinhentos:500, quinhentas:500, seiscentos:600, seiscentas:600, setecentos:700, setecentas:700, oitocentos:800, oitocentas:800, novecentos:900, novecentas:900 };
+const vNorm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const vIsNum = t => Object.prototype.hasOwnProperty.call(V_UN, t) || Object.prototype.hasOwnProperty.call(V_DZ, t) || Object.prototype.hasOwnProperty.call(V_CT, t);
+const vNumVal = t => (t in V_UN ? V_UN[t] : (t in V_DZ ? V_DZ[t] : V_CT[t]));
+// "cento e oitenta" -> 180 ; "meia" -> 0.5 ; devolve texto normalizado (minúsculo, sem acento) com números em dígitos
+function vWordsToNumbers(text){
+  const toks = vNorm(text).replace(/\bum(?:a)? pouc\w+/g, ' ').replace(/([,;.])/g, ' $1 ').split(/\s+/).filter(Boolean);
+  const out = [];
+  for(let i = 0; i < toks.length; i++){
+    const t = toks[i];
+    if(t === 'meia' || t === 'meio'){ out.push('0.5'); continue; }
+    if(vIsNum(t)){
+      let total = vNumVal(t), j = i;
+      // "cento e oitenta e cinco": soma enquanto o próximo número cabe (centena -> <100, dezena redonda -> <10)
+      while(toks[j + 1] === 'e' && vIsNum(toks[j + 2]) && vNumVal(toks[j + 2]) < (total % 100 === 0 ? 100 : (total % 10 === 0 && total >= 20 ? 10 : 0))){
+        total += vNumVal(toks[j + 2]); j += 2;
+      }
+      out.push(String(total)); i = j; continue;
+    }
+    out.push(t);
+  }
+  return out.join(' ').replace(/\s+([,;.])/g, '$1').replace(/(\d)\s*,\s*(\d)/g, '$1.$2');
+}
+const V_STOP = new Set(['de','do','da','dos','das','um','uma','o','a','os','as','no','na','nos','nas','com','meu','minha','todo','toda','pouquinho','pouco','mais','que','eu','em','pra','para','tambem','ai','tipo','uns','umas','cerca','mesmo','mesma','depois','antes','ontem','hoje','anteontem','comi','tomei','bebi','almocei','jantei','lanchei','foi','fui','era','eram','umas']);
+const V_MEALS = [
+  ['lanche_manha', /lanche d[ao] manha/],
+  ['cafe_manha', /(cafe d[ao] manha|de manha|pela manha|manha|desjejum|cafe(?! da tarde))/],
+  ['almoco', /(almoc\w*)/],
+  ['cafe_tarde', /(cafe da tarde|lanche da tarde|lanche|a tarde|de tarde|tarde)/],
+  ['janta', /(jantar|janta|jantei|de noite|a noite|noite|ceia)/],
+];
+function vDefaultMeal(){
+  if(ui.selectedMealType) return ui.selectedMealType;
+  const h = new Date().getHours();
+  return h < 10 ? 'cafe_manha' : h < 12 ? 'lanche_manha' : h < 15.5 ? 'almoco' : h < 19 ? 'cafe_tarde' : 'janta';
+}
+function vCleanLogName(n){
+  return String(n).replace(/\s*[—–]\s*[\d.,]+\s*g\b.*$/i, '').replace(/\s*\((?:[^)]*\d+\s*g)\)\s*$/i, '').replace(/\s*[—–]\s*\d+\s*un\.?.*$/i, '').replace(/\s{2,}/g, ' ').trim();
+}
+let _vPool = null, _vPoolSig = '';
+function vPool(){
+  const sig = DB.dietLog.length + '|' + DB.customFoods.length;
+  if(_vPool && _vPoolSig === sig) return _vPool;
+  const pool = [], seen = new Set();
+  const hist = new Map();
+  for(let i = DB.dietLog.length - 1; i >= 0; i--){
+    const e = DB.dietLog[i];
+    if(!(Number(e.grams) > 0) || !(Number(e.kcal) >= 0)) continue;
+    const name = vCleanLogName(e.name); const key = vNorm(name);
+    if(!key) continue;
+    if(hist.has(key)){ hist.get(key).n++; continue; }
+    const per = x => (Number(x) || 0) / Number(e.grams) * 100;
+    let unitGrams = null;
+    const m1 = String(e.name).match(/[×x]\s*(\d+)\b/i) || String(e.name).match(/(\d+)\s*un\b/i);
+    if(m1 && Number(m1[1]) > 0) unitGrams = Number(e.grams) / Number(m1[1]);
+    if(!unitGrams){ const mc = String(e.name).match(/(\d+(?:[.,]\d+)?)\s*g\s*cada/i); if(mc) unitGrams = parseFloat(mc[1].replace(',', '.')); }
+    hist.set(key, { name, kcal: per(e.kcal), protein: per(e.protein), carbs: per(e.carbs), fat: per(e.fat), fiber: per(e.fiber), src: e.source || 'manual', origin: 'hist', n: 1, unitGrams });
+  }
+  hist.forEach(f => { pool.push(f); seen.add(vNorm(f.name)); });
+  DB.customFoods.forEach(f => { if(!seen.has(vNorm(f.name))){ pool.push(Object.assign({}, f, { src: f.origin || 'manual', origin: 'custom', n: 0 })); seen.add(vNorm(f.name)); } });
+  FOOD_DB.forEach(f => { if(!seen.has(vNorm(f.name))) pool.push(Object.assign({}, f, { src: f.src || 'TACO', origin: 'taco', n: 0 })); });
+  pool.forEach(f => { f._n = vNorm(f.name); });
+  _vPool = pool; _vPoolSig = sig;
+  return pool;
+}
+function vTokens(q){
+  return vNorm(q).split(/[^a-z0-9]+/).filter(t => t.length >= 2 && !V_STOP.has(t) && !/^\d+(\.\d+)?$/.test(t))
+    .map(t => (t.length > 3 && /(es|s)$/.test(t) && !/(ss|is)$/.test(t)) ? t.replace(/(es|s)$/, m => (m === 'es' && /[rzl]es$/.test(t) ? 'es' : '')) : t)
+    .map(t => V_ALIAS[t] || t);
+}
+function vMatch(q, limit){
+  const toks = vTokens(q);
+  if(!toks.length) return [];
+  const res = [];
+  vPool().forEach(f => {
+    let hit = 0, whole = 0;
+    toks.forEach(t => {
+      if(f._n.indexOf(t) !== -1){ hit++; if(new RegExp('(^|[^a-z0-9])' + t + '(s|es)?([^a-z0-9]|$)').test(f._n)) whole++; }
+    });
+    if(!hit) return;
+    const frac = hit / toks.length;
+    let score = frac * 3 + (hit === toks.length ? 1 : 0) + whole * 0.5 - f._n.length / 500;
+    if(f.origin === 'hist') score += 0.6 + Math.min(f.n, 12) * 0.05;
+    else if(f.origin === 'custom') score += 0.35;
+    if(f._n.startsWith(toks[0])) score += 0.25;
+    res.push({ f, score });
+  });
+  res.sort((a, b) => b.score - a.score);
+  return res.slice(0, limit || 6).map(r => r.f);
+}
+const V_ALIAS = { mozzarella: 'mozarela', mozarella: 'mozarela', mussarela: 'mozarela', mucarela: 'mozarela', muzzarela: 'mozarela', cheddar: 'cheddar', refri: 'refrigerante', pepsi: 'pepsi' };
+// peso médio de 1 unidade quando o alimento não tem esse dado
+const V_DEFAULT_UNIT = [[/ovo/, 50], [/figacita/, 45], [/pao frances|paozinho/, 50], [/banana/, 100], [/maca\b/, 130], [/laranja/, 150], [/bolacha|biscoito/, 10], [/alfajor/, 70], [/empanada/, 90]];
+function vDefaultUnit(name){ const n = vNorm(name); const r = V_DEFAULT_UNIT.find(([re]) => re.test(n)); return r ? r[1] : null; }
+const V_UNIT_G = { dose: 30, copo: 200, copos: 200, lata: 350, latas: 350, xicara: 240, xicaras: 240, colher: 15, colheres: 15 };
+// transforma um trecho ("100 g de arroz", "2 ovos", "1 dose de whey") em { q, grams, nUn, pendente }
+function vParseSeg(seg){
+  let s = seg.trim();
+  if(!s) return null;
+  let grams = null, nUn = null, unitWord = '';
+  let m = s.match(/(\d+(?:\.\d+)?)\s*(kg|quilos?|quilo|gramas?|gr|g|ml|litros?|l)\b/);
+  if(m){
+    const n = parseFloat(m[1]), u = m[2];
+    grams = n * (/^(kg|quilo)/.test(u) ? 1000 : /^(litro|l$)/.test(u) ? 1000 : 1);
+    s = (s.slice(0, m.index) + ' ' + s.slice(m.index + m[0].length)).trim();
+  } else {
+    m = s.match(/(\d+(?:\.\d+)?)\s*(unidades?|unid|un|fatias?|pedacos?|quadrados?|doses?|copos?|latas?|xicaras?|colheres?(?:\s+de\s+(?:sopa|cha|sobremesa))?|porcoes?|pitadas?)?(?=\s|$)/);
+    if(m){
+      nUn = parseFloat(m[1]); unitWord = (m[2] || '').split(/\s/)[0].replace(/s$/, '').replace(/es$/, '');
+      if(/^dose/.test(m[2] || '')) { grams = nUn * V_UNIT_G.dose; nUn = null; }
+      else if(unitWord && V_UNIT_G[unitWord]) { grams = nUn * V_UNIT_G[unitWord]; nUn = null; }
+      s = (s.slice(0, m.index) + ' ' + s.slice(m.index + m[0].length)).trim();
+      // número solto grande ("180 de feijão") quase sempre é grama
+      if(grams == null && !unitWord && nUn != null && nUn >= 20){ grams = nUn; nUn = null; }
+    }
+  }
+  const q = s.replace(/\b(de|do|da|dos|das)\b/g, ' ').replace(/\s{2,}/g, ' ').trim();
+  if(!vTokens(q).length) return null;
+  return { q, grams, nUn, unitWord };
+}
+function vParse(text){
+  let t = vWordsToNumbers(text);
+  let dateOff = null;   // vale pro trecho atual e os seguintes, até aparecer outro "ontem/hoje/anteontem"
+  const parts = t.split(/\s*(?:[,;.\n]|\s\+\s|\se\s|\smais\s|\scom mais\s)\s*/).map(x => x.trim()).filter(Boolean);
+  let meal = vDefaultMeal();
+  const items = [];
+  parts.forEach(part => {
+    let seg = part;
+    if(/\banteontem\b/.test(seg)) dateOff = -2; else if(/\bontem\b/.test(seg)) dateOff = -1; else if(/\bhoje\b/.test(seg)) dateOff = 0;
+    // trecho com referência a refeição ("no almoco 100 g de arroz") troca a refeição atual
+    for(const [k, re] of V_MEALS){
+      const mm = seg.match(re);
+      if(mm){ meal = k; seg = seg.replace(new RegExp('(?:\\b(?:no|na|de|do|da|pro|pra|para)\\s+)?' + re.source), ' ').replace(/\s{2,}/g, ' ').trim(); break; }
+    }
+    seg = seg.replace(/\b(ontem|hoje|anteontem|comi|tomei|bebi|almocei|jantei|lanchei|eu)\b/g, ' ').replace(/\s{2,}/g, ' ').trim();
+    if(/\bnao\b|\bnada\b/.test(seg)) return;   // "não comi nada" não é alimento
+    const it = vParseSeg(seg);
+    if(!it) return;
+    const cands = vMatch(it.q, 6);
+    let grams = it.grams;
+    const top = cands[0];
+    if(grams == null && top && it.nUn != null){
+      const ug = Number(top.unitGrams) || (typeof unitGramsOf === 'function' ? unitGramsOf(top.name) : null) || vDefaultUnit(top.name) || vDefaultUnit(it.q);
+      if(ug) grams = it.nUn * ug;
+    }
+    items.push({ q: it.q, cands, sel: 0, grams: grams != null ? Math.round(grams * 10) / 10 : '', meal, nUn: it.nUn,
+                 date: dateOff == null ? ui.dietDate : shiftDate(todayStr(), dateOff) });
+  });
+  return { items };
+}
+function vFoodKcal(f, g){ return f ? Math.round(f.kcal * g / 100) : 0; }
+function voiceCardHtml(){
+  const hasSR = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  return `<div class="card card-voice" id="voiceCard">
+    <div class="card-title">🎤 Falar o que comi</div>
+    <div class="v-hint">${hasSR ? 'Toque em <b>Falar</b> e diga tudo de uma vez' : 'Use o <b>microfone do teclado</b> do celular (ou digite)'} — ex.: “no almoço 100 g de arroz, 180 g de feijão e 250 g de frango”. Eu separo os itens, você confere e lança.</div>
+    <div class="row">
+      ${hasSR ? '<button type="button" class="btn" id="vMicBtn">🎤 Falar</button>' : ''}
+      <button type="button" class="btn secondary" id="vParseBtn">Entender</button>
+      <button type="button" class="btn secondary" id="vClearBtn">Limpar</button>
+    </div>
+    <textarea id="vText" rows="3" placeholder="Fale ou escreva o que você comeu…">${esc(ui.voiceText || '')}</textarea>
+    <div id="vResult"></div>
+  </div>`;
+}
+function renderVoiceResult(){
+  const box = document.getElementById('vResult');
+  if(!box) return;
+  const V = ui.voice;
+  if(!V || !V.items) { box.innerHTML = ''; return; }
+  if(!V.items.length){ box.innerHTML = '<div class="v-warn">Não entendi nenhum alimento nesse texto. Tenta de novo com a quantidade (ex.: “100 g de arroz”).</div>'; return; }
+  const mealSel = m => `<select class="v-meal">${MEAL_TYPES.map(([k, l]) => `<option value="${k}"${k === m ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+  let html = `<div style="margin-top:10px;font-size:12px;color:#7a7d72">Confira cada linha (refeição, dia e gramas) antes de lançar:</div>`;
+  V.items.forEach((it, i) => {
+    const f = it.cands[it.sel];
+    const g = Number(it.grams) || 0;
+    const ok = f && g > 0;
+    html += `<div class="v-row${ok ? '' : ' ruim'}" data-vi="${i}">
+      <input class="v-q" value="${esc(it.q)}" title="o que eu entendi — edite pra buscar de novo">
+      <select class="v-sel">${it.cands.length ? it.cands.map((c, j) => `<option value="${j}"${j === it.sel ? ' selected' : ''}>${esc(c.name)}${c.origin === 'hist' ? ' ★' : ''}</option>`).join('') : '<option value="">— não achei: edite o nome ao lado —</option>'}</select>
+      ${mealSel(it.meal)}
+      <input class="v-d" type="date" value="${it.date}" max="${todayStr()}">
+      <input class="v-g" type="number" min="0" step="any" inputmode="decimal" placeholder="g" value="${it.grams === '' ? '' : it.grams}"><span style="font-size:11.5px;color:#9a9c90">g</span>
+      <span class="v-k">${ok ? vFoodKcal(f, g) + ' kcal' : '—'}</span>
+      <button type="button" class="v-x" title="tirar esse item">×</button>
+    </div>`;
+  });
+  const valid = V.items.filter(it => it.cands[it.sel] && Number(it.grams) > 0);
+  const tot = valid.reduce((a, it) => { const f = it.cands[it.sel], k = Number(it.grams) / 100; a.k += f.kcal * k; a.p += f.protein * k; a.f += f.fat * k; return a; }, { k: 0, p: 0, f: 0 });
+  html += `<div class="v-tot">${valid.length} de ${V.items.length} itens prontos · ≈ ${Math.round(tot.k)} kcal · ${Math.round(tot.p)} g proteína · ${Math.round(tot.f)} g gordura</div>`;
+  if(valid.length < V.items.length) html += '<div class="v-warn">As linhas em vermelho estão sem alimento ou sem gramas — ajuste ou tire com ×.</div>';
+  html += `<div class="row"><button type="button" class="btn" id="vLaunchBtn"${valid.length ? '' : ' disabled'}>✓ Lançar ${valid.length} ${valid.length === 1 ? 'item' : 'itens'}</button></div>`;
+  box.innerHTML = html;
+  box.querySelectorAll('.v-row').forEach(row => {
+    const i = Number(row.dataset.vi), it = V.items[i];
+    row.querySelector('.v-q').addEventListener('change', e => { it.q = e.target.value; it.cands = vMatch(it.q, 6); it.sel = 0; renderVoiceResult(); });
+    row.querySelector('.v-sel').addEventListener('change', e => { it.sel = Number(e.target.value) || 0; renderVoiceResult(); });
+    row.querySelector('.v-meal').addEventListener('change', e => { it.meal = e.target.value; });
+    row.querySelector('.v-d').addEventListener('change', e => { if(e.target.value) it.date = e.target.value; });
+    row.querySelector('.v-g').addEventListener('change', e => { it.grams = e.target.value === '' ? '' : Number(e.target.value); renderVoiceResult(); });
+    row.querySelector('.v-x').addEventListener('click', () => { V.items.splice(i, 1); renderVoiceResult(); });
+  });
+  const lb = document.getElementById('vLaunchBtn');
+  if(lb) lb.addEventListener('click', () => {
+    let n = 0;
+    V.items.forEach(it => {
+      const f = it.cands[it.sel], g = Number(it.grams);
+      if(!f || !(g > 0)) return;
+      const k = g / 100;
+      DB.dietLog.push({
+        id: uid(), date: it.date || ui.dietDate, name: f.name, grams: g,
+        kcal: round1(f.kcal * k), protein: round1(f.protein * k), carbs: round1(f.carbs * k),
+        fat: round1(f.fat * k), fiber: round1((f.fiber || 0) * k),
+        source: normSrc(f.src || f.origin), mealType: it.meal,
+      });
+      n++;
+    });
+    const last = V.items.filter(it => it.cands[it.sel] && Number(it.grams) > 0).map(it => it.date).sort().pop();
+    ui.voice = null; ui.voiceText = ''; if(last) ui.dietDate = last;
+    persist(); renderAll(); showToast('🎤 ' + n + ' item(ns) lançado(s)');
+  });
+}
+let _vRec = null;
+function vParseNow(){
+  const ta = document.getElementById('vText');
+  if(!ta) return;
+  ui.voiceText = ta.value;
+  if(!ta.value.trim()){ ui.voice = null; renderVoiceResult(); return; }
+  const r = vParse(ta.value);
+  ui.voice = { items: r.items };
+  renderVoiceResult();
+}
+function attachVoiceHandlers(){
+  const ta = document.getElementById('vText');
+  if(!ta) return;
+  ta.addEventListener('input', () => { ui.voiceText = ta.value; });
+  document.getElementById('vParseBtn').addEventListener('click', vParseNow);
+  document.getElementById('vClearBtn').addEventListener('click', () => { ta.value = ''; ui.voiceText = ''; ui.voice = null; renderVoiceResult(); });
+  const mic = document.getElementById('vMicBtn');
+  if(mic){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    mic.addEventListener('click', () => {
+      if(_vRec){ try { _vRec.stop(); } catch(e){} return; }
+      const rec = new SR();
+      rec.lang = 'pt-BR'; rec.interimResults = true; rec.continuous = true;
+      const base = ta.value.trim() ? ta.value.trim() + ' ' : '';
+      let finalTxt = '';
+      rec.onresult = ev => {
+        let interim = '';
+        for(let i = ev.resultIndex; i < ev.results.length; i++){
+          const r = ev.results[i];
+          if(r.isFinal) finalTxt += r[0].transcript + ' '; else interim += r[0].transcript;
+        }
+        ta.value = base + finalTxt + interim; ui.voiceText = ta.value;
+      };
+      rec.onerror = e => { if(e.error === 'not-allowed' || e.error === 'service-not-allowed') showToast('⚠ Libere o microfone pro site nas permissões do navegador.'); else if(e.error !== 'no-speech' && e.error !== 'aborted') showToast('⚠ Microfone: ' + e.error); };
+      rec.onend = () => { _vRec = null; mic.textContent = '🎤 Falar'; mic.classList.remove('rec'); if(ta.value.trim()) vParseNow(); };
+      try { rec.start(); _vRec = rec; mic.textContent = '⏹ Parar'; mic.classList.add('rec'); } catch(e){ showToast('⚠ Não consegui abrir o microfone.'); }
+    });
+  }
+  renderVoiceResult();
+}
+
 function allLocalFoods() { return [...FOOD_DB, ...DB.customFoods]; }
 
 // --- Busca ao vivo no Open Food Facts (br + world em paralelo, com retry) ---
@@ -6150,6 +6437,8 @@ function dietHtml() {
 
     ${metasCardHtml()}
 
+    ${voiceCardHtml()}
+
     <div class="card card-add" id="addFoodCard">
       <div class="card-title">🥗 Adicionar alimento</div>
       <div class="row" style="margin-bottom:10px;gap:6px">
@@ -6391,6 +6680,7 @@ function pickFood(food) {
 function attachDietHandlers() {
   const dateInput = document.getElementById('dietDateInput');
   if (!dateInput) return;
+  attachVoiceHandlers();
   dateInput.addEventListener('change', e => {
     let v = e.target.value;
     if (v < METAS_START) v = METAS_START;

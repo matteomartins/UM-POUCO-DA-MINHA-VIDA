@@ -10966,7 +10966,7 @@ window.init_faculdade = function(){
             + `<input type="checkbox" data-mk="${mi}-${ci}"${done ? ' checked' : ''} title="marcar como estudada">`
             + `<span><span class="name">${c.x}</span>${c.w ? ` <span class="dur">· ${c.w}</span>` : ''}${planBadge('m:' + mi + '-' + ci)}</span>`
             + starBtn('m:' + mi + '-' + ci)
-            + planBtn('m:' + mi + '-' + ci, c.x + ' · Interna ' + m.mod)
+            + planBtn('m:' + mi + '-' + ci, c.x)
             + `<button class="fac-addpend${has ? ' in' : ''}" data-medint-addclase="${mi}-${ci}"`
             + ` title="${has ? 'já está nas pendências' : 'adicionar às pendências'}">${has ? '✓' : '+'}</button>`
             + `</div>`;

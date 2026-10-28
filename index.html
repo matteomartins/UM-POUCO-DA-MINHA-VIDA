@@ -3491,7 +3491,12 @@ const weekdayNames = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","S�
 const monthNames = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function todayMidnight(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
 const today = todayMidnight();
-const haircutAnchor = new Date(2026,7,29);
+const haircutAnchor = new Date(2026,7,29);      // ate 24/10: sabados de 14 em 14 dias a partir de 29/08
+const haircutAnchor2 = new Date(2026,9,31);     // a partir de 25/10: os OUTROS sabados (31/10, 14/11, 28/11...)
+function isHaircutDay(d){
+  if(d < new Date(2026,9,25)){ const x = Math.round((d - haircutAnchor) / 86400000); return x >= 0 && x % 14 === 0; }
+  const y = Math.round((d - haircutAnchor2) / 86400000); return y >= 0 && y % 14 === 0;
+}
 
 function fmt(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function timeVal(t){ return t ? parseInt(t.replace(":",""),10) : -1; }
@@ -4295,8 +4300,7 @@ function renderDays(){
       {k:'r:jantar',t:(ovr && ovr.jantar) || "21:00",ti:"Jantar" + (ovr && ovr.jantar ? " ✳️" : ""),c:"rotina"},
     ];
 
-    const diffDays = Math.round((d - haircutAnchor) / 86400000);
-    if(diffDays>=0 && diffDays%14===0){
+    if(isHaircutDay(d)){
       routineRaw.push({k:'r:cabelo',t:"11:00",ti:"Cortar o cabelo ✂️",c:"pessoal"});
     }
     if(d.getDay()===2){
@@ -4368,8 +4372,7 @@ function renderDays(){
     const hairPool = [];
     for(let i=0;i<60;i++){
       const hd = new Date(today); hd.setDate(hd.getDate()+i);
-      const diff = Math.round((hd - haircutAnchor) / 86400000);
-      if(diff>=0 && diff%14===0){
+      if(isHaircutDay(hd)){
         const hs = fmt(hd); const o = findOverride('r:cabelo', hs);
         if(o && o.hide) continue;
         hairPool.push({ d:(o && o.d2) || hs, t:(o && o.t!==undefined) ? o.t : '11:00', ti:(o && o.ti) || 'Cortar o cabelo ✂️', c:'pessoal' });

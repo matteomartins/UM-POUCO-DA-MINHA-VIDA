@@ -2022,6 +2022,7 @@ async function storageGetWithRetry(key){
       <div class="fac-tabs">
         <button class="fac-tab-btn active" data-sec="farmaco">Farmacología II</button>
         <button class="fac-tab-btn" data-sec="medint">Medicina Interna</button>
+        <button class="fac-tab-btn" data-sec="psiq">Psiquiatría</button>
         <button class="fac-tab-btn" data-sec="guardias">Guardias</button>
         <button class="fac-tab-btn" data-sec="cortitas">Cortitas</button>
       </div>
@@ -2044,6 +2045,11 @@ async function storageGetWithRetry(key){
 
     </div>
     </div>
+
+    <section class="fac-sec" id="facSecPsiq" style="display:none">
+      <p class="fac-intro">Choices de <b>Psiquiatría</b> (602 preguntas, 13 temas): filtrá por tema y prioridad, repasá las que erraste. El progreso se guarda en este dispositivo. <a href="faculdade-psiquiatria-choices.html" target="_blank" rel="noopener">Abrir en pantalla completa ↗</a></p>
+      <iframe id="facPsiqFrame" title="Choices de Psiquiatría" style="width:100%; height:calc(100vh - 210px); min-height:560px; border:1px solid var(--fac-line); border-radius:12px; background:#fff;"></iframe>
+    </section>
 
     <section class="fac-sec" id="facSecGuardias" style="display:none">
       <div id="grdHost" class="grd-loading">Cargando guía de guardia…</div>
@@ -11061,9 +11067,11 @@ window.init_faculdade = function(){
       document.getElementById('facPlanoLayout').style.display = (s === 'farmaco' || s === 'medint') ? '' : 'none';
       document.getElementById('facSecFarmaco').style.display  = s === 'farmaco'  ? '' : 'none';
       document.getElementById('facSecMedint').style.display   = s === 'medint'   ? '' : 'none';
+      document.getElementById('facSecPsiq').style.display     = s === 'psiq'     ? '' : 'none';
       document.getElementById('facSecGuardias').style.display = s === 'guardias' ? '' : 'none';
       document.getElementById('facSecCortitas').style.display = s === 'cortitas' ? '' : 'none';
       if(s === 'guardias') loadGuardias();
+      if(s === 'psiq'){ const fr = document.getElementById('facPsiqFrame'); if(!fr.getAttribute('src')) fr.setAttribute('src', 'faculdade-psiquiatria-choices.html'); }
     });
   });
 

@@ -2047,8 +2047,7 @@ async function storageGetWithRetry(key){
     </div>
 
     <section class="fac-sec" id="facSecPsiq" style="display:none">
-      <p class="fac-intro">Choices de <b>Psiquiatría</b> (687 preguntas, 15 temas): filtrá por tema y prioridad, repasá las que erraste. El progreso se guarda en este dispositivo. <a href="faculdade-psiquiatria-choices.html" target="_blank" rel="noopener">Abrir en pantalla completa ↗</a></p>
-      <iframe id="facPsiqFrame" title="Choices de Psiquiatría" style="width:100%; height:calc(100vh - 210px); min-height:560px; border:1px solid var(--fac-line); border-radius:12px; background:#fff;"></iframe>
+      <div id="psiqApp"><p class="fac-intro">Cargando los choices…</p></div>
     </section>
 
     <section class="fac-sec" id="facSecGuardias" style="display:none">
@@ -11071,7 +11070,7 @@ window.init_faculdade = function(){
       document.getElementById('facSecGuardias').style.display = s === 'guardias' ? '' : 'none';
       document.getElementById('facSecCortitas').style.display = s === 'cortitas' ? '' : 'none';
       if(s === 'guardias') loadGuardias();
-      if(s === 'psiq'){ const fr = document.getElementById('facPsiqFrame'); if(!fr.getAttribute('src')) fr.setAttribute('src', 'faculdade-psiquiatria-choices.html'); }
+      if(s === 'psiq') loadPsiq();
     });
   });
 
@@ -11266,6 +11265,24 @@ window.init_faculdade = function(){
 
   // ===== Guardias: la guía se carga aparte (faculdade-guardias.html) para no pesar el index =====
   let _grdLoaded = false, _grdLoading = false;
+  // ===== Psiquiatría: choices integrados (se cargan una vez, al abrir la pestaña) =====
+  let _psiqLoaded = false;
+  function loadPsiq(){
+    if(_psiqLoaded) return;
+    _psiqLoaded = true;
+    const l = document.createElement('link');
+    l.rel = 'stylesheet'; l.href = 'faculdade-psiquiatria.css?v=20261030a';
+    document.head.appendChild(l);
+    const sc = document.createElement('script');
+    sc.src = 'faculdade-psiquiatria.js?v=20261030a';
+    sc.onerror = () => {
+      _psiqLoaded = false;
+      const h = document.getElementById('psiqApp');
+      if(h) h.textContent = 'No se pudieron cargar los choices. Revisá la conexión y volvé a abrir la pestaña.';
+    };
+    document.body.appendChild(sc);
+  }
+
   function loadGuardias(){
     if(_grdLoaded || _grdLoading) return;
     const host = document.getElementById('grdHost');

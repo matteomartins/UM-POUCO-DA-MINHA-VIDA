@@ -27,7 +27,7 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
-.wrap{max-width:760px;margin:0 auto;padding:20px 16px 56px}
+.wrap{max-width:760px;margin:0 auto;padding:54px 16px 56px}
 h1{font-size:1.5rem;margin:.2rem 0 .1rem;letter-spacing:-.01em}
 .sub{color:var(--muted);margin:0 0 18px;font-size:.95rem}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px}
@@ -75,7 +75,21 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .tb span{font-size:.92rem}
 .hide{display:none!important}
 .theme{position:fixed;top:10px;right:10px;padding:6px 10px;font-size:.85rem}
-@media (max-width:480px){.wrap{padding:16px 12px 48px}.card{padding:14px}.q{font-size:1.05rem}}
+@media (max-width:480px){.wrap{padding:50px 12px 48px}.card{padding:14px}.q{font-size:1.05rem}}
+
+.topic .tx{flex:1;min-width:0}
+.topic .mark{display:block;margin-top:8px;padding:4px 10px;font-size:.78rem;border-radius:8px;background:transparent;color:var(--muted)}
+.topic.done{border-left:5px solid var(--ok)}
+.topic.done b{color:var(--ok)}
+.topic.done .mark{color:var(--ok);border-color:var(--ok)}
+.mapbox{margin:10px 0 0;border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--card)}
+.mapbox summary{cursor:pointer;color:var(--muted);font-size:.92rem}
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin:10px 0 4px}
+.mp{padding:7px 0;font-size:.85rem;border-radius:8px}
+.mp.ok{background:var(--ok-bg);border-color:var(--ok)}
+.mp.bad{background:var(--bad-bg);border-color:var(--bad)}
+.mp.cur{outline:2px solid var(--accent);outline-offset:1px;font-weight:700}
+.feedback .again{margin-top:10px;padding:6px 12px;font-size:.88rem}
 </style>
 </head>
 <body>
@@ -91,10 +105,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <span class="row"><button class="ghost" id="allOn">Todos</button><button class="ghost" id="allOff">Ninguno</button></span>
     </div>
     <div class="topics" id="topics"></div>
-    <div class="opts">
-      <label><input type="radio" name="mode" value="all" checked> Todas</label>
-      <label><input type="radio" name="mode" value="todo"> Solo las que aún no respondí</label>
+    <div class="opts" role="radiogroup" aria-label="Qué preguntas mostrar">
+      <b>Mostrar:</b>
+      <label><input type="radio" name="mode" value="todo" checked> Solo las nuevas (que aún no respondí)</label>
       <label><input type="radio" name="mode" value="wrong"> Solo las que erré</label>
+      <label><input type="radio" name="mode" value="all"> Todas, incluidas las ya respondidas</label>
+    </div>
+    <div class="opts">
+      <label><input type="checkbox" id="hideDone"> Ocultar los temas que marqué como hechos</label>
     </div>
     <div class="opts" role="radiogroup" aria-label="Prioridad">
       <b>Prioridad:</b>
@@ -117,18 +135,21 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="row spread">
     <button class="ghost" id="quit">← Salir</button>
     <span class="hint" id="liveScore"></span>
+    <button class="ghost" id="finish">Finalizar</button>
   </div>
   <div class="meta"><span id="pos"></span><span id="topicName"></span></div>
   <div class="bar" aria-hidden="true"><i id="prog"></i></div>
+  <details class="mapbox"><summary id="mapSum">Mapa de preguntas</summary><div id="map" class="map"></div></details>
   <div class="card" style="margin-top:14px">
     <span class="tag" id="tag"></span>
     <p class="q" id="qtext"></p>
     <div id="choices"></div>
     <div id="fb" class="feedback hide" role="status" aria-live="polite"></div>
     <div class="nav">
-      <span class="hint">Atajos: A–D o 1–4 para responder, Enter para seguir</span>
-      <button class="primary hide" id="next">Siguiente →</button>
+      <button id="prev">← Anterior</button>
+      <button class="primary" id="next">Siguiente →</button>
     </div>
+    <p class="hint" style="margin:10px 0 0">Atajos: A–D o 1–4 para responder · ←/→ para moverte entre preguntas · tocá un número del mapa para saltar</p>
   </div>
 </section>
 
@@ -140,6 +161,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <div id="rTopics"></div>
     <div class="row" style="margin-top:16px">
       <button class="primary" id="redo">Repetir las que erré</button>
+      <button class="primary" id="cont">Seguir con las que faltan</button>
+      <button id="review">Revisar la sesión</button>
       <button id="home2">Volver al inicio</button>
     </div>
   </div>
@@ -156,13 +179,13 @@ const BANK=QS.map((r,i)=>({id:i,h:hq(r[1]),sec:r[0],topic:parseInt(r[0],10),q:r[
 const KEY="psiq_choices_v1";
 /* progreso: {v:2, reset:ts, res:{hash:[0|1, ts]}} — local (cache) + Supabase (tabla app_data) */
 const SB_URL="https://rtnvopgrkgwodslmsefd.supabase.co/rest/v1", SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0bnZvcGdya2d3b2RzbG1zZWZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNTk2OTUsImV4cCI6MjEwMzYzNTY5NX0.cMF1gGf51qCk1GPJlabcEqA-3YdJorwHwOGWZYaJorw", SB_ROW="psiq_choices_progreso";
-function norm(o){return(o&&o.v===2&&o.res)?o:{v:2,reset:0,res:{}}}
+function norm(o){if(o&&o.v===2&&o.res){o.done=o.done||{};return o}return{v:2,reset:0,res:{},done:{}}}
 let store=norm(null);
 try{store=norm(JSON.parse(localStorage.getItem(KEY)||"null"))}catch(e){store=norm(null)}
 function getRes(b){const e=store.res[b.h];return e?e[0]:undefined}
 function merge(a,b){
-  const r=Math.max(a.reset||0,b.reset||0),out={v:2,reset:r,res:{}};
-  [a,b].forEach(x=>{for(const k in x.res){const e=x.res[k];if(e[1]>r&&(!out.res[k]||e[1]>out.res[k][1]))out.res[k]=e}});
+  const r=Math.max(a.reset||0,b.reset||0),out={v:2,reset:r,res:{},done:{}};
+  [a,b].forEach(x=>{["res","done"].forEach(f=>{const s=x[f]||{};for(const k in s){const e=s[k];if(e[1]>r&&(!out[f][k]||e[1]>out[f][k][1]))out[f][k]=e}})});
   return out;
 }
 function loc(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}}
@@ -182,7 +205,7 @@ async function sync(){
   if(syncing){again=true;return}
   syncing=true;setSt("☁ sincronizando…");
   try{
-    const r=await sbGet();if(r)store=merge(store,r);
+    const r=await sbGet();if(r)store=merge(store,r);if(prefs.sel===null)Object.keys(TOPICS).forEach(k=>{if(isDone(k))sel.delete(Number(k))});
     loc();await sbSet(store);setSt("☁ sincronizado");
     if(!$("home").classList.contains("hide"))renderHome();
   }catch(e){setSt("☁ sin conexión: queda guardado en este dispositivo y se sincroniza después")}
@@ -204,106 +227,148 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
   };
 })();
 
+/* preferencias locales (no se sincronizan) */
+const PK=KEY+"_prefs";
+let prefs={mode:"todo",prio:"core",shuf:true,hideDone:false,sel:null};
+try{Object.assign(prefs,JSON.parse(localStorage.getItem(PK)||"{}"))}catch(e){}
+function savePrefs(){try{localStorage.setItem(PK,JSON.stringify(prefs))}catch(e){}}
+const sel=new Set((Array.isArray(prefs.sel)?prefs.sel:Object.keys(TOPICS)).map(Number).filter(k=>k in TOPICS));
+(function(){
+  const m=document.querySelector('input[name=mode][value="'+prefs.mode+'"]');if(m)m.checked=true;
+  const p=document.querySelector('input[name=prio][value="'+prefs.prio+'"]');if(p)p.checked=true;
+  $("shuf").checked=!!prefs.shuf;$("hideDone").checked=!!prefs.hideDone;
+})();
+function persist(){prefs.mode=mode();prefs.prio=prio();prefs.shuf=$("shuf").checked;prefs.hideDone=$("hideDone").checked;prefs.sel=[...sel];savePrefs()}
+
 /* inicio */
-const sel=new Set(Object.keys(TOPICS).map(Number));
-function stats(t){const qs=BANK.filter(b=>b.topic===t&&(prio()==="all"||(prio()==="core"&&b.pr<=2)||(prio()==="top"&&b.pr===1)));let r=0,a=0;qs.forEach(b=>{if(getRes(b)!==undefined){a++;if(getRes(b)===1)r++}});return{n:qs.length,a,r}}
+function isDone(k){const e=store.done[k];return !!(e&&e[0])}
 function mode(){return document.querySelector('input[name=mode]:checked').value}
 function prio(){return document.querySelector('input[name=prio]:checked').value}
+function inPrio(b){const p=prio();return p==="all"||(p==="core"&&b.pr<=2)||(p==="top"&&b.pr===1)}
+function stats(t){let n=0,r=0,a=0;BANK.forEach(b=>{if(b.topic===t&&inPrio(b)){n++;const x=getRes(b);if(x!==undefined){a++;if(x===1)r++}}});return{n,a,r}}
 function pool(){
-  const m=mode(),p=prio();
-  return BANK.filter(b=>sel.has(b.topic)&&(p==="all"||(p==="core"&&b.pr<=2)||(p==="top"&&b.pr===1))&&(m==="all"||(m==="todo"&&getRes(b)===undefined)||(m==="wrong"&&getRes(b)===0)));
+  const m=mode();
+  return BANK.filter(b=>sel.has(b.topic)&&inPrio(b)&&(m==="all"||(m==="todo"&&getRes(b)===undefined)||(m==="wrong"&&getRes(b)===0)));
 }
 function renderHome(){
-  const box=$("topics");box.innerHTML="";
+  const box=$("topics");box.innerHTML="";const hide=$("hideDone").checked;let hidden=0;
   Object.keys(TOPICS).forEach(k=>{
-    k=Number(k);const s=stats(k);
-    const l=document.createElement("label");l.className="topic"+(sel.has(k)?" on":"");
-    l.innerHTML='<input type="checkbox" '+(sel.has(k)?"checked":"")+'><span><b>'+k+'. '+TOPICS[k]+'</b><small>'+s.n+' preguntas'+(s.a?' · '+s.r+'/'+s.a+' correctas':'')+'</small></span>';
-    l.querySelector("input").onchange=e=>{e.target.checked?sel.add(k):sel.delete(k);renderHome()};
+    k=Number(k);const d=isDone(k);if(hide&&d){hidden++;return}
+    const s=stats(k);
+    const l=document.createElement("label");l.className="topic"+(sel.has(k)?" on":"")+(d?" done":"");
+    l.innerHTML='<input type="checkbox" '+(sel.has(k)?"checked":"")+'><span class="tx"><b></b><small></small><button type="button" class="mark ghost"></button></span>';
+    l.querySelector("b").textContent=k+". "+TOPICS[k]+(d?" ✓":"");
+    l.querySelector("small").textContent=s.n+" preguntas · "+s.a+" respondidas"+(s.a?" · "+s.r+" correctas":"");
+    const mk=l.querySelector(".mark");mk.textContent=d?"✓ Hecho (quitar la marca)":"Marcar como hecho";
+    mk.onclick=e=>{e.preventDefault();e.stopPropagation();store.done[k]=[d?0:1,Date.now()];if(!d)sel.delete(k);persist();save();renderHome()};
+    l.querySelector("input").onchange=e=>{e.target.checked?sel.add(k):sel.delete(k);persist();renderHome()};
     box.appendChild(l);
   });
-  const n=pool().length;$("sel").textContent=n+" preguntas seleccionadas";$("start").disabled=n===0;
+  const n=pool().length;
+  const ho=hidden?" · "+hidden+" tema(s) hecho(s) oculto(s)":"";
+  if(!sel.size){$("sel").textContent="Elegí al menos un tema"+ho;$("start").disabled=true;return}
+  $("sel").textContent=n?n+" preguntas para hacer"+(hidden?" · "+hidden+" tema(s) hecho(s) oculto(s)":""):"No quedan preguntas con este filtro: probá «Todas» o «Solo las que erré»"+(hidden?" · "+hidden+" tema(s) hecho(s) oculto(s)":"");
+  $("start").disabled=n===0;
 }
-$("allOn").onclick=()=>{Object.keys(TOPICS).forEach(k=>sel.add(Number(k)));renderHome()};
-$("allOff").onclick=()=>{sel.clear();renderHome()};
-document.querySelectorAll("input[name=mode],input[name=prio]").forEach(r=>r.onchange=renderHome);
-$("reset").onclick=()=>{if(confirm("¿Borrar todo el progreso guardado?")){store={v:2,reset:Date.now(),res:{}};save();renderHome()}};
+$("allOn").onclick=()=>{Object.keys(TOPICS).forEach(k=>sel.add(Number(k)));persist();renderHome()};
+$("allOff").onclick=()=>{sel.clear();persist();renderHome()};
+document.querySelectorAll("input[name=mode],input[name=prio],#hideDone,#shuf").forEach(r=>r.onchange=()=>{persist();renderHome()});
+$("reset").onclick=()=>{if(confirm("¿Borrar todo el progreso guardado (respuestas y temas hechos)?")){store={v:2,reset:Date.now(),res:{},done:{}};save();renderHome()}};
 
-/* sesion */
+/* sesion: S.items[i] = {b, opts (orden fijo), pick (null = sin responder)} */
 let S=null;
+function mkItem(b){return{b,opts:shuffle(b.opts.map((t,j)=>({t,ok:j===0}))),pick:null}}
 function begin(list){
-  S={list:$("shuf").checked?shuffle(list):list.slice(),i:0,ok:0,done:0,wrongIds:[],byTopic:{}};
-  show("quiz");ask();
+  const l=$("shuf").checked?shuffle(list):list.slice();
+  S={items:l.map(mkItem),i:0};show("quiz");render();
 }
 $("start").onclick=()=>begin(pool());
-function ask(){
-  const b=S.list[S.i];S.cur={b,opts:shuffle(b.opts.map((t,j)=>({t,ok:j===0}))),answered:false};
-  $("pos").textContent="Pregunta "+(S.i+1)+" de "+S.list.length;
+function tally(){let ok=0,done=0;S.items.forEach(it=>{if(it.pick!==null){done++;if(it.opts[it.pick].ok)ok++}});return{ok,done}}
+function render(){
+  const it=S.items[S.i],b=it.b,n=S.items.length,t=tally();
+  $("pos").textContent="Pregunta "+(S.i+1)+" de "+n;
   $("topicName").textContent=b.topic+". "+TOPICS[b.topic];
-  $("prog").style.width=(S.i/S.list.length*100)+"%";
-  $("liveScore").textContent=S.done?S.ok+" de "+S.done+" correctas":"";
+  $("prog").style.width=(t.done/n*100)+"%";
+  $("liveScore").textContent=t.done?t.ok+" de "+t.done+" correctas":"";
   $("tag").textContent=["","Esencial","Importante","Detalle"][b.pr]+" · sección "+b.sec.replace(/\.0$/,"");
   $("qtext").textContent=b.q;
   const c=$("choices");c.innerHTML="";
-  S.cur.opts.forEach((o,j)=>{
+  it.opts.forEach((o,j)=>{
     const btn=document.createElement("button");btn.className="choice";
     btn.innerHTML='<span class="k">'+"ABCD"[j]+'</span><span></span>';
-    btn.lastChild.textContent=o.t;btn.onclick=()=>pick(j);c.appendChild(btn);
+    btn.lastChild.textContent=o.t;
+    if(it.pick===null)btn.onclick=()=>pick(j);
+    else{btn.disabled=true;btn.classList.add(o.ok?"ok":(j===it.pick?"bad":"dim"))}
+    c.appendChild(btn);
   });
-  $("fb").classList.add("hide");$("next").classList.add("hide");
+  showFb(it);
+  $("prev").disabled=S.i===0;
+  $("next").textContent=S.i+1<n?"Siguiente →":"Ver resultado";
+  renderMap();
+}
+function showFb(it){
+  const fb=$("fb");
+  if(it.pick===null){fb.className="feedback hide";fb.innerHTML="";return}
+  const good=it.opts[it.pick].ok,right=it.opts.findIndex(o=>o.ok);
+  fb.className="feedback "+(good?"ok":"bad");fb.innerHTML="";
+  const h=document.createElement("h3");h.textContent=good?"✔ Correcto":"✘ Incorrecto — elegiste "+"ABCD"[it.pick]+"; la correcta es "+"ABCD"[right];
+  const p=document.createElement("p");p.textContent=it.b.exp;
+  const s=document.createElement("p");s.className="src";s.textContent="Sección "+it.b.sec.replace(/\.0$/,"")+" del apunte";
+  const a=document.createElement("button");a.type="button";a.className="ghost again";a.textContent="Responder de nuevo";
+  a.onclick=()=>{it.pick=null;render()};
+  fb.append(h,p,s,a);
 }
 function pick(j){
-  const cur=S.cur;if(cur.answered)return;cur.answered=true;
-  const good=cur.opts[j].ok;S.done++;if(good)S.ok++;
-  const t=cur.b.topic;S.byTopic[t]=S.byTopic[t]||{r:0,n:0};S.byTopic[t].n++;if(good)S.byTopic[t].r++;
-  if(!good)S.wrongIds.push(cur.b.id);
-  store.res[cur.b.h]=[good?1:0,Date.now()];save();
-  [...$("choices").children].forEach((btn,k)=>{
-    btn.disabled=true;
-    if(cur.opts[k].ok)btn.classList.add("ok");
-    else if(k===j)btn.classList.add("bad");
-    else btn.classList.add("dim");
-  });
-  const fb=$("fb");fb.className="feedback "+(good?"ok":"bad");
-  const right=cur.opts.findIndex(o=>o.ok);
-  fb.innerHTML="";
-  const h=document.createElement("h3");h.textContent=good?"✔ Correcto":"✘ Incorrecto — la respuesta correcta es "+"ABCD"[right];
-  const p=document.createElement("p");p.textContent=cur.b.exp;
-  const s=document.createElement("p");s.className="src";s.textContent="Sección "+cur.b.sec.replace(/\.0$/,"")+" del apunte";
-  fb.append(h,p,s);
-  $("liveScore").textContent=S.ok+" de "+S.done+" correctas";
-  $("next").textContent=S.i+1<S.list.length?"Siguiente →":"Ver resultado";
-  $("next").classList.remove("hide");$("next").focus();
+  const it=S.items[S.i];if(it.pick!==null)return;
+  it.pick=j;store.res[it.b.h]=[it.opts[j].ok?1:0,Date.now()];save();
+  render();$("fb").scrollIntoView({block:"nearest",behavior:"smooth"});
 }
-$("next").onclick=()=>{
-  if(S.i+1<S.list.length){S.i++;ask()}else finish();
-};
-$("quit").onclick=()=>{if(S.done===0||confirm("¿Salir de la sesión? Lo respondido queda guardado."))goHome()};
+function renderMap(){
+  const m=$("map");m.innerHTML="";
+  S.items.forEach((it,k)=>{
+    const b=document.createElement("button");b.type="button";b.textContent=k+1;
+    b.className="mp"+(it.pick===null?"":(it.opts[it.pick].ok?" ok":" bad"))+(k===S.i?" cur":"");
+    b.setAttribute("aria-label","Pregunta "+(k+1)+(it.pick===null?", sin responder":(it.opts[it.pick].ok?", correcta":", incorrecta")));
+    b.onclick=()=>{S.i=k;render();window.scrollTo(0,0)};
+    m.appendChild(b);
+  });
+  $("mapSum").textContent="Mapa de preguntas · "+tally().done+"/"+S.items.length+" respondidas";
+}
+$("next").onclick=()=>{if(S.i+1<S.items.length){S.i++;render();window.scrollTo(0,0)}else finish()};
+$("prev").onclick=()=>{if(S.i>0){S.i--;render();window.scrollTo(0,0)}};
+$("finish").onclick=finish;
+$("quit").onclick=goHome;
 function goHome(){renderHome();show("home")}
 $("home2").onclick=goHome;
+function wrongItems(){return S.items.filter(it=>it.pick!==null&&!it.opts[it.pick].ok)}
 function finish(){
   show("result");
-  const pct=Math.round(S.ok/S.list.length*100);
-  $("rScore").textContent=S.ok+" / "+S.list.length+"  ("+pct+"%)";
-  $("rMsg").textContent=S.wrongIds.length?"Erraste "+S.wrongIds.length+". Podés repetir solo esas.":"¡Sin errores en esta sesión!";
+  const t=tally(),n=S.items.length,left=n-t.done,w=wrongItems();
+  $("rScore").textContent=t.ok+" / "+t.done+(t.done?"  ("+Math.round(t.ok/t.done*100)+"%)":"");
+  $("rMsg").textContent=(left?"Te quedan "+left+" sin responder en esta sesión. ":"")+(w.length?"Erraste "+w.length+". Podés repetir solo esas.":(t.done?"¡Sin errores en esta sesión!":""));
+  const bt={};
+  S.items.forEach(it=>{if(it.pick===null)return;const k=it.b.topic;bt[k]=bt[k]||{r:0,n:0};bt[k].n++;if(it.opts[it.pick].ok)bt[k].r++});
   const box=$("rTopics");box.innerHTML="";
-  Object.keys(S.byTopic).sort((a,b)=>a-b).forEach(k=>{
-    const v=S.byTopic[k];const d=document.createElement("div");d.className="tb";
+  Object.keys(bt).sort((a,b)=>a-b).forEach(k=>{
+    const v=bt[k];const d=document.createElement("div");d.className="tb";
     d.innerHTML='<span></span><span></span><div class="bar"><i></i></div>';
     d.children[0].textContent=k+". "+TOPICS[k];d.children[1].textContent=v.r+"/"+v.n;
     d.querySelector("i").style.width=(v.r/v.n*100)+"%";box.appendChild(d);
   });
-  $("redo").classList.toggle("hide",!S.wrongIds.length);
+  $("redo").classList.toggle("hide",!w.length);$("cont").classList.toggle("hide",!left);
 }
-$("redo").onclick=()=>begin(BANK.filter(b=>S.wrongIds.includes(b.id)));
+$("redo").onclick=()=>begin(wrongItems().map(it=>it.b));
+$("cont").onclick=()=>{const k=S.items.findIndex(it=>it.pick===null);S.i=k<0?0:k;show("quiz");render()};
+$("review").onclick=()=>{S.i=0;show("quiz");render()};
 
 document.addEventListener("keydown",e=>{
-  if($("quiz").classList.contains("hide")||e.ctrlKey||e.metaKey||e.altKey)return;
-  const k=e.key.toLowerCase();let j=-1;
+  if($("quiz").classList.contains("hide")||e.ctrlKey||e.metaKey||e.altKey||!S)return;
+  const it=S.items[S.i],k=e.key.toLowerCase();let j=-1;
   if("abcd".includes(k)&&k.length===1)j="abcd".indexOf(k);
   else if("1234".includes(k)&&k.length===1)j=Number(k)-1;
-  if(j>=0&&!S.cur.answered){pick(j);e.preventDefault()}
-  else if(e.key==="Enter"&&S.cur.answered&&document.activeElement!==$("next")){$("next").click();e.preventDefault()}
+  if(j>=0&&it.pick===null){pick(j);e.preventDefault()}
+  else if(e.key==="ArrowRight"||(e.key==="Enter"&&it.pick!==null&&document.activeElement===document.body)){$("next").click();e.preventDefault()}
+  else if(e.key==="ArrowLeft"){$("prev").click();e.preventDefault()}
 });
 renderHome();
 sync();

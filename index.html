@@ -2032,7 +2032,7 @@ async function storageGetWithRetry(key){
     <aside class="plano-side" id="facPlano"></aside>
     <div class="plano-main">
     <section class="fac-sec" id="facSecFarmaco">
-      <p class="fac-intro">Todos los videos de Farmacología II: los oficiales de la cátedra (<b>Moodle</b>) al lado de la playlist extra de YouTube <b>"Farmaco 2 - Cat 1" (Butters)</b>, organizados por clase del cronograma. Cuando falta un video, se marca explícitamente. Marcá el casillero cuando ya lo viste. <a href="https://campus.fmed.uba.ar/course/view.php?id=1250" target="_blank" rel="noopener">Fuente de la columna Moodle ↗</a> <span style="opacity:.7">(verificado no campus em 11/10/2026 — novos vídeos: Betalactámicos ×3, Aminoglucósidos e Macrólidos; guías de Quinolonas, Antifúngicos, Macrólidos, Otros Bacteriostáticos, Antineoplásicos e Antivirales)</span></p>
+      <p class="fac-intro">Todos los videos de Farmacología II: los oficiales de la cátedra (<b>Moodle</b>) al lado de la playlist extra de YouTube <b>"Farmaco 2 - Cat 1" (Butters)</b>, organizados por clase del cronograma. Cuando falta un video, se marca explícitamente. Marcá el casillero cuando ya lo viste. <a href="https://campus.fmed.uba.ar/course/view.php?id=1250" target="_blank" rel="noopener">Fuente de la columna Moodle ↗</a> <span style="opacity:.7">(verificado no campus em 05/11/2026 — novos vídeos: Clase 7 (Tetraciclinas, Lincosamidas/Oxazolidinonas/Fenicoles, Antimetabólitos), Clase 10 (Antidepresivos, 5 partes) e Clase 11 (Anticrisis epilépticas e Litio separados); guías de Antidepresivos, Ansiolíticos e Anticrisis/Litio reescritas. Durações dos vídeos novos ainda sem preencher)</span></p>
       <div class="fac-startool"><button type="button" class="fac-onlystar" data-star-scope="f" title="mostrar só as que marquei com ★">☆ só as que vou ver</button><span class="fac-starcount" data-star-count="f"></span></div>
       <div class="fac-farmaco-list" id="facFarmacoList"></div>
     </section>
@@ -10368,12 +10368,13 @@ window.init_faculdade = function(){
     },
     { n:'Clase 7', t:'Antifúngicos, Macrólidos/Bacteriostáticos, Antifolatos, Nitrocompuestos',
       guias:[ { x:'Antifúngicos', r:128573 }, { x:'Macrólidos', r:128572 }, { x:'Otros Bacteriostáticos', r:128591 } ],
-      moodle:{ total:'30 min', items:[
+      moodle:{ items:[
         { x:'Antifúngicos', miss:true, note:'sin video en Moodle' },
         { x:'Macrólidos — Sofía Salvia', d:'30 min', u:'VCNRR3BifpY' },
-        { x:'Otros Bacteriostáticos', miss:true, note:'sin video en Moodle (solo guía TP)' },
-        { x:'Antifolatos', miss:true, note:'sin video en Moodle' },
-        { x:'Nitrocompuestos', miss:true, note:'sin video en Moodle (solo PDF junto con Antifolatos)' },
+        { x:'Tetraciclinas - Glicilciclinas — Florencia Paretto', u:'Rt_dIAwnv48' },
+        { x:'Lincosamidas - Oxazolidinonas - Fenicoles — Evelyn Vera', u:'viKD15SgbXY' },
+        { x:'Antimetabólitos (Sulfamidas - Trimetoprima) — Celina Uad', u:'ocksQK-ClOY' },
+        { x:'Nitrocompuestos', miss:true, note:'sin video en Moodle (solo PDF)' },
       ]},
       yt:{ total:'2h45min', items:[
         { x:'Antifúngicos (Clase 2022 — Jorge Quercetti)', d:'46 min', u:'il-gTkWj9Kw' },
@@ -10416,10 +10417,14 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 10', t:'Generalidades de Psicofarmacología, Antidepresivos',
-      guias:[ { x:'Antidepresivos', r:99249 } ],
+      guias:[ { x:'Antidepresivos', r:129425 } ],
       moodle:{ items:[
         { x:'Generalidades de Psicofarmacología', miss:true, note:'sin video en Moodle (solo libro)' },
-        { x:'Antidepresivos', miss:true, note:'sin video en Moodle (solo PDF/guía/libro)' },
+        { x:'Antidepresivos — Parte 1: Generalidades — Pablo Fleitas Rumak', u:'yFQQYi3d-gs' },
+        { x:'Antidepresivos — Parte 2: 1952-1969, la era de la serendipia — Pablo Fleitas Rumak', u:'ZhGVTahFlNU' },
+        { x:'Antidepresivos — Parte 3: 1974-1999, diseño racional centrado en transportadores — Pablo Fleitas Rumak', u:'AHf0bZJDTZI' },
+        { x:'Antidepresivos — Parte 4: 1981-2013, modulación de receptores, cronofarmacología y multimodales — Pablo Fleitas Rumak', u:'zpOd13RnUVQ' },
+        { x:'Antidepresivos — Parte 5: 2019-actualidad, antidepresivos de acción rápida — Pablo Fleitas Rumak', u:'MZ4wU9sy0Qo' },
       ]},
       yt:{ total:'1h51min', items:[
         { x:'Antidepresivos 1 — Mecanismo de acción y clasificaciones', d:'42 min', u:'zD4xvIn_pzI' },
@@ -10428,10 +10433,11 @@ window.init_faculdade = function(){
       ]}
     },
     { n:'Clase 11', t:'Ansiolíticos e Hipnóticos, Antiepilépticos y Litio',
-      guias:[ { x:'Ansiolíticos e Hipnóticos', r:114983 }, { x:'Antiepilépticos y litio', r:99123 } ],
-      moodle:{ total:'2h43min', items:[
-        { x:'Ansiolíticos e Hipnóticos (Benzodiacepinas)', d:'1h36', u:'jwicag1oQDw' },
-        { x:'Antiepilépticos y Litio (Estabilizadores del Ánimo)', d:'1h07', u:'nU180j7lk3U' },
+      guias:[ { x:'Ansiolíticos e Hipnóticos', r:129624 }, { x:'Antiepilépticos y litio', r:129648 } ],
+      moodle:{ items:[
+        { x:'Ansiolíticos e Hipnóticos (Benzodiacepinas) — Pablo Fleitas Rumak', d:'1h36', u:'jwicag1oQDw' },
+        { x:'Fármacos Anticrisis Epilépticas — Daniela Scapellato', u:'aZBXzrtJK_k' },
+        { x:'Estabilizadores del Ánimo: Litio — Pablo Fleitas Rumak', u:'SNndAJK2EcY' },
       ]},
       yt:{ total:'2h51min', items:[
         { x:'Ansiolíticos e hipnosedantes', d:'49 min', u:'FqZHY0as8QQ' },

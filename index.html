@@ -10544,6 +10544,30 @@ window.init_faculdade = function(){
     if(prox && prox > hoje) fim = prox < addDiasIso(hoje, 13) ? prox : addDiasIso(hoje, 13);
     for(let d = hoje; d <= fim; d = addDiasIso(d, 1)) PLAN.days.push(d);
   }
+  // Rola o plano pra frente: pendências de dias que já passaram vão pra hoje, e sempre existem dias de hoje até a próxima prova
+  // (mín. 7 dias). Os dias passados continuam guardados (não mexe na Agenda deles), só não aparecem mais na lateral.
+  function planRolar(){
+    const hoje = isoHoje();
+    let mudou = false;
+    const passados = PLAN.days.filter(d => d < hoje);
+    const pend = [];
+    passados.forEach(d => {
+      const its = PLAN.items[d] || [];
+      its.filter(x => !x.done).forEach(x => pend.push(x));
+      if(its.some(x => !x.done)){ PLAN.items[d] = its.filter(x => x.done); mudou = true; }
+    });
+    if(pend.length){
+      planAddDay(hoje);
+      const arr = PLAN.items[hoje] = PLAN.items[hoje] || [];
+      pend.forEach(x => { if(x.s === 'c' || !arr.some(y => y.k === x.k)) arr.push(x); });
+      mudou = true;
+    }
+    const prox = (typeof EXAMES !== 'undefined' ? EXAMES : []).filter(e => !e.fin && e.d >= hoje).map(e => e.d).sort()[0];
+    let fim = addDiasIso(hoje, 6);
+    if(prox && prox > fim) fim = prox < addDiasIso(hoje, 13) ? prox : addDiasIso(hoje, 13);
+    for(let d = hoje; d <= fim; d = addDiasIso(d, 1)){ if(planAddDay(d)) mudou = true; }
+    return mudou;
+  }
   function planAtivoValido(){
     if(planActive && PLAN.days.includes(planActive)) return planActive;
     const hoje = isoHoje();
@@ -10570,7 +10594,7 @@ window.init_faculdade = function(){
     const hoje = isoHoje();
     const ativo = planAtivoValido();
     const exames = typeof EXAMES !== 'undefined' ? EXAMES : [];
-    const dias = PLAN.days.map(d => {
+    const dias = PLAN.days.filter(d => d >= hoje).map(d => {
       const its = PLAN.items[d] || [];
       const ex = exames.filter(e => e.d === d).map(e => `<div class="plano-exam">📝 ${escAttr(e.ti)}</div>`).join('');
       const itens = its.length ? its.map(x => `<div class="plano-it ${x.s}${x.done ? ' done' : ''}" data-pitem="${x.id}"><span class="plano-grip" data-pdrag="${d}|${x.id}" title="arraste pra outro dia (ou pra reordenar)">⠿</span><input type="checkbox" data-pdone="${d}|${x.id}"${x.done ? ' checked' : ''} title="estudei"><span class="t">${escAttr(x.t)}</span><button type="button" class="plano-ix" data-pdel="${d}|${x.id}" title="tirar deste dia">×</button></div>`).join('')
@@ -11455,7 +11479,8 @@ window.init_faculdade = function(){
     if(r && r.value !== undefined){
       try { const p = JSON.parse(r.value) || {}; PLAN = { days: Array.isArray(p.days) ? p.days.slice().sort() : [], items: p.items && typeof p.items === 'object' ? p.items : {} }; _planTrusted = true; } catch(e){}
     }
-    planSeedIfEmpty(); _planLoaded = true; planRender(); refreshPlanBadges(); planSyncSoon(); planReconcileDone();
+    planSeedIfEmpty(); if(planRolar()) savePlan();
+    _planLoaded = true; planRender(); refreshPlanBadges(); planSyncSoon(); planReconcileDone();
   });
   storageGetWithRetry('faculdade_planejadas').then(r => {
     if(r && r.value !== undefined){ try { STAR = JSON.parse(r.value) || {}; } catch(e){ STAR = {}; } }

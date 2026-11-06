@@ -4436,12 +4436,13 @@ function renderDays(){
         hairPool.push({ d:(o && o.d2) || hs, t:(o && o.t!==undefined) ? o.t : '11:00', ti:(o && o.ti) || 'Cortar o cabelo ✂️', c:'pessoal' });
       }
     }
+    // ponto de corte: só o que cai nos próximos 10 dias (hoje até hoje+10)
+    const corte = new Date(t0); corte.setDate(corte.getDate() + 10);
     const upcoming = allEvents.filter(e=>!/^\s*academia/i.test(e.ti||'')).concat(hairPool)
-      .filter(e=>{ const ed = new Date(e.d+'T00:00:00'); return ed >= t0 && SURFACE_CLASSES.includes(e.c) && !/^\s*(in[ií]cio cursada|psiquiatr[ií]a:)/i.test(e.ti||''); })
-      .sort((a,b)=> a.d.localeCompare(b.d) || (a.t||'').localeCompare(b.t||''))
-      .slice(0,8);
+      .filter(e=>{ const ed = new Date(e.d+'T00:00:00'); return ed >= t0 && ed <= corte && SURFACE_CLASSES.includes(e.c) && !/^\s*(in[ií]cio cursada|psiquiatr[ií]a:)/i.test(e.ti||''); })
+      .sort((a,b)=> a.d.localeCompare(b.d) || (a.t||'').localeCompare(b.t||''));
     if(upcoming.length){
-      let up = `<details class="agenda-upcoming" id="agendaUpcomingBox"${window.innerWidth > 800 ? ' open' : ''}><summary class="au-title">📌 Chegando — provas, consultas, jogos e o que você marcou</summary><ul>`;
+      let up = `<details class="agenda-upcoming" id="agendaUpcomingBox"${window.innerWidth > 800 ? ' open' : ''}><summary class="au-title">📌 Chegando — próximos 10 dias: provas, consultas, jogos e o que você marcou</summary><ul>`;
       upcoming.forEach(e=>{
         const ed = new Date(e.d+'T00:00:00');
         const diff = Math.round((ed - t0) / 86400000);

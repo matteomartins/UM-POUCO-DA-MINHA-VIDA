@@ -4361,9 +4361,7 @@ function renderDays(){
     if(isHaircutDay(d)){
       routineRaw.push({k:'r:cabelo',t:"11:00",ti:"Cortar o cabelo ✂️",c:"pessoal"});
     }
-    if(d.getDay()===2){
-      routineRaw.push({k:'r:psicologo',t:"14:00",ti:"Psicólogo",c:"pessoal"});
-    }
+    // psicólogo deixou de ser fixo toda terça 14:00 (16/11/2026): agora é lançado como evento avulso quando houver consulta
 
     // compromissos recorrentes do usuário (chave agenda_recurring)
     recurringEvents.forEach(rc=>{
